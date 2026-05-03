@@ -1,0 +1,304 @@
+/** @import must precede all other statements */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+
+@tailwind base;
+@tailwind utilities;
+@tailwind components;
+
+@layer base {
+  /**
+   * Clean Minimalist Black & White Theme
+   * Simple, professional color palette with minimal effects
+   */
+  :root {
+    /* Light mode - Clean white background */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 5%;
+
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 9%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 95%;
+    --accent-foreground: 0 0% 9%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 9%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 5%;
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    /* Dark mode - Clean dark background */
+    --background: 0 0% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 0 0% 16%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 9%;
+
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 83.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  pre,
+  code {
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-lg font-semibold tracking-tight;
+  }
+
+  h4 {
+    @apply text-base font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Clean card styles */
+  .clean-card {
+    @apply bg-card border border-border rounded-2xl shadow-xl;
+  }
+
+  /* Minimal button styles */
+  .clean-button {
+    @apply px-4 py-2 rounded-md font-medium transition-colors duration-200;
+    @apply bg-primary text-primary-foreground;
+    @apply hover:bg-primary/90;
+    @apply active:bg-primary/80;
+  }
+
+  /* Simple input styles */
+  .clean-input {
+    @apply w-full px-3 py-2 rounded-md;
+    @apply bg-background border border-input;
+    @apply text-foreground placeholder-muted-foreground;
+    @apply transition-colors duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  /* Status colors - minimal, clean */
+  .status-expired {
+    @apply text-red-600 dark:text-red-400;
+  }
+
+  .status-expiring-soon {
+    @apply text-yellow-600 dark:text-yellow-500;
+  }
+
+  .status-valid {
+    @apply text-green-600 dark:text-green-500;
+  }
+
+  /* Simple table styles */
+  .clean-table {
+    @apply w-full border-collapse;
+  }
+
+  .clean-table thead {
+    @apply border-b border-border bg-muted/50;
+  }
+
+  .clean-table th {
+    @apply px-4 py-3 text-left text-sm font-semibold text-foreground;
+  }
+
+  .clean-table tbody tr {
+    @apply border-b border-border hover:bg-muted/50 transition-colors;
+  }
+
+  .clean-table td {
+    @apply px-4 py-3 text-sm text-foreground;
+  }
+
+  /* Subtle animations */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.2s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  /* Layout utilities */
+  .page-container {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  .section-title {
+    @apply text-2xl font-semibold text-foreground mb-6;
+  }
+
+  .section-description {
+    @apply text-muted-foreground mb-4;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold;
+  }
+
+  .badge-default {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .badge-secondary {
+    @apply bg-secondary text-secondary-foreground;
+  }
+
+  .badge-outline {
+    @apply border border-input bg-background text-foreground;
+  }
+
+  /* Link styles */
+  .clean-link {
+    @apply text-foreground underline-offset-4 hover:underline;
+  }
+
+  /* Divider */
+  .divider {
+    @apply border-t border-border my-6;
+  }
+
+  /* Form group */
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-label {
+    @apply text-sm font-medium text-foreground;
+  }
+
+  .form-help {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .form-error {
+    @apply text-xs text-destructive;
+  }
+
+  /* Header Navigation Styling */
+  header {
+    @apply border-border;
+  }
+
+  /* Navigation tabs */
+  nav {
+    @apply flex flex-wrap items-center;
+  }
+
+  /* Individual nav items */
+  nav a {
+    @apply relative px-3 py-2 text-sm font-medium text-foreground;
+    @apply transition-colors duration-200;
+    @apply hover:bg-muted rounded-md;
+    @apply whitespace-nowrap;
+  }
+
+  /* Active nav item indicator */
+  nav a[class*="bg-muted"] {
+    @apply text-primary;
+  }
+
+  /* Mobile nav drawer */
+  @media (max-width: 767px) {
+    nav {
+      @apply flex-col gap-0 -mx-4;
+    }
+
+    nav a {
+      @apply px-4 py-2.5 rounded-none border-b border-border/50;
+    }
+  }
+}
