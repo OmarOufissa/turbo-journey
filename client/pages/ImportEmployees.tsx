@@ -4,153 +4,144 @@ import { Upload, AlertCircle, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+interface ImportError {
+  row: number;
+  field: string;
+  message: string;
+}
+
+interface ImportResult {
+  successCount: number;
+  errorCount: number;
+  errors: ImportError[];
+}
 
 export default function ImportEmployees() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{
-    imported: number;
-    skipped: number;
-    corrected?: number;
-    issues?: { matricule: string; division: string; service: string; equipe: string; reason: string }[];
-  } | null>(null);
+  const [mode, setMode] = useState<"A" | "B">("A");
+  const [result, setResult] = useState<ImportResult | null>(null);
+  const token = localStorage.getItem("token");
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.name.endsWith(".xlsx")) {
+      toast({ title: "Erreur", description: "Seuls les fichiers .xlsx sont acceptés", variant: "destructive" });
+      return;
+    }
 
     setLoading(true);
+    setResult(null);
     try {
-      const text = await file.text();
-      const response = await fetch("/api/employees/import", {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`/api/import-employees?mode=${mode}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "text/plain",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: text,
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Import failed");
+      const data = await res.json();
+      if (data.success) {
+        setResult(data.data);
+        toast({
+          title: "Import terminé",
+          description: `${data.data.successCount} importé(s), ${data.data.errorCount} erreur(s)`,
+        });
+      } else {
+        throw new Error(data.error);
       }
-
-      const data = await response.json();
-      setResult(data);
-      const corrected = data.corrected ?? 0;
-      toast({
-        title: "Import réussi",
-        description: `${data.imported} employé(s) importé(s), ${data.skipped} ignoré(s), ${corrected} corrigé(s)` ,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur lors de l'import";
-      toast({
-        title: "Erreur",
-        description: message,
-        variant: "destructive",
-      });
+    } catch (err: any) {
+      toast({ title: "Erreur", description: err.message ?? "Erreur lors de l'import", variant: "destructive" });
     } finally {
       setLoading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   return (
     <Layout>
-      <div className="space-y-6 animate-fade-in">
+      <div className="p-6 space-y-6 max-w-2xl mx-auto">
         <div>
-          <h1 className="text-3xl font-bold">Importer des Employés</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Téléchargez un fichier TSV pour importer des employés
-          </p>
+          <h1 className="text-2xl font-bold">Importer des employés</h1>
+          <p className="text-muted-foreground mt-1">Importez depuis un fichier Excel (.xlsx)</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700">
-          <div className="text-center space-y-4">
-            <Upload className="w-12 h-12 mx-auto text-slate-400" />
-            <div>
-              <p className="font-medium">Sélectionner un fichier</p>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Format: TSV avec colonnes MATRICULE, Nom, Prénom, etc.
-              </p>
-            </div>
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={loading}
-              className="mx-auto"
-            >
-              {loading ? "Importation..." : "Choisir un fichier"}
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".tsv,.txt"
-              onChange={handleFileSelect}
-              disabled={loading}
-              className="hidden"
-            />
+        <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+          <div className="space-y-1">
+            <Label>Mode d'import</Label>
+            <Select value={mode} onValueChange={v => setMode(v as "A" | "B")}>
+              <SelectTrigger className="w-60">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="A">Mode A — Tout ou rien (rollback si erreur)</SelectItem>
+                <SelectItem value="B">Mode B — Ignorer les lignes invalides</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {mode === "A"
+                ? "Si une ligne est invalide, l'import entier est annulé."
+                : "Les lignes invalides sont ignorées, les autres sont importées."}
+            </p>
           </div>
+        </div>
+
+        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center space-y-4">
+          <Upload className="w-10 h-10 mx-auto text-muted-foreground" />
+          <div>
+            <p className="font-medium">Sélectionner un fichier .xlsx</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Colonnes: Matricule, Nom, Prenom, Fonction, Division, Service, Equipe, ST_codes, HT_codes, N_de_titre, Date_validation, Date_expiration
+            </p>
+          </div>
+          <Button onClick={() => fileInputRef.current?.click()} disabled={loading}>
+            {loading ? "Importation..." : "Choisir un fichier"}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx"
+            onChange={handleFileSelect}
+            disabled={loading}
+            className="hidden"
+          />
         </div>
 
         {result && (
-          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4 rounded-lg space-y-3">
-            <div className="flex gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-green-900 dark:text-green-100">
-                  Import terminé
-                </p>
-                <p className="text-sm text-green-800 dark:text-green-200">
-                  {result.imported} employé(s) importé(s), {result.skipped} ignoré(s), {result.corrected ?? 0} corrigé(s)
-                </p>
-                <Button
-                  onClick={() => navigate("/employees")}
-                  className="mt-3"
-                  variant="outline"
-                >
-                  Retour à la liste
-                </Button>
-              </div>
-            </div>
-            {result.issues && result.issues.length > 0 && (
-              <div className="bg-white/60 dark:bg-slate-900/40 border border-green-200/60 dark:border-green-800/60 p-3 rounded-md text-xs max-h-40 overflow-auto">
-                <p className="font-medium mb-1">Lignes avec problèmes (aperçu) :</p>
-                <ul className="space-y-1">
-                  {result.issues.slice(0, 10).map((issue, index) => (
-                    <li key={`${issue.matricule}-${index}`} className="flex gap-2">
-                      <span className="font-mono">{issue.matricule}</span>
-                      <span className="text-slate-700 dark:text-slate-200">
-                        {issue.reason} · {issue.division} / {issue.service} / {issue.equipe}
-                      </span>
-                    </li>
-                  ))}
-                  {result.issues.length > 10 && (
-                    <li className="text-slate-600 dark:text-slate-300 mt-1">
-                      + {result.issues.length - 10} ligne(s) supplémentaire(s) avec des problèmes
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
-          <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-blue-900 dark:text-blue-100">Format attendu</p>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                Le fichier doit être en format TSV avec les colonnes au minimum : MATRICULE, Nom, Prénom, DIVISION, SERVICE (ou SECTION), EQUIPE.
+          <div className={`p-4 rounded-lg border space-y-3 ${result.errorCount === 0 ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"}`}>
+            <div className="flex items-center gap-2">
+              {result.errorCount === 0
+                ? <CheckCircle className="w-5 h-5 text-green-600" />
+                : <AlertCircle className="w-5 h-5 text-yellow-600" />}
+              <p className="font-medium">
+                {result.successCount} importé(s) · {result.errorCount} erreur(s)
               </p>
             </div>
+
+            {result.errors.length > 0 && (
+              <div className="text-xs space-y-1 max-h-40 overflow-auto border rounded p-2 bg-white/60">
+                <p className="font-semibold">Erreurs :</p>
+                {result.errors.map((err, i) => (
+                  <div key={i} className="text-red-700">
+                    Ligne {err.row} — {err.field}: {err.message}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button variant="outline" size="sm" onClick={() => navigate("/employees")}>
+              Voir les employés
+            </Button>
           </div>
-        </div>
+        )}
       </div>
     </Layout>
   );

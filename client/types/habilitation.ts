@@ -1,93 +1,66 @@
-export interface Habilitation {
-  id: number;
-  employee_id: number;
-  stCodes: string[];  // ST codes array (can be empty)
-  htCodes: string[];  // HT codes array (can be empty)
-  numero: string | null;
-  date_validation: string;
-  date_expiration: string;
-  pdf_path?: string | null;
-}
+export type ExpirationStatus = "expired" | "lessThan3Months" | "lessThan6Months" | "lessThan9Months" | "valid";
 
-export interface HabilitationRow extends Habilitation {
-  matricule: string;
-  prenom: string;
-  nom: string;
-  division: string;
-  service: string;
-  equipe: string;
-}
-
-export type HabilitationStatus =
-  | "expired"
-  | "expiringSoon1Month"
-  | "expiringSoon2Months"
-  | "expiringSoon3Months"
-  | "valid";
-
-export interface HabilitationStatusConfig {
+export interface ExpirationStatusConfig {
   name: string;
   color: string;
   textColor: string;
+  bgColor: string;
 }
 
-export const COLOR_CONFIG: Record<HabilitationStatus, HabilitationStatusConfig> = {
+export const EXPIRATION_COLOR_CONFIG: Record<ExpirationStatus, ExpirationStatusConfig> = {
   expired: {
     name: "Expiré",
-    color: "bg-red-500",
+    color: "red",
     textColor: "text-red-600 dark:text-red-400",
+    bgColor: "bg-red-100 dark:bg-red-950",
   },
-  expiringSoon1Month: {
-    name: "1 mois",
-    color: "bg-red-400",
-    textColor: "text-red-500 dark:text-red-400",
-  },
-  expiringSoon2Months: {
-    name: "2 mois",
-    color: "bg-orange-500",
+  lessThan3Months: {
+    name: "< 3 mois",
+    color: "orange",
     textColor: "text-orange-600 dark:text-orange-400",
+    bgColor: "bg-orange-100 dark:bg-orange-950",
   },
-  expiringSoon3Months: {
-    name: "3 mois",
-    color: "bg-yellow-500",
+  lessThan6Months: {
+    name: "< 6 mois",
+    color: "yellow",
     textColor: "text-yellow-600 dark:text-yellow-400",
+    bgColor: "bg-yellow-100 dark:bg-yellow-950",
+  },
+  lessThan9Months: {
+    name: "< 9 mois",
+    color: "blue",
+    textColor: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-100 dark:bg-blue-950",
   },
   valid: {
     name: "Valide",
-    color: "bg-green-500",
+    color: "green",
     textColor: "text-green-600 dark:text-green-400",
+    bgColor: "bg-green-100 dark:bg-green-950",
   },
 };
 
-// Valid HT codes (Hors Tension)
-export const HT_CODES = ["H0V", "H1V", "H2V", "HC", "B0V", "B1V", "B2V", "BC", "BR", "SF6"];
+// All valid ST codes
+export const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "SF6"];
 
-// Valid ST codes (Sous Tension) - legacy but still supported
-export const ST_CODES = ["H1N", "H2N"];
+// All valid HT codes
+export const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"];
 
-// Combined list of all valid codes
-export const ALL_CODES = [...HT_CODES, ...ST_CODES];
+export function getExpirationStatus(dateExpiration: string): ExpirationStatus {
+  const now = Date.now();
+  const exp = new Date(dateExpiration).getTime();
+  const diff = exp - now;
+  const ms90 = 90 * 24 * 60 * 60 * 1000;
+  const ms180 = 180 * 24 * 60 * 60 * 1000;
+  const ms270 = 270 * 24 * 60 * 60 * 1000;
 
-export function getHabilitationStatus(hab: Habilitation): HabilitationStatus {
-  const expDate = new Date(hab.date_expiration);
-  const today = new Date();
-  const daysUntilExpiry = Math.ceil(
-    (expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  if (daysUntilExpiry < 0) return "expired";
-  if (daysUntilExpiry <= 30) return "expiringSoon1Month";
-  if (daysUntilExpiry <= 60) return "expiringSoon2Months";
-  if (daysUntilExpiry <= 90) return "expiringSoon3Months";
+  if (diff < 0) return "expired";
+  if (diff <= ms90) return "lessThan3Months";
+  if (diff <= ms180) return "lessThan6Months";
+  if (diff <= ms270) return "lessThan9Months";
   return "valid";
 }
 
 export function getDaysUntilExpiry(dateExpiration: string): number {
-  const expDate = new Date(dateExpiration);
-  const today = new Date();
-  return Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-export function getStatusColor(status: HabilitationStatus): string {
-  return COLOR_CONFIG[status].textColor;
+  return Math.ceil((new Date(dateExpiration).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }

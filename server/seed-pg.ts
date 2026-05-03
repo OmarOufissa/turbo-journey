@@ -9,7 +9,6 @@ import {
   findMatchingService,
   findMatchingEquipe,
   calculateExpirationDate,
-  DivisionStructure,
 } from "./org-structure";
 import { eq } from "drizzle-orm";
 
@@ -234,7 +233,7 @@ export async function seedDatabasePG() {
   console.log("Starting PostgreSQL database seeding...");
 
   try {
-    await db.delete(schema.habilitations);
+    await db.delete(schema.employeeVersions);
     await db.delete(schema.employees);
     await db.delete(schema.equipes);
     await db.delete(schema.services);
@@ -255,7 +254,7 @@ export async function seedDatabasePG() {
       for (const service of division.services) {
         const serviceKey = `${division.name}|${service.name}`;
         const [serviceResult] = await db.insert(schema.services)
-          .values({ 
+          .values({
             name: service.name,
             divisionId: divisionId
           })
@@ -282,74 +281,73 @@ export async function seedDatabasePG() {
     console.log(`✓ Created ${Object.keys(services).length} services`);
     console.log(`✓ Created ${Object.keys(equipes).length} équipes`);
 
-    const employees = await parseExcelData();
+    const employeeDataList = await parseExcelData();
     let employeeCount = 0;
-    let habilitationCount = 0;
+    let versionCount = 0;
 
-    for (const employee of employees) {
-      const divisionId = divisions[employee.division];
-      const serviceKey = `${employee.division}|${employee.service}`;
+    for (const empData of employeeDataList) {
+      const divisionId = divisions[empData.division];
+      const serviceKey = `${empData.division}|${empData.service}`;
       const serviceId = services[serviceKey];
-      const equipeKey = `${serviceKey}|${employee.equipe}`;
+      const equipeKey = `${serviceKey}|${empData.equipe}`;
       const equipeId = equipes[equipeKey];
 
-      const existingEmployee = await db.select()
+      if (!divisionId || !serviceId) {
+        console.warn(`Skipping ${empData.matricule}: missing divisionId or serviceId`);
+        continue;
+      }
+
+      const existing = await db.select()
         .from(schema.employees)
-        .where(eq(schema.employees.matricule, employee.matricule))
+        .where(eq(schema.employees.matricule, empData.matricule))
         .limit(1);
 
       let employeeId: number;
 
-      if (existingEmployee.length === 0) {
+      if (existing.length === 0) {
         const [empResult] = await db.insert(schema.employees)
           .values({
-            matricule: employee.matricule,
-            prenom: employee.prenom,
-            nom: employee.nom,
-            divisionId: divisionId,
-            serviceId: serviceId,
-            equipeId: equipeId
+            matricule: empData.matricule,
+            prenom: empData.prenom,
+            nom: empData.nom,
           })
           .returning({ id: schema.employees.id });
         employeeId = empResult.id;
         employeeCount++;
       } else {
-        employeeId = existingEmployee[0].id;
+        employeeId = existing[0].id;
       }
 
-      if (employeeId) {
-        if (employee.htCodes.length > 0) {
-          const dateExpHT = employee.dateExpiration || calculateExpirationDate(employee.dateValidation, "HT");
-          await db.insert(schema.habilitations)
-            .values({
-              employeeId: employeeId,
-              type: "HT",
-              codes: JSON.stringify(employee.htCodes),
-              numero: employee.nTitre,
-              dateValidation: employee.dateValidation,
-              dateExpiration: dateExpHT
-            });
-          habilitationCount++;
-        }
+      const dateExp = empData.dateExpiration || calculateExpirationDate(empData.dateValidation, "HT");
+      const nDeTitre = empData.nTitre || "INCONNU";
+      const stCodes = empData.stCodes.length > 0 ? empData.stCodes : [];
+      const htCodes = empData.htCodes.length > 0 ? empData.htCodes : [];
 
-        if (employee.stCodes.length > 0) {
-          const dateExpST = employee.dateExpiration || calculateExpirationDate(employee.dateValidation, "ST");
-          await db.insert(schema.habilitations)
-            .values({
-              employeeId: employeeId,
-              type: "ST",
-              codes: JSON.stringify(employee.stCodes),
-              numero: employee.nTitre,
-              dateValidation: employee.dateValidation,
-              dateExpiration: dateExpST
-            });
-          habilitationCount++;
-        }
-      }
+      const [ver] = await db.insert(schema.employeeVersions)
+        .values({
+          employeeId,
+          versionNumber: 1,
+          stCodes,
+          htCodes,
+          nDeTitre,
+          fonction: "Électricien",
+          divisionId,
+          serviceId,
+          equipeId: equipeId || null,
+          dateValidation: empData.dateValidation,
+          dateExpiration: dateExp,
+        })
+        .returning({ id: schema.employeeVersions.id });
+
+      await db.update(schema.employees)
+        .set({ currentVersionId: ver.id })
+        .where(eq(schema.employees.id, employeeId));
+
+      versionCount++;
     }
 
     console.log(`✓ Created ${employeeCount} employees`);
-    console.log(`✓ Created ${habilitationCount} habilitations`);
+    console.log(`✓ Created ${versionCount} employee versions`);
     console.log("\n✅ PostgreSQL database seeding completed successfully!");
   } catch (err) {
     console.error("Error seeding PostgreSQL database:", err);

@@ -1,1231 +1,564 @@
-/**
- * PHASE 1: AUDIT-INTEGRATED EMPLOYEE ROUTES
- * 
- * All mutations are wrapped in transactions with mandatory audit logging.
- * Pattern: Validate → Transaction → Mutate → Audit → Commit/Rollback
- * 
- * If audit logging fails, entire transaction rolls back and user gets error.
- * Zero silent failures.
- */
-
 import { RequestHandler } from "express";
-import { db, withAuditTransaction, validateEmployeeData, validateHabilitationData } from "../db-pg";
+import { db } from "../db-pg";
 import * as schema from "../schema";
-import { eq, and } from "drizzle-orm";
-import { logAuditActionSafe, createEmployeeVersion } from "../services/auditService";
-import { addYears, format } from "date-fns";
+import { eq, desc, asc, sql } from "drizzle-orm";
 
 // ============================================================================
-// HELPER FUNCTIONS
+// AUTH MIDDLEWARE
 // ============================================================================
 
-/**
- * Calculate habilitation expiration date
- * HT = +3 years (no ST allowed)
- */
-function calculateExpirationDate(validationDate: string): string {
-  const date = new Date(validationDate);
-  const expirationDate = addYears(date, 3);
-  return format(expirationDate, "yyyy-MM-dd");
-}
+export const authMiddleware: RequestHandler = (req, res, next) => {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  const expected = process.env.AUTH_TOKEN;
+  if (expected && token !== expected) {
+    return res.status(401).json({ success: false, error: "Unauthorized", data: null });
+  }
+  next();
+};
 
-/**
- * Format employee response with relations
- */
-async function formatEmployeeResponse(employeeId: number, txDb = db) {
-  const employee = await txDb
-    .select({
-      id: schema.employees.id,
-      matricule: schema.employees.matricule,
-      prenom: schema.employees.prenom,
-      nom: schema.employees.nom,
-      divisionId: schema.employees.divisionId,
-      serviceId: schema.employees.serviceId,
-      equipeId: schema.employees.equipeId,
-      division: schema.divisions.name,
-      service: schema.services.name,
-      equipe: schema.equipes.name,
-      createdAt: schema.employees.createdAt,
-      updatedAt: schema.employees.updatedAt,
-    })
-    .from(schema.employees)
-    .leftJoin(schema.divisions, eq(schema.employees.divisionId, schema.divisions.id))
-    .leftJoin(schema.services, eq(schema.employees.serviceId, schema.services.id))
-    .leftJoin(schema.equipes, eq(schema.employees.equipeId, schema.equipes.id))
-    .where(eq(schema.employees.id, employeeId))
-    .limit(1);
+// ============================================================================
+// HELPERS
+// ============================================================================
 
-  if (!employee.length) return null;
-
-  const habilitations = await txDb
-    .select()
-    .from(schema.habilitations)
-    .where(eq(schema.habilitations.employeeId, employeeId))
-    .orderBy(schema.habilitations.dateExpiration);
+async function buildVersionResponse(version: typeof schema.employeeVersions.$inferSelect) {
+  const [div] = await db.select({ name: schema.divisions.name }).from(schema.divisions).where(eq(schema.divisions.id, version.divisionId));
+  const [svc] = await db.select({ name: schema.services.name }).from(schema.services).where(eq(schema.services.id, version.serviceId));
+  const equipe = version.equipeId
+    ? (await db.select({ name: schema.equipes.name }).from(schema.equipes).where(eq(schema.equipes.id, version.equipeId)))[0]
+    : null;
 
   return {
-    ...employee[0],
-    habilitations: habilitations.map((h) => ({
-      id: h.id,
-      employee_id: h.employeeId,
-      // Both stCodes and htCodes always present in schema (can be empty arrays)
-      stCodes: h.stCodes ? JSON.parse(h.stCodes) : [],
-      htCodes: h.htCodes ? JSON.parse(h.htCodes) : [],
-      numero: h.numero,
-      date_validation: h.dateValidation,
-      date_expiration: h.dateExpiration,
-      pdf_path: h.pdfPath,
-    })),
+    id: version.id,
+    versionNumber: version.versionNumber,
+    stCodes: version.stCodes ?? [],
+    htCodes: version.htCodes ?? [],
+    nDeTitre: version.nDeTitre,
+    fonction: version.fonction,
+    divisionId: version.divisionId,
+    serviceId: version.serviceId,
+    equipeId: version.equipeId,
+    division: div?.name ?? "",
+    service: svc?.name ?? "",
+    equipe: equipe?.name ?? null,
+    dateValidation: version.dateValidation,
+    dateExpiration: version.dateExpiration,
+    pdfPath: version.pdfPath ?? null,
+    createdAt: version.createdAt,
+  };
+}
+
+async function buildEmployeeResponse(employeeId: number) {
+  const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, employeeId));
+  if (!emp) return null;
+
+  const currentVersion = emp.currentVersionId
+    ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId)))[0]
+    : null;
+
+  return {
+    id: emp.id,
+    matricule: emp.matricule,
+    nom: emp.nom,
+    prenom: emp.prenom,
+    deleted: emp.deleted,
+    createdAt: emp.createdAt,
+    currentVersion: currentVersion ? await buildVersionResponse(currentVersion) : null,
   };
 }
 
 // ============================================================================
-// EMPLOYEE CRUD ENDPOINTS WITH AUDIT LOGGING
-// ============================================================================
-
-/**
- * GET /api/employees
- * Retrieve all employees with their habilitations
- * (Read-only, no audit logging needed)
- */
-export const getEmployees: RequestHandler = async (_req, res) => {
-  try {
-    const employees = await db
-      .select({
-        id: schema.employees.id,
-        matricule: schema.employees.matricule,
-        prenom: schema.employees.prenom,
-        nom: schema.employees.nom,
-        divisionId: schema.employees.divisionId,
-        serviceId: schema.employees.serviceId,
-        equipeId: schema.employees.equipeId,
-        division: schema.divisions.name,
-        service: schema.services.name,
-        equipe: schema.equipes.name,
-        createdAt: schema.employees.createdAt,
-        updatedAt: schema.employees.updatedAt,
-      })
-      .from(schema.employees)
-      .leftJoin(schema.divisions, eq(schema.employees.divisionId, schema.divisions.id))
-      .leftJoin(schema.services, eq(schema.employees.serviceId, schema.services.id))
-      .leftJoin(schema.equipes, eq(schema.employees.equipeId, schema.equipes.id))
-      .orderBy(schema.employees.matricule);
-
-    // Fetch habilitations for each employee
-    const result = await Promise.all(
-      employees.map(async (emp) => {
-        const habs = await db
-          .select()
-          .from(schema.habilitations)
-          .where(eq(schema.habilitations.employeeId, emp.id))
-          .orderBy(schema.habilitations.dateExpiration);
-
-        return {
-          ...emp,
-          habilitations: habs.map((h) => ({
-            id: h.id,
-            employee_id: h.employeeId,
-            stCodes: h.stCodes ? JSON.parse(h.stCodes) : [],
-            htCodes: h.htCodes ? JSON.parse(h.htCodes) : [],
-            numero: h.numero,
-            date_validation: h.dateValidation,
-            date_expiration: h.dateExpiration,
-            pdf_path: h.pdfPath,
-          })),
-        };
-      })
-    );
-
-    res.json(result);
-  } catch (err) {
-    console.error("Error fetching employees:", err);
-    res.status(500).json({ message: "Erreur lors de la récupération des employés" });
-  }
-};
-
-/**
- * GET /api/employees/:id
- * Retrieve a single employee with habilitations
- */
-export const getEmployee: RequestHandler = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const employeeId = parseInt(id);
-
-    if (isNaN(employeeId)) {
-      return res.status(400).json({ message: "ID employé invalide" });
-    }
-
-    const employee = await formatEmployeeResponse(employeeId);
-    if (!employee) {
-      return res.status(404).json({ message: "Employé non trouvé" });
-    }
-
-    res.json(employee);
-  } catch (err) {
-    console.error("Error fetching employee:", err);
-    res.status(500).json({ message: "Erreur lors de la récupération de l'employé" });
-  }
-};
-
-/**
- * POST /api/employees
- * Create employee with habilitations
- * PHASE 1: AUDIT LOGGED - Full snapshots captured, transaction-safe
- */
-export const createEmployee: RequestHandler = async (req, res) => {
-  try {
-    const { matricule, prenom, nom, division_id, service_id, equipe_id, habilitations } =
-      req.body;
-
-    // Validate required fields
-    if (!matricule || !prenom || !nom || !division_id || !service_id || !equipe_id) {
-      return res.status(400).json({ message: "Champs requis manquants" });
-    }
-
-    // Validate data format
-    try {
-      validateEmployeeData({
-        matricule,
-        prenom,
-        nom,
-        divisionId: division_id,
-        serviceId: service_id,
-        equipeId: equipe_id,
-      });
-    } catch (validationErr) {
-      return res.status(400).json({ message: (validationErr as Error).message });
-    }
-
-    // Check if matricule already exists
-    const existing = await db
-      .select({ id: schema.employees.id })
-      .from(schema.employees)
-      .where(eq(schema.employees.matricule, matricule))
-      .limit(1);
-
-    if (existing.length > 0) {
-      return res.status(409).json({ message: "Ce matricule existe déjà" });
-    }
-
-    // Execute in transaction with mandatory audit logging
-    const newEmployee = await withAuditTransaction(async (txDb) => {
-      // INSERT employee
-      const insertResult = await txDb
-        .insert(schema.employees)
-        .values({
-          matricule,
-          prenom,
-          nom,
-          divisionId: division_id,
-          serviceId: service_id,
-          equipeId: equipe_id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning({ id: schema.employees.id });
-
-      const employeeId = insertResult[0].id;
-
-      // INSERT habilitations if provided
-      if (habilitations && Array.isArray(habilitations)) {
-        for (const hab of habilitations) {
-          // Normalize codes: ensure both arrays exist
-          const stCodes = hab.stCodes || [];
-          const htCodes = hab.htCodes || [];
-
-          // Validate at least one code is present
-          if (stCodes.length === 0 && htCodes.length === 0) {
-            throw new Error(
-              `Habilitation validation failed: At least one habilitation code (ST or HT) is required`
-            );
-          }
-
-          const expirationDate = hab.dateExpiration || calculateExpirationDate(hab.dateValidation);
-
-          await txDb.insert(schema.habilitations).values({
-            employeeId,
-            stCodes: JSON.stringify(stCodes),
-            htCodes: JSON.stringify(htCodes),
-            numero: hab.numero || null,
-            dateValidation: hab.dateValidation,
-            dateExpiration: expirationDate,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        }
-      }
-
-      // Fetch complete new record for snapshot
-      const employee = await formatEmployeeResponse(employeeId, txDb);
-      if (!employee) {
-        throw new Error(`Failed to fetch created employee ${employeeId}`);
-      }
-
-      // Log audit action: CREATE_EMPLOYEE
-      // oldValues = null (new record)
-      // newValues = full employee record with habilitations
-      const auditLogId = await logAuditActionSafe(
-        1, // hardcoded to single-user for now
-        "CREATE_EMPLOYEE",
-        "employee",
-        employeeId,
-        matricule,
-        null, // oldValues
-        {
-          id: employee.id,
-          matricule: employee.matricule,
-          prenom: employee.prenom,
-          nom: employee.nom,
-          divisionId: employee.divisionId,
-          serviceId: employee.serviceId,
-          equipeId: employee.equipeId,
-          division: employee.division,
-          service: employee.service,
-          equipe: employee.equipe,
-          habilitations: employee.habilitations,
-        } // newValues
-      );
-
-      // PHASE 2: Create version snapshot
-      await createEmployeeVersion(
-        employeeId,
-        {
-          id: employee.id,
-          matricule: employee.matricule,
-          prenom: employee.prenom,
-          nom: employee.nom,
-          divisionId: employee.divisionId,
-          serviceId: employee.serviceId,
-          equipeId: employee.equipeId,
-          division: employee.division,
-          service: employee.service,
-          equipe: employee.equipe,
-          habilitations: employee.habilitations,
-          createdAt: new Date().toISOString(),
-        },
-        auditLogId
-      );
-
-      return employee;
-    });
-
-    res.status(201).json(newEmployee);
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("Error creating employee:", err);
-
-    // If transaction rolled back, error will include "rolled back" message
-    if (errorMsg.includes("rolled back")) {
-      res.status(500).json({
-        message: `Erreur lors de la création: ${errorMsg}. Aucune donnée n'a été modifiée.`,
-      });
-    } else {
-      res.status(500).json({ message: errorMsg || "Erreur serveur" });
-    }
-  }
-};
-
-/**
- * PUT /api/employees/:id
- * Update employee data
- * PHASE 1: AUDIT LOGGED - Before/after snapshots captured
- */
-export const updateEmployee: RequestHandler = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { matricule, prenom, nom, division_id, service_id, equipe_id } = req.body;
-    const employeeId = parseInt(id);
-
-    if (isNaN(employeeId)) {
-      return res.status(400).json({ message: "ID employé invalide" });
-    }
-
-    // Validate required fields
-    if (!matricule || !prenom || !nom || !division_id || !service_id || !equipe_id) {
-      return res.status(400).json({ message: "Champs requis manquants" });
-    }
-
-    // Validate data format
-    try {
-      validateEmployeeData({
-        matricule,
-        prenom,
-        nom,
-        divisionId: division_id,
-        serviceId: service_id,
-        equipeId: equipe_id,
-      });
-    } catch (validationErr) {
-      return res.status(400).json({ message: (validationErr as Error).message });
-    }
-
-    // Check if another employee has this matricule
-    const existing = await db
-      .select({ id: schema.employees.id })
-      .from(schema.employees)
-      .where(
-        and(
-          eq(schema.employees.matricule, matricule),
-          // Don't match the same employee
-          // @ts-ignore
-          sql`id != ${employeeId}`
-        )
-      )
-      .limit(1);
-
-    if (existing.length > 0) {
-      return res.status(409).json({ message: "Ce matricule existe déjà" });
-    }
-
-    // Execute in transaction with audit logging
-    const updatedEmployee = await withAuditTransaction(async (txDb) => {
-      // Fetch old data BEFORE update
-      const oldEmployee = await formatEmployeeResponse(employeeId, txDb);
-      if (!oldEmployee) {
-        throw new Error(`Employé ${employeeId} non trouvé`);
-      }
-
-      // UPDATE employee
-      await txDb
-        .update(schema.employees)
-        .set({
-          matricule,
-          prenom,
-          nom,
-          divisionId: division_id,
-          serviceId: service_id,
-          equipeId: equipe_id,
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.employees.id, employeeId));
-
-      // Fetch new data AFTER update
-      const newEmployee = await formatEmployeeResponse(employeeId, txDb);
-      if (!newEmployee) {
-        throw new Error(`Failed to fetch updated employee ${employeeId}`);
-      }
-
-      // Log audit action: UPDATE_EMPLOYEE
-      const auditLogId = await logAuditActionSafe(
-        1,
-        "UPDATE_EMPLOYEE",
-        "employee",
-        employeeId,
-        matricule,
-        {
-          id: oldEmployee.id,
-          matricule: oldEmployee.matricule,
-          prenom: oldEmployee.prenom,
-          nom: oldEmployee.nom,
-          divisionId: oldEmployee.divisionId,
-          serviceId: oldEmployee.serviceId,
-          equipeId: oldEmployee.equipeId,
-        }, // oldValues
-        {
-          id: newEmployee.id,
-          matricule: newEmployee.matricule,
-          prenom: newEmployee.prenom,
-          nom: newEmployee.nom,
-          divisionId: newEmployee.divisionId,
-          serviceId: newEmployee.serviceId,
-          equipeId: newEmployee.equipeId,
-        } // newValues
-      );
-
-      // PHASE 2: Create version snapshot
-      await createEmployeeVersion(
-        employeeId,
-        {
-          id: newEmployee.id,
-          matricule: newEmployee.matricule,
-          prenom: newEmployee.prenom,
-          nom: newEmployee.nom,
-          divisionId: newEmployee.divisionId,
-          serviceId: newEmployee.serviceId,
-          equipeId: newEmployee.equipeId,
-          division: newEmployee.division,
-          service: newEmployee.service,
-          equipe: newEmployee.equipe,
-          updatedAt: new Date().toISOString(),
-        },
-        auditLogId
-      );
-
-      return newEmployee;
-    });
-
-    res.json(updatedEmployee);
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("Error updating employee:", err);
-
-    if (errorMsg.includes("rolled back")) {
-      res.status(500).json({
-        message: `Erreur lors de la mise à jour: ${errorMsg}. Aucune donnée n'a été modifiée.`,
-      });
-    } else {
-      res.status(500).json({ message: errorMsg || "Erreur serveur" });
-    }
-  }
-};
-
-/**
- * DELETE /api/employees/:id
- * Delete employee and all habilitations
- * PHASE 1: AUDIT LOGGED - Full snapshot of deleted data preserved
- */
-export const deleteEmployee: RequestHandler = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const employeeId = parseInt(id);
-
-    if (isNaN(employeeId)) {
-      return res.status(400).json({ message: "ID employé invalide" });
-    }
-
-    // Execute in transaction with audit logging
-    await withAuditTransaction(async (txDb) => {
-      // Fetch full employee data BEFORE delete
-      const employee = await formatEmployeeResponse(employeeId, txDb);
-      if (!employee) {
-        throw new Error(`Employé ${employeeId} non trouvé`);
-      }
-
-      // DELETE habilitations (cascade will handle this, but we log them separately)
-      // DELETE employee (cascade deletes habilitations)
-      await txDb.delete(schema.employees).where(eq(schema.employees.id, employeeId));
-
-      // Log audit action: DELETE_EMPLOYEE
-      // oldValues = full employee with all habilitations
-      // newValues = null (deleted)
-      const auditLogId = await logAuditActionSafe(
-        1,
-        "DELETE_EMPLOYEE",
-        "employee",
-        employeeId,
-        employee.matricule,
-        {
-          id: employee.id,
-          matricule: employee.matricule,
-          prenom: employee.prenom,
-          nom: employee.nom,
-          divisionId: employee.divisionId,
-          serviceId: employee.serviceId,
-          equipeId: employee.equipeId,
-          habilitations: employee.habilitations,
-        }, // oldValues
-        null // newValues
-      );
-
-      // PHASE 2: Create version snapshot (full deleted data for restoration)
-      await createEmployeeVersion(
-        employeeId,
-        {
-          id: employee.id,
-          matricule: employee.matricule,
-          prenom: employee.prenom,
-          nom: employee.nom,
-          divisionId: employee.divisionId,
-          serviceId: employee.serviceId,
-          equipeId: employee.equipeId,
-          habilitations: employee.habilitations,
-          deletedAt: new Date().toISOString(),
-        },
-        auditLogId
-      );
-    });
-
-    res.json({ message: "Employé supprimé avec succès" });
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("Error deleting employee:", err);
-
-    if (errorMsg.includes("rolled back")) {
-      res.status(500).json({
-        message: `Erreur lors de la suppression: ${errorMsg}. Aucune donnée n'a été modifiée.`,
-      });
-    } else {
-      res.status(500).json({ message: errorMsg || "Erreur serveur" });
-    }
-  }
-};
-
-// ============================================================================
-// ORGANIZATIONAL STRUCTURE ENDPOINTS (READ-ONLY)
+// ORG STRUCTURE
 // ============================================================================
 
 export const getDivisions: RequestHandler = async (_req, res) => {
   try {
-    const divisions = await db
-      .select({ id: schema.divisions.id, name: schema.divisions.name })
-      .from(schema.divisions)
-      .orderBy(schema.divisions.name);
-    res.json(divisions);
+    const divs = await db.select().from(schema.divisions).orderBy(asc(schema.divisions.name));
+    res.json({ success: true, data: divs, error: null });
   } catch (err) {
-    console.error("Error fetching divisions:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
 
 export const getServicesByDivision: RequestHandler = async (req, res) => {
   try {
-    const { divisionId } = req.params;
-    const did = parseInt(divisionId);
-
-    if (isNaN(did)) {
-      return res.status(400).json({ message: "Division ID invalide" });
-    }
-
-    const services = await db
-      .select({ id: schema.services.id, name: schema.services.name })
-      .from(schema.services)
-      .where(eq(schema.services.divisionId, did))
-      .orderBy(schema.services.name);
-
-    res.json(services);
+    const divisionId = parseInt(req.params.divisionId);
+    const svcs = await db.select().from(schema.services).where(eq(schema.services.divisionId, divisionId)).orderBy(asc(schema.services.name));
+    res.json({ success: true, data: svcs, error: null });
   } catch (err) {
-    console.error("Error fetching services:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
 
 export const getEquipesByService: RequestHandler = async (req, res) => {
   try {
-    const { serviceId } = req.params;
-    const sid = parseInt(serviceId);
-
-    if (isNaN(sid)) {
-      return res.status(400).json({ message: "Service ID invalide" });
-    }
-
-    const equipes = await db
-      .select({ id: schema.equipes.id, name: schema.equipes.name })
-      .from(schema.equipes)
-      .where(eq(schema.equipes.serviceId, sid))
-      .orderBy(schema.equipes.name);
-
-    res.json(equipes);
+    const serviceId = parseInt(req.params.serviceId);
+    const eqs = await db.select().from(schema.equipes).where(eq(schema.equipes.serviceId, serviceId)).orderBy(asc(schema.equipes.name));
+    res.json({ success: true, data: eqs, error: null });
   } catch (err) {
-    console.error("Error fetching equipes:", err);
-    res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
 
 // ============================================================================
-// HABILITATION CRUD ENDPOINTS WITH AUDIT LOGGING
+// GET EMPLOYEES (paginated)
 // ============================================================================
 
-/**
- * POST /api/habilitations
- * Create new habilitation for employee
- * CORRECTION 2: Supports both stCodes and htCodes independently
- */
-export const createHabilitation: RequestHandler = async (req, res) => {
+export const getEmployees: RequestHandler = async (req, res) => {
   try {
-    const { employee_id, stCodes, htCodes, numero, date_validation, date_expiration } = req.body;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, parseInt(req.query.limit as string) || 20);
+    const offset = (page - 1) * limit;
+    const showDeleted = req.query.deleted === "true";
 
-    if (!employee_id || !date_validation) {
-      return res.status(400).json({ message: "Employee ID and date_validation required" });
-    }
+    const baseWhere = showDeleted ? eq(schema.employees.deleted, true) : eq(schema.employees.deleted, false);
 
-    // Normalize codes: ensure both arrays exist
-    const normalizedSTCodes = stCodes || [];
-    const normalizedHTCodes = htCodes || [];
-
-    // Validate at least one code is present
-    try {
-      validateHabilitationData({
-        stCodes: normalizedSTCodes,
-        htCodes: normalizedHTCodes,
-        dateValidation: date_validation,
-      });
-    } catch (validationErr) {
-      return res.status(400).json({ message: (validationErr as Error).message });
-    }
-
-    // Check if employee exists
-    const employee = await db
-      .select({ id: schema.employees.id, matricule: schema.employees.matricule })
+    const emps = await db
+      .select()
       .from(schema.employees)
-      .where(eq(schema.employees.id, employee_id))
-      .limit(1);
+      .where(baseWhere)
+      .orderBy(asc(schema.employees.matricule))
+      .limit(limit)
+      .offset(offset);
 
-    if (!employee.length) {
-      return res.status(404).json({ message: "Employee not found" });
-    }
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.employees)
+      .where(baseWhere);
 
-    // Execute in transaction
-    const newHab = await withAuditTransaction(async (txDb) => {
-      const expirationDate = date_expiration || calculateExpirationDate(date_validation);
+    const data = await Promise.all(emps.map(async (emp) => {
+      const currentVersion = emp.currentVersionId
+        ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId)))[0]
+        : null;
+      return {
+        id: emp.id,
+        matricule: emp.matricule,
+        nom: emp.nom,
+        prenom: emp.prenom,
+        deleted: emp.deleted,
+        createdAt: emp.createdAt,
+        currentVersion: currentVersion ? await buildVersionResponse(currentVersion) : null,
+      };
+    }));
 
-      const result = await txDb
-        .insert(schema.habilitations)
-        .values({
-          employeeId: employee_id,
-          stCodes: JSON.stringify(normalizedSTCodes),
-          htCodes: JSON.stringify(normalizedHTCodes),
-          numero: numero || null,
-          dateValidation: date_validation,
-          dateExpiration: expirationDate,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning({ id: schema.habilitations.id });
-
-      const habId = result[0].id;
-      const newRecord = await txDb
-        .select()
-        .from(schema.habilitations)
-        .where(eq(schema.habilitations.id, habId))
-        .limit(1);
-
-      const hab = newRecord[0];
-
-      // Log audit
-      await logAuditActionSafe(
-        1,
-        "CREATE_HABILITATION",
-        "habilitation",
-        habId,
-        employee[0].matricule,
-        null,
-        {
-          id: hab.id,
-          employeeId: hab.employeeId,
-          stCodes: JSON.parse(hab.stCodes),
-          htCodes: JSON.parse(hab.htCodes),
-          numero: hab.numero,
-          dateValidation: hab.dateValidation,
-          dateExpiration: hab.dateExpiration,
-        }
-      );
-
-      return hab;
-    });
-
-    res.status(201).json({
-      ...newHab,
-      stCodes: JSON.parse(newHab.stCodes),
-      htCodes: JSON.parse(newHab.htCodes),
-    });
+    res.json({ success: true, data: { employees: data, total: Number(count), page, limit }, error: null });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("Error creating habilitation:", err);
-
-    if (errorMsg.includes("rolled back")) {
-      res.status(500).json({
-        message: `Erreur lors de la création: ${errorMsg}. Aucune donnée n'a été modifiée.`,
-      });
-    } else {
-      res.status(500).json({ message: errorMsg || "Erreur serveur" });
-    }
+    console.error("getEmployees error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
 
-/**
- * PUT /api/habilitations/:habId
- * Update habilitation
- * CORRECTION 2: Supports both stCodes and htCodes independently
- */
-export const updateHabilitation: RequestHandler = async (req, res) => {
+// ============================================================================
+// GET EMPLOYEE BY ID
+// ============================================================================
+
+export const getEmployee: RequestHandler = async (req, res) => {
   try {
-    const { habId } = req.params;
-    const { stCodes, htCodes, numero, date_validation, date_expiration } = req.body;
-    const habilitationId = parseInt(habId);
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
 
-    if (isNaN(habilitationId)) {
-      return res.status(400).json({ message: "ID habilitation invalide" });
-    }
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
+    if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
 
-    if (!date_validation) {
-      return res.status(400).json({ message: "date_validation required" });
-    }
+    const versions = await db
+      .select()
+      .from(schema.employeeVersions)
+      .where(eq(schema.employeeVersions.employeeId, id))
+      .orderBy(desc(schema.employeeVersions.versionNumber));
 
-    // Normalize codes
-    const normalizedSTCodes = stCodes || [];
-    const normalizedHTCodes = htCodes || [];
+    const currentVersion = emp.currentVersionId
+      ? versions.find(v => v.id === emp.currentVersionId) ?? null
+      : null;
 
-    try {
-      validateHabilitationData({
-        stCodes: normalizedSTCodes,
-        htCodes: normalizedHTCodes,
-        dateValidation: date_validation,
-      });
-    } catch (validationErr) {
-      return res.status(400).json({ message: (validationErr as Error).message });
-    }
-
-    const updatedHab = await withAuditTransaction(async (txDb) => {
-      // Fetch old data
-      const oldRecord = await txDb
-        .select()
-        .from(schema.habilitations)
-        .where(eq(schema.habilitations.id, habilitationId))
-        .limit(1);
-
-      if (!oldRecord.length) {
-        throw new Error("Habilitation non trouvée");
-      }
-
-      const old = oldRecord[0];
-      const expirationDate = date_expiration || calculateExpirationDate(date_validation);
-
-      await txDb
-        .update(schema.habilitations)
-        .set({
-          stCodes: JSON.stringify(normalizedSTCodes),
-          htCodes: JSON.stringify(normalizedHTCodes),
-          numero: numero || null,
-          dateValidation: date_validation,
-          dateExpiration: expirationDate,
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.habilitations.id, habilitationId));
-
-      const newRecord = await txDb
-        .select()
-        .from(schema.habilitations)
-        .where(eq(schema.habilitations.id, habilitationId))
-        .limit(1);
-
-      const hab = newRecord[0];
-
-      // Get employee matricule for audit
-      const emp = await txDb
-        .select({ matricule: schema.employees.matricule })
-        .from(schema.employees)
-        .where(eq(schema.employees.id, hab.employeeId))
-        .limit(1);
-
-      await logAuditActionSafe(
-        1,
-        "UPDATE_HABILITATION",
-        "habilitation",
-        habilitationId,
-        emp[0]?.matricule || null,
-        {
-          id: old.id,
-          stCodes: JSON.parse(old.stCodes),
-          htCodes: JSON.parse(old.htCodes),
-          numero: old.numero,
-          dateValidation: old.dateValidation,
-        },
-        {
-          id: hab.id,
-          stCodes: JSON.parse(hab.stCodes),
-          htCodes: JSON.parse(hab.htCodes),
-          numero: hab.numero,
-          dateValidation: hab.dateValidation,
-          dateExpiration: hab.dateExpiration,
-        }
-      );
-
-      return hab;
-    });
+    const versionsFormatted = await Promise.all(versions.map(buildVersionResponse));
 
     res.json({
-      ...updatedHab,
-      stCodes: JSON.parse(updatedHab.stCodes),
-      htCodes: JSON.parse(updatedHab.htCodes),
+      success: true,
+      data: {
+        id: emp.id,
+        matricule: emp.matricule,
+        nom: emp.nom,
+        prenom: emp.prenom,
+        deleted: emp.deleted,
+        createdAt: emp.createdAt,
+        currentVersion: currentVersion ? await buildVersionResponse(currentVersion) : null,
+        versions: versionsFormatted,
+      },
+      error: null,
     });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("Error updating habilitation:", err);
-
-    if (errorMsg.includes("rolled back")) {
-      res.status(500).json({
-        message: `Erreur lors de la mise à jour: ${errorMsg}. Aucune donnée n'a été modifiée.`,
-      });
-    } else {
-      res.status(500).json({ message: errorMsg || "Erreur serveur" });
-    }
+    console.error("getEmployee error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
 
-/**
- * DELETE /api/habilitations/:habId
- * Delete habilitation
- */
-export const deleteHabilitation: RequestHandler = async (req, res) => {
-  try {
-    const { habId } = req.params;
-    const habilitationId = parseInt(habId);
+// ============================================================================
+// CREATE EMPLOYEE + V1
+// ============================================================================
 
-    if (isNaN(habilitationId)) {
-      return res.status(400).json({ message: "ID habilitation invalide" });
+export const createEmployee: RequestHandler = async (req, res) => {
+  try {
+    const { matricule, nom, prenom, stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration } = req.body;
+
+    if (!matricule || !nom || !prenom || !nDeTitre || !fonction || !divisionId || !serviceId || !dateValidation || !dateExpiration) {
+      return res.status(400).json({ success: false, data: null, error: "Champs requis manquants" });
+    }
+    if ((!stCodes || stCodes.length === 0) && (!htCodes || htCodes.length === 0)) {
+      return res.status(400).json({ success: false, data: null, error: "Au moins un code ST ou HT requis" });
+    }
+    if (new Date(dateExpiration) <= new Date(dateValidation)) {
+      return res.status(400).json({ success: false, data: null, error: "Date d'expiration doit être après date de validation" });
     }
 
-    await withAuditTransaction(async (txDb) => {
-      const record = await txDb
-        .select()
-        .from(schema.habilitations)
-        .where(eq(schema.habilitations.id, habilitationId))
-        .limit(1);
+    const existing = await db.select({ id: schema.employees.id }).from(schema.employees).where(eq(schema.employees.matricule, matricule));
+    if (existing.length > 0) {
+      return res.status(409).json({ success: false, data: null, error: "Matricule déjà existant" });
+    }
 
-      if (!record.length) {
-        throw new Error("Habilitation non trouvée");
-      }
+    const result = await db.transaction(async (tx) => {
+      const [emp] = await tx.insert(schema.employees).values({ matricule, nom, prenom }).returning();
 
-      const hab = record[0];
+      const [version] = await tx.insert(schema.employeeVersions).values({
+        employeeId: emp.id,
+        versionNumber: 1,
+        stCodes: stCodes ?? [],
+        htCodes: htCodes ?? [],
+        nDeTitre,
+        fonction,
+        divisionId: parseInt(divisionId),
+        serviceId: parseInt(serviceId),
+        equipeId: equipeId ? parseInt(equipeId) : null,
+        dateValidation,
+        dateExpiration,
+      }).returning();
 
-      await txDb
-        .delete(schema.habilitations)
-        .where(eq(schema.habilitations.id, habilitationId));
+      await tx.update(schema.employees).set({ currentVersionId: version.id }).where(eq(schema.employees.id, emp.id));
 
-      const emp = await txDb
-        .select({ matricule: schema.employees.matricule })
-        .from(schema.employees)
-        .where(eq(schema.employees.id, hab.employeeId))
-        .limit(1);
+      const [auditLog] = await tx.insert(schema.auditLogs).values({
+        action: "CREATE_EMPLOYEE",
+        entityId: emp.id,
+        snapshotOld: null,
+        snapshotNew: { matricule, nom, prenom, versionId: version.id } as any,
+      }).returning();
 
-      await logAuditActionSafe(
-        1,
-        "DELETE_HABILITATION",
-        "habilitation",
-        habilitationId,
-        emp[0]?.matricule || null,
-        {
-          id: hab.id,
-          employeeId: hab.employeeId,
-          stCodes: hab.stCodes ? JSON.parse(hab.stCodes) : [],
-          htCodes: hab.htCodes ? JSON.parse(hab.htCodes) : [],
-          numero: hab.numero,
-          dateValidation: hab.dateValidation,
-          dateExpiration: hab.dateExpiration,
-        },
-        null
-      );
+      await tx.update(schema.employeeVersions).set({ auditLogId: auditLog.id }).where(eq(schema.employeeVersions.id, version.id));
+
+      return { empId: emp.id, auditLogId: auditLog.id };
     });
 
-    res.json({ message: "Habilitation supprimée avec succès" });
+    const employee = await buildEmployeeResponse(result.empId);
+    res.status(201).json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("Error deleting habilitation:", err);
-
-    if (errorMsg.includes("rolled back")) {
-      res.status(500).json({
-        message: `Erreur lors de la suppression: ${errorMsg}. Aucune donnée n'a été modifiée.`,
-      });
-    } else {
-      res.status(500).json({ message: errorMsg || "Erreur serveur" });
-    }
+    console.error("createEmployee error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
 
-/**
- * POST /api/habilitations/:habId/renew
- * Renew a habilitation with new validation date
- * Archives old, creates new record
- */
-export const renewHabilitation: RequestHandler = async (req, res) => {
+// ============================================================================
+// UPDATE EMPLOYEE → new version
+// ============================================================================
+
+export const updateEmployee: RequestHandler = async (req, res) => {
   try {
-    const { habId } = req.params;
-    const { date_validation, stCodes, htCodes, numero } = req.body;
-    const habilitationId = parseInt(habId);
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
 
-    if (isNaN(habilitationId)) {
-      return res.status(400).json({ message: "ID habilitation invalide" });
+    const { stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration, nom, prenom } = req.body;
+
+    if ((!stCodes || stCodes.length === 0) && (!htCodes || htCodes.length === 0)) {
+      return res.status(400).json({ success: false, data: null, error: "Au moins un code ST ou HT requis" });
+    }
+    if (new Date(dateExpiration) <= new Date(dateValidation)) {
+      return res.status(400).json({ success: false, data: null, error: "Date d'expiration doit être après date de validation" });
     }
 
-    if (!date_validation) {
-      return res.status(400).json({ message: "Date de validation requise" });
-    }
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
+    if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
 
-    const renewedHab = await withAuditTransaction(async (txDb) => {
-      const oldRecord = await txDb
-        .select()
-        .from(schema.habilitations)
-        .where(eq(schema.habilitations.id, habilitationId))
-        .limit(1);
+    const oldVersion = emp.currentVersionId
+      ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId)))[0]
+      : null;
 
-      if (!oldRecord.length) {
-        throw new Error("Habilitation non trouvée");
+    const result = await db.transaction(async (tx) => {
+      const [{ maxVer }] = await tx
+        .select({ maxVer: sql<number>`coalesce(max(version_number), 0)` })
+        .from(schema.employeeVersions)
+        .where(eq(schema.employeeVersions.employeeId, id));
+
+      const newVersionNum = Number(maxVer) + 1;
+
+      const empUpdate: Record<string, unknown> = {};
+      if (nom) empUpdate.nom = nom;
+      if (prenom) empUpdate.prenom = prenom;
+      if (Object.keys(empUpdate).length > 0) {
+        await tx.update(schema.employees).set(empUpdate as any).where(eq(schema.employees.id, id));
       }
 
-      const old = oldRecord[0];
-      const expirationDate = calculateExpirationDate(date_validation);
+      const [version] = await tx.insert(schema.employeeVersions).values({
+        employeeId: id,
+        versionNumber: newVersionNum,
+        stCodes: stCodes ?? [],
+        htCodes: htCodes ?? [],
+        nDeTitre,
+        fonction,
+        divisionId: parseInt(divisionId),
+        serviceId: parseInt(serviceId),
+        equipeId: equipeId ? parseInt(equipeId) : null,
+        dateValidation,
+        dateExpiration,
+      }).returning();
 
-      // Use provided codes or fall back to old codes
-      const newSTCodes = stCodes || (old.stCodes ? JSON.parse(old.stCodes) : []);
-      const newHTCodes = htCodes || (old.htCodes ? JSON.parse(old.htCodes) : []);
+      await tx.update(schema.employees).set({ currentVersionId: version.id }).where(eq(schema.employees.id, id));
 
-      try {
-        validateHabilitationData({
-          stCodes: Array.isArray(newSTCodes) ? newSTCodes : [],
-          htCodes: Array.isArray(newHTCodes) ? newHTCodes : [],
-          dateValidation: date_validation,
-        });
-      } catch (validationErr) {
-        throw new Error(
-          `Habilitation validation failed: ${(validationErr as Error).message}`
-        );
-      }
+      const [auditLog] = await tx.insert(schema.auditLogs).values({
+        action: "UPDATE_EMPLOYEE",
+        entityId: id,
+        snapshotOld: oldVersion as any ?? null,
+        snapshotNew: { versionId: version.id, versionNumber: newVersionNum } as any,
+      }).returning();
 
-      // Archive old habilitation
-      await txDb.insert(schema.habilitationArchive).values({
-        habilitationId: old.id,
-        employeeId: old.employeeId,
-        snapshotData: {
-          id: old.id,
-          stCodes: old.stCodes ? JSON.parse(old.stCodes) : [],
-          htCodes: old.htCodes ? JSON.parse(old.htCodes) : [],
-          numero: old.numero,
-          dateValidation: old.dateValidation,
-          dateExpiration: old.dateExpiration,
-        },
-        reason: "renewal",
-        archivedAt: new Date(),
-      });
+      await tx.update(schema.employeeVersions).set({ auditLogId: auditLog.id }).where(eq(schema.employeeVersions.id, version.id));
 
-      // Create new habilitation
-      const newResult = await txDb
-        .insert(schema.habilitations)
-        .values({
-          employeeId: old.employeeId,
-          stCodes: JSON.stringify(Array.isArray(newSTCodes) ? newSTCodes : []),
-          htCodes: JSON.stringify(Array.isArray(newHTCodes) ? newHTCodes : []),
-          numero: numero || old.numero || null,
-          dateValidation: date_validation,
-          dateExpiration: expirationDate,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning({ id: schema.habilitations.id });
-
-      const newHabId = newResult[0].id;
-
-      // Fetch new record
-      const newRecord = await txDb
-        .select()
-        .from(schema.habilitations)
-        .where(eq(schema.habilitations.id, newHabId))
-        .limit(1);
-
-      const hab = newRecord[0];
-
-      const emp = await txDb
-        .select({ matricule: schema.employees.matricule })
-        .from(schema.employees)
-        .where(eq(schema.employees.id, old.employeeId))
-        .limit(1);
-
-      // Log renewal as audit
-      await logAuditActionSafe(
-        1,
-        "RENEW_HABILITATION",
-        "habilitation",
-        newHabId,
-        emp[0]?.matricule || null,
-        {
-          id: old.id,
-          stCodes: old.stCodes ? JSON.parse(old.stCodes) : [],
-          htCodes: old.htCodes ? JSON.parse(old.htCodes) : [],
-          numero: old.numero,
-          dateValidation: old.dateValidation,
-          dateExpiration: old.dateExpiration,
-        },
-        {
-          id: hab.id,
-          stCodes: hab.stCodes ? JSON.parse(hab.stCodes) : [],
-          htCodes: hab.htCodes ? JSON.parse(hab.htCodes) : [],
-          numero: hab.numero,
-          dateValidation: hab.dateValidation,
-          dateExpiration: hab.dateExpiration,
-        }
-      );
-
-      return hab;
+      return { auditLogId: auditLog.id };
     });
 
-    res.status(201).json({
-      id: renewedHab.id,
-      stCodes: renewedHab.stCodes ? JSON.parse(renewedHab.stCodes) : [],
-      htCodes: renewedHab.htCodes ? JSON.parse(renewedHab.htCodes) : [],
-      numero: renewedHab.numero,
-      dateValidation: renewedHab.dateValidation,
-      dateExpiration: renewedHab.dateExpiration,
-      message: "Habilitation renouvelée avec succès",
-    });
+    const employee = await buildEmployeeResponse(id);
+    res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("Error renewing habilitation:", err);
-
-    if (errorMsg.includes("rolled back")) {
-      res.status(500).json({
-        message: `Erreur lors du renouvellement: ${errorMsg}. Aucune donnée n'a été modifiée.`,
-      });
-    } else {
-      res.status(500).json({ message: errorMsg || "Erreur serveur" });
-    }
+    console.error("updateEmployee error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
 
-/**
- * POST /api/habilitations/batch-delete
- * Delete multiple habilitations
- */
-export const batchDeleteHabilitations: RequestHandler = async (req, res) => {
-  try {
-    const { habilitationIds } = req.body;
+// ============================================================================
+// DELETE EMPLOYEE (soft)
+// ============================================================================
 
-    if (!Array.isArray(habilitationIds) || habilitationIds.length === 0) {
-      return res.status(400).json({ message: "Liste d'habilitations requise" });
+export const deleteEmployee: RequestHandler = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
+
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
+    if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
+
+    const result = await db.transaction(async (tx) => {
+      await tx.update(schema.employees).set({ deleted: true }).where(eq(schema.employees.id, id));
+
+      const [auditLog] = await tx.insert(schema.auditLogs).values({
+        action: "DELETE_EMPLOYEE",
+        entityId: id,
+        snapshotOld: { matricule: emp.matricule, nom: emp.nom, prenom: emp.prenom } as any,
+        snapshotNew: { deleted: true } as any,
+      }).returning();
+
+      return { auditLogId: auditLog.id };
+    });
+
+    res.json({ success: true, data: { auditLogId: result.auditLogId }, error: null });
+  } catch (err) {
+    console.error("deleteEmployee error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
+
+// ============================================================================
+// RESTORE EMPLOYEE
+// ============================================================================
+
+export const restoreEmployee: RequestHandler = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
+
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
+    if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
+
+    const result = await db.transaction(async (tx) => {
+      await tx.update(schema.employees).set({ deleted: false }).where(eq(schema.employees.id, id));
+
+      const [auditLog] = await tx.insert(schema.auditLogs).values({
+        action: "RESTORE_EMPLOYEE",
+        entityId: id,
+        snapshotOld: { deleted: true } as any,
+        snapshotNew: { deleted: false } as any,
+      }).returning();
+
+      return { auditLogId: auditLog.id };
+    });
+
+    const employee = await buildEmployeeResponse(id);
+    res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
+  } catch (err) {
+    console.error("restoreEmployee error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
+
+// ============================================================================
+// PERMANENT DELETE (2-step: requires matricule confirmation)
+// ============================================================================
+
+export const permanentDeleteEmployee: RequestHandler = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
+
+    const { confirmMatricule } = req.body;
+    if (!confirmMatricule) {
+      return res.status(400).json({ success: false, data: null, error: "Confirmation matricule requise" });
     }
 
-    await withAuditTransaction(async (txDb) => {
-      for (const habId of habilitationIds) {
-        const record = await txDb
-          .select()
-          .from(schema.habilitations)
-          .where(eq(schema.habilitations.id, habId))
-          .limit(1);
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
+    if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
+    if (emp.matricule !== confirmMatricule) {
+      return res.status(400).json({ success: false, data: null, error: "Matricule de confirmation incorrect" });
+    }
 
-        if (record.length) {
-          const hab = record[0];
-          const emp = await txDb
-            .select({ matricule: schema.employees.matricule })
-            .from(schema.employees)
-            .where(eq(schema.employees.id, hab.employeeId))
-            .limit(1);
-
-          await logAuditActionSafe(
-            1,
-            "DELETE_HABILITATION",
-            "habilitation",
-            habId,
-            emp[0]?.matricule || null,
-            {
-              id: hab.id,
-              stCodes: hab.stCodes ? JSON.parse(hab.stCodes) : [],
-              htCodes: hab.htCodes ? JSON.parse(hab.htCodes) : [],
-              numero: hab.numero,
-            },
-            null
-          );
-        }
-      }
-
-      await txDb
-        .delete(schema.habilitations)
-        .where(
-          // @ts-ignore
-          sql`id IN (${habilitationIds.join(",")})`
-        );
+    await db.transaction(async (tx) => {
+      await tx.insert(schema.auditLogs).values({
+        action: "PERMANENT_DELETE_EMPLOYEE",
+        entityId: id,
+        snapshotOld: { matricule: emp.matricule, nom: emp.nom, prenom: emp.prenom } as any,
+        snapshotNew: null,
+      });
+      await tx.delete(schema.employees).where(eq(schema.employees.id, id));
     });
+
+    res.json({ success: true, data: { deleted: true }, error: null });
+  } catch (err) {
+    console.error("permanentDeleteEmployee error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
+
+// ============================================================================
+// REVERT TO VERSION
+// ============================================================================
+
+export const revertToVersion: RequestHandler = async (req, res) => {
+  try {
+    const employeeId = parseInt(req.params.id);
+    const versionId = parseInt(req.params.versionId);
+    if (isNaN(employeeId) || isNaN(versionId)) {
+      return res.status(400).json({ success: false, data: null, error: "ID invalide" });
+    }
+
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, employeeId));
+    if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
+
+    const [sourceVersion] = await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, versionId));
+    if (!sourceVersion || sourceVersion.employeeId !== employeeId) {
+      return res.status(404).json({ success: false, data: null, error: "Version non trouvée" });
+    }
+
+    const result = await db.transaction(async (tx) => {
+      const [{ maxVer }] = await tx
+        .select({ maxVer: sql<number>`coalesce(max(version_number), 0)` })
+        .from(schema.employeeVersions)
+        .where(eq(schema.employeeVersions.employeeId, employeeId));
+
+      const [newVersion] = await tx.insert(schema.employeeVersions).values({
+        employeeId,
+        versionNumber: Number(maxVer) + 1,
+        stCodes: sourceVersion.stCodes,
+        htCodes: sourceVersion.htCodes,
+        nDeTitre: sourceVersion.nDeTitre,
+        fonction: sourceVersion.fonction,
+        divisionId: sourceVersion.divisionId,
+        serviceId: sourceVersion.serviceId,
+        equipeId: sourceVersion.equipeId,
+        dateValidation: sourceVersion.dateValidation,
+        dateExpiration: sourceVersion.dateExpiration,
+      }).returning();
+
+      await tx.update(schema.employees).set({ currentVersionId: newVersion.id }).where(eq(schema.employees.id, employeeId));
+
+      const [auditLog] = await tx.insert(schema.auditLogs).values({
+        action: "REVERT_VERSION",
+        entityId: employeeId,
+        snapshotOld: { currentVersionId: emp.currentVersionId } as any,
+        snapshotNew: { revertedFromVersionId: versionId, newVersionId: newVersion.id } as any,
+      }).returning();
+
+      return { auditLogId: auditLog.id };
+    });
+
+    const employee = await buildEmployeeResponse(employeeId);
+    res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
+  } catch (err) {
+    console.error("revertToVersion error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
+
+// ============================================================================
+// STATS
+// ============================================================================
+
+export const getStats: RequestHandler = async (_req, res) => {
+  try {
+    const now = new Date().toISOString().split("T")[0];
+    const in3m = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const in6m = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const in9m = new Date(Date.now() + 270 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    const rows = await db
+      .select({
+        empId: schema.employees.id,
+        dateExpiration: schema.employeeVersions.dateExpiration,
+        stCodes: schema.employeeVersions.stCodes,
+        htCodes: schema.employeeVersions.htCodes,
+        divisionName: schema.divisions.name,
+        serviceName: schema.services.name,
+      })
+      .from(schema.employees)
+      .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+      .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
+      .leftJoin(schema.services, eq(schema.employeeVersions.serviceId, schema.services.id))
+      .where(eq(schema.employees.deleted, false));
+
+    let expired = 0, lessThan3m = 0, lessThan6m = 0, lessThan9m = 0;
+    let stOnly = 0, htOnly = 0, both = 0;
+    const byDivision: Record<string, number> = {};
+    const byService: Record<string, number> = {};
+
+    for (const r of rows) {
+      const exp = r.dateExpiration;
+      if (exp < now) expired++;
+      else if (exp <= in3m) lessThan3m++;
+      else if (exp <= in6m) lessThan6m++;
+      else if (exp <= in9m) lessThan9m++;
+
+      const hasSt = (r.stCodes ?? []).length > 0;
+      const hasHt = (r.htCodes ?? []).length > 0;
+      if (hasSt && hasHt) both++;
+      else if (hasSt) stOnly++;
+      else if (hasHt) htOnly++;
+
+      const div = r.divisionName ?? "Unknown";
+      byDivision[div] = (byDivision[div] ?? 0) + 1;
+      const svc = r.serviceName ?? "Unknown";
+      byService[svc] = (byService[svc] ?? 0) + 1;
+    }
 
     res.json({
-      message: "Habilitations supprimées avec succès",
-      deleted: habilitationIds.length,
+      success: true,
+      data: {
+        total: rows.length,
+        expired,
+        lessThan3Months: lessThan3m,
+        lessThan6Months: lessThan6m,
+        lessThan9Months: lessThan9m,
+        stOnly,
+        htOnly,
+        both,
+        byDivision: Object.entries(byDivision).map(([name, count]) => ({ name, count })),
+        byService: Object.entries(byService).map(([name, count]) => ({ name, count })),
+      },
+      error: null,
     });
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("Error batch deleting habilitations:", err);
-    res.status(500).json({ message: errorMsg || "Erreur serveur" });
+    console.error("getStats error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
-
-/**
- * PUT /api/habilitations/batch-update
- * Update multiple habilitations
- */
-export const batchUpdateHabilitations: RequestHandler = async (req, res) => {
-  try {
-    const { habilitationIds, stCodes, htCodes, date_validation } = req.body;
-
-    if (!Array.isArray(habilitationIds) || habilitationIds.length === 0) {
-      return res.status(400).json({ message: "Liste d'habilitations requise" });
-    }
-
-    if (!date_validation || (!stCodes && !htCodes)) {
-      return res.status(400).json({ message: "Codes et date requise" });
-    }
-
-    const updated = await withAuditTransaction(async (txDb) => {
-      const expirationDate = calculateExpirationDate(date_validation);
-      const result = [];
-
-      for (const habId of habilitationIds) {
-        const oldRecord = await txDb
-          .select()
-          .from(schema.habilitations)
-          .where(eq(schema.habilitations.id, habId))
-          .limit(1);
-
-        if (oldRecord.length) {
-          const old = oldRecord[0];
-
-          await txDb
-            .update(schema.habilitations)
-            .set({
-              stCodes: JSON.stringify(stCodes || []),
-              htCodes: JSON.stringify(htCodes || []),
-              dateValidation: date_validation,
-              dateExpiration: expirationDate,
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.habilitations.id, habId));
-
-          const newRecord = await txDb
-            .select()
-            .from(schema.habilitations)
-            .where(eq(schema.habilitations.id, habId))
-            .limit(1);
-
-          const hab = newRecord[0];
-          const emp = await txDb
-            .select({ matricule: schema.employees.matricule })
-            .from(schema.employees)
-            .where(eq(schema.employees.id, hab.employeeId))
-            .limit(1);
-
-          await logAuditActionSafe(
-            1,
-            "UPDATE_HABILITATION",
-            "habilitation",
-            habId,
-            emp[0]?.matricule || null,
-            {
-              id: old.id,
-              stCodes: old.stCodes ? JSON.parse(old.stCodes) : [],
-              htCodes: old.htCodes ? JSON.parse(old.htCodes) : [],
-              dateValidation: old.dateValidation,
-            },
-            {
-              id: hab.id,
-              stCodes: hab.stCodes ? JSON.parse(hab.stCodes) : [],
-              htCodes: hab.htCodes ? JSON.parse(hab.htCodes) : [],
-              dateValidation: hab.dateValidation,
-              dateExpiration: hab.dateExpiration,
-            }
-          );
-
-          result.push(hab);
-        }
-      }
-
-      return result;
-    });
-
-    res.json({
-      message: "Habilitations mises à jour avec succès",
-      updated: updated.length,
-      habilitations: updated.map((h) => ({
-        id: h.id,
-        stCodes: h.stCodes ? JSON.parse(h.stCodes) : [],
-        htCodes: h.htCodes ? JSON.parse(h.htCodes) : [],
-        numero: h.numero,
-        dateValidation: h.dateValidation,
-        dateExpiration: h.dateExpiration,
-      })),
-    });
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error("Error batch updating habilitations:", err);
-    res.status(500).json({ message: errorMsg || "Erreur serveur" });
-  }
-};
-
-// Export auth middleware
-import { authMiddleware } from "./auth";
-export { authMiddleware };

@@ -1,36 +1,56 @@
-import { Habilitation } from "./habilitation";
+export interface EmployeeVersion {
+  id: number;
+  versionNumber: number;
+  stCodes: string[];
+  htCodes: string[];
+  nDeTitre: string;
+  fonction: string;
+  divisionId: number;
+  serviceId: number;
+  equipeId?: number | null;
+  division: string;
+  service: string;
+  equipe?: string | null;
+  dateValidation: string;
+  dateExpiration: string;
+  pdfPath?: string | null;
+  createdAt: string;
+}
 
 export interface Employee {
   id: number;
   matricule: string;
-  prenom: string;
   nom: string;
-  division: string;
-  service: string;
-  equipe: string;
-  habilitations?: Habilitation[];
+  prenom: string;
+  deleted: boolean;
+  createdAt: string;
+  currentVersion: EmployeeVersion | null;
+  versions?: EmployeeVersion[];
 }
 
-export interface EmployeeFormData {
-  matricule: string;
-  prenom: string;
-  nom: string;
-  division_id: string;
-  service_id: string;
-  equipe_id: string;
+export interface EmployeesPage {
+  employees: Employee[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface CreateEmployeeRequest {
   matricule: string;
-  prenom: string;
   nom: string;
-  division_id: number;
-  service_id: number;
-  equipe_id: number;
-  habilitations?: Array<{
-    type: "HT" | "ST";
-    codes: string[];
-    numero: string;
-    dateValidation: string;
-  }>;
+  prenom: string;
+  stCodes: string[];
+  htCodes: string[];
+  nDeTitre: string;
+  fonction: string;
+  divisionId: number;
+  serviceId: number;
+  equipeId?: number | null;
+  dateValidation: string;
+  dateExpiration: string;
+}
+
+export interface UpdateEmployeeRequest extends Omit<CreateEmployeeRequest, 'matricule'> {
+  nom?: string;
+  prenom?: string;
 }

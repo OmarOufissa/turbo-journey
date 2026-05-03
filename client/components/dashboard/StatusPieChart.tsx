@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { Employee, getHabilitationStatus } from "@/types";
+import { Employee, getExpirationStatus } from "@/types";
 
 interface StatusPieChartProps {
   employees: Employee[];
@@ -18,20 +18,12 @@ export function StatusPieChart({ employees }: StatusPieChartProps) {
   let valid = 0;
 
   employees.forEach((emp) => {
-    emp.habilitations?.forEach((hab) => {
-      const status = getHabilitationStatus(hab);
-      if (status === "expired") {
-        expired++;
-      } else if (
-        status === "expiringSoon1Month" ||
-        status === "expiringSoon2Months" ||
-        status === "expiringSoon3Months"
-      ) {
-        expiringSoon++;
-      } else {
-        valid++;
-      }
-    });
+    const ver = emp.currentVersion;
+    if (!ver) return;
+    const status = getExpirationStatus(ver.dateExpiration);
+    if (status === "expired") expired++;
+    else if (status === "lessThan3Months" || status === "lessThan6Months") expiringSoon++;
+    else valid++;
   });
 
   const data = [

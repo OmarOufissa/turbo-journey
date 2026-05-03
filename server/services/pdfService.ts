@@ -1,292 +1,150 @@
-/**
- * PDF GENERATION SERVICE
- * 
- * Generates habilitation PDFs from employee version snapshots only
- * CRITICAL: Uses ONLY employee_versions data (never raw employee fields)
- * File naming: hab{matricule}_v{version}.pdf
- * Duplicate handling: OVERWRITE (version number ensures uniqueness)
- */
-
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 
-// Types for employee snapshot data from employee_versions
-interface EmployeeSnapshot {
+export interface VersionSnapshot {
   matricule: string;
-  prenom: string;
   nom: string;
+  prenom: string;
+  nDeTitre: string;
   fonction: string;
   division: string;
   service: string;
-  equipe: string;
+  equipe?: string | null;
   stCodes: string[];
   htCodes: string[];
-  numero?: string;
   dateValidation: string;
   dateExpiration: string;
 }
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'pdfs');
 
-// Ensure upload directory exists
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-/**
- * Format date from DD/MM/YYYY to French locale format
- * Example: "14/02/2026" → "14 février 2026"
- */
+const FRENCH_MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
 function formatDateFrench(dateStr: string): string {
   try {
-    const [day, month, year] = dateStr.split('/');
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    
-    const formatter = new Intl.DateTimeFormat('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-    
-    return formatter.format(date);
-  } catch (e) {
-    return dateStr; // Fallback to original if parsing fails
+    const d = new Date(dateStr);
+    const day = d.getUTCDate();
+    const month = FRENCH_MONTHS[d.getUTCMonth()];
+    const year = d.getUTCFullYear();
+    return `${day} ${month} ${year}`;
+  } catch {
+    return dateStr;
   }
 }
 
-/**
- * Format habilitation codes for display
- * Rules:
- * - If array is empty: show "XXX"
- * - If one code: show code
- * - If multiple: show comma-separated
- */
-function formatCodes(codes: string[]): string {
-  if (!codes || codes.length === 0) {
-    return 'XXX';
-  }
-  if (codes.length === 1) {
-    return codes[0];
-  }
-  return codes.join(', ');
+// Table rows: label + which ST and HT codes map to this row
+const TABLE_ROWS: Array<{ label: string; stKey: string; htKey: string }> = [
+  { label: 'H0V / B0V', stKey: 'H0V', htKey: 'B0V' },
+  { label: 'H1V / B1V', stKey: 'H1V', htKey: 'B1V' },
+  { label: 'BR',        stKey: 'BR',  htKey: 'BR'  },
+  { label: 'H2V / B2V', stKey: 'H2V', htKey: 'B2V' },
+  { label: 'HC / BC',   stKey: 'HC',  htKey: 'BC'  },
+  { label: 'SF6',       stKey: 'SF6', htKey: 'SF6' },
+];
+
+function cellCode(codes: string[], key: string): string {
+  if (!codes || codes.length === 0) return 'XXX';
+  if (codes.length === 1) return codes[0];
+  return codes.includes(key) ? key : '';
 }
 
-/**
- * Generate PDF from employee snapshot
- * 
- * @param snapshot - Employee snapshot from employee_versions table
- * @param versionNumber - Version number for file naming
- * @returns Promise with file path and size
- */
 export async function generateHabilitationPdf(
-  snapshot: EmployeeSnapshot,
+  snapshot: VersionSnapshot,
   versionNumber: number
 ): Promise<{ pdfPath: string; pdfSize: number }> {
   return new Promise((resolve, reject) => {
     try {
-      // Generate filename: hab{matricule}_v{version}.pdf
       const filename = `hab${snapshot.matricule}_v${versionNumber}.pdf`;
-      const pdfPath = path.join(UPLOAD_DIR, filename);
-
-      // Create PDF document
-      const doc = new PDFDocument({
-        size: 'A4',
-        margin: 40,
-      });
-
-      // Create write stream (overwrite if exists)
-      const stream = fs.createWriteStream(pdfPath);
-
-      // Pipe PDF to file
+      const fullPath = path.join(UPLOAD_DIR, filename);
+      const doc = new PDFDocument({ size: 'A4', margin: 50 });
+      const stream = fs.createWriteStream(fullPath);
       doc.pipe(stream);
 
-      // ======================================================================
-      // PDF HEADER
-      // ======================================================================
-
-      // Title and employee info
-      doc.fontSize(16).font('Helvetica-Bold').text('HABILITATION ELECTRIQUE', { align: 'center' });
-      doc.moveDown(0.5);
-
-      // Employee header info
-      doc.fontSize(11).font('Helvetica');
-      doc.text(`N° titre: ${snapshot.numero || 'N/A'}`, { align: 'left' });
-      doc.fontSize(11).font('Helvetica-Bold');
-      doc.text(`${snapshot.prenom} ${snapshot.nom}`, { align: 'left' });
-      doc.fontSize(10).font('Helvetica');
-      doc.text(`Matricule: ${snapshot.matricule}`, { align: 'left' });
+      // Header
+      doc.fontSize(14).font('Helvetica-Bold').text('HABILITATION ÉLECTRIQUE', { align: 'center' });
       doc.moveDown(0.3);
-
-      // Organization info
-      doc.fontSize(9).font('Helvetica');
-      doc.text(`Division: ${snapshot.division}`);
-      doc.text(`Service: ${snapshot.service}`);
-      doc.text(`Équipe: ${snapshot.equipe}`);
-      doc.text(`Fonction: ${snapshot.fonction}`);
+      doc.fontSize(10).font('Helvetica-Bold').text(`${snapshot.prenom} ${snapshot.nom}`, { align: 'center' });
+      doc.fontSize(9).font('Helvetica').text(`Matricule: ${snapshot.matricule}`, { align: 'center' });
       doc.moveDown(0.5);
 
-      // ======================================================================
-      // DATES
-      // ======================================================================
-
-      doc.fontSize(10).font('Helvetica-Bold');
-      doc.text('Dates de validité:');
-      doc.fontSize(9).font('Helvetica');
+      // Org info
+      const entite = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean).join(' / ');
+      doc.fontSize(9).text(`Entité: ${entite}`);
+      doc.text(`Fonction: ${snapshot.fonction}`);
+      doc.text(`Direction: Direction Générale`);
+      doc.text(`N° de titre: ${snapshot.nDeTitre}`);
       doc.text(`Date de validation: ${formatDateFrench(snapshot.dateValidation)}`);
       doc.text(`Date d'expiration: ${formatDateFrench(snapshot.dateExpiration)}`);
       doc.moveDown(0.5);
 
-      // ======================================================================
-      // HABILITATIONS TABLE
-      // ======================================================================
-
-      doc.fontSize(11).font('Helvetica-Bold');
-      doc.text('Habilitations:');
-      doc.moveDown(0.3);
-
-      // Table-like structure with specific rows for electrical codes
-      const tableStartY = doc.y;
-      const tableWidth = 500;
-      const cellHeight = 25;
-      const col1Width = 200;
-      const col2Width = 150;
-      const col3Width = 150;
-
-      // Function to draw a table row
-      const drawTableRow = (label: string, stCode: string, htCode: string, y: number) => {
-        doc.fontSize(9).font('Helvetica');
-        
-        // Draw row background alternately
-        if (Math.floor((y - tableStartY) / cellHeight) % 2 === 0) {
-          doc.rect(40, y, tableWidth, cellHeight).fill('#f5f5f5');
-        }
-
-        // Draw borders
-        doc.strokeColor('black');
-        doc.lineWidth(0.5);
-        doc.rect(40, y, tableWidth, cellHeight).stroke();
-
-        // Column separators
-        doc.moveTo(240, y).lineTo(240, y + cellHeight).stroke();
-        doc.moveTo(390, y).lineTo(390, y + cellHeight).stroke();
-
-        // Text
-        doc.fillColor('black');
-        doc.text(label, 45, y + 5, { width: col1Width - 10, height: cellHeight - 10 });
-        doc.text(stCode, 245, y + 5, { width: col2Width - 10, height: cellHeight - 10, align: 'center' });
-        doc.text(htCode, 395, y + 5, { width: col3Width - 10, height: cellHeight - 10, align: 'center' });
-      };
+      // Table
+      const tableX = 50;
+      const tableW = doc.page.width - 100;
+      const col1 = tableW * 0.4;
+      const col2 = tableW * 0.3;
+      const col3 = tableW * 0.3;
+      const rowH = 22;
 
       // Header row
-      const headerY = doc.y;
-      doc.fontSize(9).font('Helvetica-Bold').fillColor('white');
-      doc.rect(40, headerY, tableWidth, cellHeight).fill('#333333');
+      doc.fontSize(8).font('Helvetica-Bold');
+      const hY = doc.y;
+      doc.rect(tableX, hY, tableW, rowH).fillAndStroke('#333333', '#333333');
       doc.fillColor('white');
-      doc.text('Code', 45, headerY + 5, { width: col1Width - 10 });
-      doc.text('ST', 245, headerY + 5, { width: col2Width - 10, align: 'center' });
-      doc.text('HT', 395, headerY + 5, { width: col3Width - 10, align: 'center' });
+      doc.text('Code', tableX + 4, hY + 6, { width: col1 - 4 });
+      doc.text('ST', tableX + col1 + 4, hY + 6, { width: col2 - 8, align: 'center' });
+      doc.text('HT', tableX + col1 + col2 + 4, hY + 6, { width: col3 - 8, align: 'center' });
+      doc.fillColor('black');
 
-      // Data rows with specific electrical codes
-      let currentY = headerY + cellHeight;
-      const stCodesFormatted = formatCodes(snapshot.stCodes);
-      const htCodesFormatted = formatCodes(snapshot.htCodes);
+      let rowY = hY + rowH;
+      TABLE_ROWS.forEach((row, i) => {
+        const bg = i % 2 === 0 ? '#f9f9f9' : '#ffffff';
+        doc.rect(tableX, rowY, tableW, rowH).fillAndStroke(bg, '#cccccc');
 
-      const tableRows = [
-        { label: 'H0V / B0V', st: 'ST' in snapshot && snapshot.stCodes.includes('H0V') ? '✓' : '', ht: 'HT' in snapshot && snapshot.htCodes.includes('B0V') ? '✓' : '' },
-        { label: 'H1V / B1V', st: 'ST' in snapshot && snapshot.stCodes.includes('H1V') ? '✓' : '', ht: 'HT' in snapshot && snapshot.htCodes.includes('B1V') ? '✓' : '' },
-        { label: 'H2V / B2V', st: 'ST' in snapshot && snapshot.stCodes.includes('H2V') ? '✓' : '', ht: 'HT' in snapshot && snapshot.htCodes.includes('B2V') ? '✓' : '' },
-        { label: 'HC / BC', st: 'ST' in snapshot && snapshot.stCodes.includes('HC') ? '✓' : '', ht: 'HT' in snapshot && snapshot.htCodes.includes('BC') ? '✓' : '' },
-        { label: 'SF6', st: 'ST' in snapshot && snapshot.stCodes.includes('SF6') ? '✓' : '', ht: 'HT' in snapshot && snapshot.htCodes.includes('SF6') ? '✓' : '' },
-      ];
+        const stVal = cellCode(snapshot.stCodes, row.stKey);
+        const htVal = cellCode(snapshot.htCodes, row.htKey);
 
-      tableRows.forEach((row) => {
-        drawTableRow(row.label, row.st, row.ht, currentY);
-        currentY += cellHeight;
+        doc.fontSize(8).font('Helvetica').fillColor('black');
+        doc.text(row.label, tableX + 4, rowY + 6, { width: col1 - 4 });
+        doc.text(stVal, tableX + col1 + 4, rowY + 6, { width: col2 - 8, align: 'center' });
+        doc.text(htVal, tableX + col1 + col2 + 4, rowY + 6, { width: col3 - 8, align: 'center' });
+
+        rowY += rowH;
       });
-
-      doc.moveDown(3);
-
-      // Summary line
-      doc.fontSize(9).font('Helvetica');
-      doc.text(`ST codes résumé: ${stCodesFormatted}`, { align: 'left' });
-      doc.text(`HT codes résumé: ${htCodesFormatted}`, { align: 'left' });
-      doc.moveDown(1);
 
       // Footer
-      doc.fontSize(8).font('Helvetica').fillColor('#666666');
-      doc.text('Ce document a été généré automatiquement par le système de gestion des habilitations.', { align: 'center' });
-      doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, { align: 'center' });
+      doc.moveDown(2);
+      doc.fontSize(7).fillColor('#888888').text(
+        `Document généré automatiquement le ${formatDateFrench(new Date().toISOString().split('T')[0])}`,
+        { align: 'center' }
+      );
 
-      // Finish PDF
       doc.end();
-
-      // Handle stream events
       stream.on('finish', () => {
-        const stats = fs.statSync(pdfPath);
-        resolve({
-          pdfPath: filename,
-          pdfSize: stats.size,
-        });
+        const stats = fs.statSync(fullPath);
+        resolve({ pdfPath: filename, pdfSize: stats.size });
       });
-
-      stream.on('error', (err) => {
-        reject(new Error(`Failed to write PDF file: ${err.message}`));
-      });
-
-      doc.on('error', (err) => {
-        reject(new Error(`PDF generation error: ${err.message}`));
-      });
-    } catch (error) {
-      reject(error);
+      stream.on('error', reject);
+      doc.on('error', reject);
+    } catch (err) {
+      reject(err);
     }
   });
 }
 
-/**
- * Batch generate PDFs for multiple employees
- * Returns count of generated files and any errors
- */
-export async function batchGeneratePdfs(
-  snapshots: Array<{ snapshot: EmployeeSnapshot; versionNumber: number }>
-): Promise<{ generated: number; errors: Array<{ matricule: string; error: string }> }> {
-  const results = { generated: 0, errors: [] as Array<{ matricule: string; error: string }> };
-
-  for (const item of snapshots) {
-    try {
-      await generateHabilitationPdf(item.snapshot, item.versionNumber);
-      results.generated++;
-    } catch (error) {
-      results.errors.push({
-        matricule: item.snapshot.matricule,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }
-
-  return results;
-}
-
-/**
- * Get PDF file path for download
- */
 export function getPdfPath(filename: string): string {
   return path.join(UPLOAD_DIR, filename);
 }
 
-/**
- * Check if PDF exists
- */
 export function pdfExists(filename: string): boolean {
   return fs.existsSync(path.join(UPLOAD_DIR, filename));
 }
 
-/**
- * Delete PDF file
- */
 export function deletePdf(filename: string): void {
-  const filePath = path.join(UPLOAD_DIR, filename);
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-  }
+  const p = path.join(UPLOAD_DIR, filename);
+  if (fs.existsSync(p)) fs.unlinkSync(p);
 }

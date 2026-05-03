@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Download } from "lucide-react";
-import { Employee, Division, getHabilitationStatus } from "@/types";
+import { Employee, Division, getExpirationStatus } from "@/types";
 import { exportEmployeesToExcel } from "@/utils/exportToExcel";
 import { useToast } from "@/hooks/use-toast";
 
@@ -50,13 +50,11 @@ export function ExportDialog({
     }
 
     if (exportFilters.status !== "all") {
-      filteredEmps = filteredEmps.map((emp) => ({
-        ...emp,
-        habilitations: emp.habilitations?.filter((hab) => {
-          const status = getHabilitationStatus(hab);
-          return status === exportFilters.status;
-        }),
-      }));
+      filteredEmps = filteredEmps.filter((emp) => {
+        if (!emp.currentVersion) return false;
+        const status = getExpirationStatus(emp.currentVersion.dateExpiration);
+        return status === exportFilters.status;
+      });
     }
 
     const filename = `habilitations_${

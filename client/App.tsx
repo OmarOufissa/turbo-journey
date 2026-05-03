@@ -15,6 +15,7 @@ import {
 import { ReactNode } from "react";
 import { ThemeProvider } from "next-themes";
 import { ErrorBoundary } from "./components/shared/ErrorBoundary";
+import { UndoToast } from "./components/UndoButton";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Employees from "./pages/Employees";
@@ -59,6 +60,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <Sonner />
+            <UndoToast />
             <BrowserRouter>
               <Routes>
           <Route path="/" element={<Login />} />

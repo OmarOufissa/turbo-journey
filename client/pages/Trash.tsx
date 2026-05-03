@@ -3,434 +3,159 @@ import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ArrowLeft, RefreshCw, RotateCcw, Trash2 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, RotateCcw, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-
-interface DeletedEmployee {
-  id: number;
-  matricule: string;
-  prenom: string;
-  nom: string;
-  fonction: string;
-  divisionName?: string;
-  serviceName?: string;
-  deleted: boolean;
-  deletedAt?: string;
-}
+import { Employee } from "@/types/employee";
+import { getEmployees, restoreEmployee, permanentDeleteEmployee } from "@/api/employees";
 
 export default function Trash() {
   const { toast } = useToast();
-  const [deletedEmployees, setDeletedEmployees] = useState<DeletedEmployee[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterDivision, setFilterDivision] = useState<string>("all");
-  const [divisions, setDivisions] = useState<any[]>([]);
 
-  // Dialogs
-  const [permanentDeleteConfirm, setPermanentDeleteConfirm] = useState<{
-    open: boolean;
-    employeeId?: number;
-    matricule?: string;
-  }>({ open: false });
-  const [matriculeConfirm, setMatriculeConfirm] = useState("");
+  // 2-step permanent delete state
+  const [pendingPermanentDelete, setPendingPermanentDelete] = useState<{ id: number; matricule: string } | null>(null);
+  const [confirmInput, setConfirmInput] = useState("");
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   async function fetchData() {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-
-      // Fetch deleted employees
-      const empRes = await fetch("/api/employees?deleted=true");
-      if (!empRes.ok) throw new Error("Failed to fetch deleted employees");
-      const empData = await empRes.json();
-
-      // Fetch divisions for display
-      const divRes = await fetch("/api/divisions");
-      if (!divRes.ok) throw new Error("Failed to fetch divisions");
-      const divData = await divRes.json();
-
-      setDivisions(divData);
-      setDeletedEmployees(empData);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load trash",
-        variant: "destructive",
-      });
+      const res = await getEmployees({ deleted: true, limit: 100 });
+      if (res.success) setEmployees(res.data.employees);
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de charger la corbeille", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   }
 
-  // Filter employees
-  const filteredEmployees = deletedEmployees.filter((emp) => {
-    // Search filter
-    const searchLower = searchTerm.toLowerCase();
-    const matchesSearch =
-      emp.matricule.toLowerCase().includes(searchLower) ||
-      emp.nom.toLowerCase().includes(searchLower) ||
-      emp.prenom.toLowerCase().includes(searchLower);
-
-    if (!matchesSearch) return false;
-
-    // Division filter
-    if (filterDivision !== "all" && emp.divisionName !== filterDivision)
-      return false;
-
-    return true;
-  });
-
-  // Handle row selection
-  function toggleRowSelection(employeeId: number) {
-    const newSelected = new Set(selectedRows);
-    if (newSelected.has(employeeId)) {
-      newSelected.delete(employeeId);
-    } else {
-      newSelected.add(employeeId);
-    }
-    setSelectedRows(newSelected);
-  }
-
-  // Handle select all
-  function toggleSelectAll() {
-    if (selectedRows.size === filteredEmployees.length) {
-      setSelectedRows(new Set());
-    } else {
-      const allIds = new Set(filteredEmployees.map((e) => e.id));
-      setSelectedRows(allIds);
-    }
-  }
-
-  // Restore employee
-  async function restoreEmployee(id: number) {
+  async function handleRestore(id: number, matricule: string) {
     try {
-      const emp = deletedEmployees.find((e) => e.id === id);
-      if (!emp) return;
-
-      const res = await fetch(`/api/employees/${emp.matricule}/restore`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to restore employee");
-      }
-
-      toast({
-        title: "Success",
-        description: `${emp.prenom} ${emp.nom} has been restored`,
-      });
-
-      await fetchData();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to restore employee";
-      toast({
-        title: "Error",
-        description: message,
-        variant: "destructive",
-      });
+      await restoreEmployee(id);
+      toast({ title: "Succès", description: `Employé ${matricule} restauré` });
+      fetchData();
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de restaurer l'employé", variant: "destructive" });
     }
   }
 
-  // Bulk restore
-  async function handleBulkRestore() {
-    const matricules = Array.from(selectedRows)
-      .map((id) => deletedEmployees.find((e) => e.id === id)?.matricule)
-      .filter(Boolean);
-
-    if (matricules.length === 0) return;
-
-    try {
-      for (const matricule of matricules) {
-        await fetch(`/api/employees/${matricule}/restore`, {
-          method: "POST",
-        });
-      }
-
-      toast({
-        title: "Success",
-        description: `${matricules.length} employee(s) restored`,
-      });
-
-      setSelectedRows(new Set());
-      await fetchData();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to restore employees";
-      toast({
-        title: "Error",
-        description: message,
-        variant: "destructive",
-      });
-    }
-  }
-
-  // Permanently delete employee
-  async function permanentlyDeleteEmployee() {
-    if (!permanentDeleteConfirm.employeeId) return;
-    if (matriculeConfirm !== permanentDeleteConfirm.matricule) {
-      toast({
-        title: "Error",
-        description: "Matricule does not match",
-        variant: "destructive",
-      });
+  async function handlePermanentDelete() {
+    if (!pendingPermanentDelete) return;
+    if (confirmInput !== pendingPermanentDelete.matricule) {
+      toast({ title: "Erreur", description: "Matricule incorrect", variant: "destructive" });
       return;
     }
-
     try {
-      const emp = deletedEmployees.find((e) => e.id === permanentDeleteConfirm.employeeId);
-      if (!emp) return;
-
-      const res = await fetch(`/api/employees/${emp.matricule}/permanent-delete`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to permanently delete employee");
-      }
-
-      toast({
-        title: "Success",
-        description: `${emp.prenom} ${emp.nom} has been permanently deleted`,
-      });
-
-      setPermanentDeleteConfirm({ open: false });
-      setMatriculeConfirm("");
-      await fetchData();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to delete employee";
-      toast({
-        title: "Error",
-        description: message,
-        variant: "destructive",
-      });
+      await permanentDeleteEmployee(pendingPermanentDelete.id, confirmInput);
+      toast({ title: "Succès", description: `Employé ${pendingPermanentDelete.matricule} supprimé définitivement` });
+      setPendingPermanentDelete(null);
+      setConfirmInput("");
+      fetchData();
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de supprimer définitivement", variant: "destructive" });
     }
   }
 
-  // Format date
-  function formatDate(dateStr: string | undefined): string {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  }
+  const filtered = employees.filter(emp => {
+    const q = searchTerm.toLowerCase();
+    return emp.matricule.toLowerCase().includes(q) || emp.nom.toLowerCase().includes(q) || emp.prenom.toLowerCase().includes(q);
+  });
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-full">
-          <LoadingSpinner />
-        </div>
-      </Layout>
-    );
-  }
-
-  if (deletedEmployees.length === 0) {
-    return (
-      <Layout>
-        <div className="flex items-center gap-2 mb-6">
-          <Link to="/employees">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold">Trash</h1>
-        </div>
-
-        <EmptyState
-          title="No deleted employees"
-          description="Deleted employees will appear here"
-        />
-      </Layout>
-    );
-  }
+  if (isLoading) return <Layout><LoadingSpinner /></Layout>;
 
   return (
     <Layout>
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link to="/employees">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-            </Link>
-            <h1 className="text-3xl font-bold">Trash</h1>
-          </div>
-          <Button variant="outline" size="sm" onClick={fetchData}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
+      <div className="p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/employees"><ArrowLeft className="w-4 h-4" /></Link>
           </Button>
+          <h1 className="text-2xl font-bold">Corbeille ({employees.length})</h1>
         </div>
 
-        {/* Bulk actions toolbar */}
-        {selectedRows.size > 0 && (
-          <div className="flex items-center gap-2 p-3 bg-blue-50 rounded border border-blue-200">
-            <span className="text-sm font-medium">
-              {selectedRows.size} selected
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleBulkRestore}
-              className="ml-auto"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Restore All
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setSelectedRows(new Set())}
-            >
-              Clear
-            </Button>
-          </div>
-        )}
+        <Input
+          placeholder="Rechercher..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="max-w-md"
+        />
 
-        {/* Filters */}
-        <div className="flex gap-3 flex-wrap">
-          <Input
-            placeholder="Search matricule, nom, prénom..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 min-w-[300px]"
-          />
-
-          <Select value={filterDivision} onValueChange={setFilterDivision}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Division" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Divisions</SelectItem>
-              {divisions.map((d) => (
-                <SelectItem key={d.id} value={d.name}>
-                  {d.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Results info */}
-        <div className="text-sm text-gray-600">
-          Showing {filteredEmployees.length} of {deletedEmployees.length} deleted employees
-        </div>
-
-        {/* Table */}
-        <div className="border rounded-lg overflow-hidden">
+        {filtered.length === 0 ? (
+          <EmptyState title="Corbeille vide" description="Aucun employé supprimé" />
+        ) : (
           <Table>
-            <TableHeader className="bg-gray-50">
+            <TableHeader>
               <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={
-                      selectedRows.size === filteredEmployees.length &&
-                      filteredEmployees.length > 0
-                    }
-                    onChange={toggleSelectAll}
-                  />
-                </TableHead>
-                <TableHead className="font-semibold">Matricule</TableHead>
-                <TableHead className="font-semibold">Nom</TableHead>
-                <TableHead className="font-semibold">Prénom</TableHead>
-                <TableHead className="font-semibold">Fonction</TableHead>
-                <TableHead className="font-semibold">Division</TableHead>
-                <TableHead className="font-semibold">Actions</TableHead>
+                <TableHead>Matricule</TableHead>
+                <TableHead>Nom</TableHead>
+                <TableHead>Prénom</TableHead>
+                <TableHead>Division / Service</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredEmployees.map((emp) => (
-                <TableRow key={emp.id} className="hover:bg-gray-50">
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={selectedRows.has(emp.id)}
-                      onChange={() => toggleRowSelection(emp.id)}
-                    />
-                  </TableCell>
-                  <TableCell>{emp.matricule}</TableCell>
+              {filtered.map(emp => (
+                <TableRow key={emp.id}>
+                  <TableCell className="font-mono">{emp.matricule}</TableCell>
                   <TableCell>{emp.nom}</TableCell>
                   <TableCell>{emp.prenom}</TableCell>
-                  <TableCell>{emp.fonction}</TableCell>
-                  <TableCell>{emp.divisionName || "-"}</TableCell>
+                  <TableCell>
+                    {emp.currentVersion ? `${emp.currentVersion.division} / ${emp.currentVersion.service}` : "—"}
+                  </TableCell>
                   <TableCell className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => restoreEmployee(emp.id)}
-                    >
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      Restore
+                    <Button variant="outline" size="sm" onClick={() => handleRestore(emp.id, emp.matricule)}>
+                      <RotateCcw className="w-4 h-4 mr-1" />Restaurer
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() =>
-                        setPermanentDeleteConfirm({
-                          open: true,
-                          employeeId: emp.id,
-                          matricule: emp.matricule,
-                        })
-                      }
+                      onClick={() => {
+                        setPendingPermanentDelete({ id: emp.id, matricule: emp.matricule });
+                        setConfirmInput("");
+                      }}
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      <Trash2 className="w-4 h-4 mr-1" />Supprimer définitivement
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </div>
-      </div>
+        )}
 
-      {/* Permanent Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={permanentDeleteConfirm.open}
-        onOpenChange={(open) =>
-          setPermanentDeleteConfirm({ ...permanentDeleteConfirm, open })
-        }
-        title="Permanently Delete Employee"
-        description={`Are you sure you want to permanently delete this employee? This cannot be undone. Type the matricule to confirm: ${permanentDeleteConfirm.matricule}`}
-        onConfirm={() => permanentlyDeleteEmployee()}
-      >
-        <Input
-          placeholder={`Type ${permanentDeleteConfirm.matricule} to confirm`}
-          value={matriculeConfirm}
-          onChange={(e) => setMatriculeConfirm(e.target.value)}
-          className="my-4"
-        />
-      </ConfirmDialog>
+        {/* 2-step permanent delete confirmation */}
+        {pendingPermanentDelete && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setPendingPermanentDelete(null)}>
+            <div className="bg-background border rounded-lg p-6 max-w-sm w-full space-y-4" onClick={e => e.stopPropagation()}>
+              <h2 className="text-lg font-bold text-red-600">Suppression définitive</h2>
+              <p className="text-sm text-muted-foreground">
+                Cette action est irréversible. Tapez le matricule <strong>{pendingPermanentDelete.matricule}</strong> pour confirmer.
+              </p>
+              <Input
+                placeholder={`Tapez ${pendingPermanentDelete.matricule}`}
+                value={confirmInput}
+                onChange={e => setConfirmInput(e.target.value)}
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setPendingPermanentDelete(null)}>Annuler</Button>
+                <Button
+                  variant="destructive"
+                  disabled={confirmInput !== pendingPermanentDelete.matricule}
+                  onClick={handlePermanentDelete}
+                >
+                  Supprimer définitivement
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </Layout>
   );
 }
