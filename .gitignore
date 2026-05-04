@@ -25,3 +25,9 @@ dist-ssr
 
 .config/
 !.env
+
+# Runtime / generated files
+.env
+*.db
+*.sql
+uploads/
