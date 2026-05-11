@@ -1,0 +1,54 @@
+appId: com.habilitations.app
+productName: Gestion des Habilitations
+copyright: Copyright © 2025
+
+# Entry point for the Electron main process
+main: dist/electron/main.cjs
+
+directories:
+  output: dist/installers
+
+files:
+  - dist/electron/**
+  - dist/spa/**
+  - node_modules/bcrypt/**
+  - node_modules/pdfkit/**
+  - node_modules/@mapbox/**
+  - "!node_modules/.cache/**"
+  - "!**/*.map"
+
+# Extra native modules
+extraResources:
+  - from: node_modules/bcrypt
+    to: node_modules/bcrypt
+    filter:
+      - "**/*"
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: public/icon.ico
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  icon: public/icon.icns
+  category: public.app-category.business
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+  icon: public/icon.png
+  category: Office
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: public/icon.ico
+  uninstallerIcon: public/icon.ico
+
+npmRebuild: true
+nodeGypRebuild: false

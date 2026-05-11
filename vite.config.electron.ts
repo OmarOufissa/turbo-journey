@@ -1,0 +1,37 @@
+import { defineConfig } from "vite";
+import path from "path";
+
+// Compiles electron/main.ts → dist/electron/main.js (CJS, bundled)
+export default defineConfig({
+  build: {
+    lib: {
+      entry: path.resolve(__dirname, "electron/main.ts"),
+      formats: ["cjs"],
+      fileName: () => "main.js",
+    },
+    outDir: "dist/electron",
+    target: "node22",
+    ssr: true,
+    rollupOptions: {
+      external: [
+        "electron",
+        // Node built-ins
+        "fs", "fs/promises", "path", "url", "http", "https", "os",
+        "crypto", "stream", "util", "events", "buffer", "querystring",
+        "child_process", "net", "tls", "zlib", "assert", "module",
+        "worker_threads", "perf_hooks", "v8", "dns", "readline",
+        // Native modules that cannot be bundled
+        "bcrypt",
+        "pdfkit",
+      ],
+    },
+    minify: false,
+    sourcemap: true,
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./client"),
+      "@shared": path.resolve(__dirname, "./shared"),
+    },
+  },
+});

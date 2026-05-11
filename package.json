@@ -2,6 +2,7 @@
   "name": "fusion-starter",
   "private": true,
   "type": "module",
+  "main": "dist/electron/main.cjs",
   "pkg": {
     "assets": [
       "dist/spa/*"
@@ -12,9 +13,13 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:client && npm run build:server",
+    "dev:electron": "concurrently \"pnpm dev\" \"wait-on tcp:8080 && NODE_ENV=development electron dist/electron/main.cjs\"",
+    "build": "npm run build:client && npm run build:server && npm run build:electron-main",
     "build:client": "vite build",
     "build:server": "vite build --config vite.config.server.ts",
+    "build:electron-main": "vite build --config vite.config.electron.ts",
+    "electron:preview": "npm run build && electron dist/electron/main.cjs",
+    "electron:build": "npm run build && electron-builder",
     "start": "node dist/server/node-build.mjs",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
@@ -26,6 +31,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1014.0",
+    "@libsql/client": "^0.17.3",
     "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
@@ -89,9 +95,12 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "drizzle-kit": "^0.31.8",
+    "electron": "^42.0.1",
+    "electron-builder": "^26.8.1",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.12",
     "globals": "^16.3.0",
@@ -117,7 +126,8 @@
     "typescript": "^5.9.2",
     "vaul": "^1.1.2",
     "vite": "^7.1.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wait-on": "^9.0.10"
   },
   "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
 }

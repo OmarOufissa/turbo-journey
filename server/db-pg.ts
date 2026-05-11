@@ -1,28 +1,117 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 import bcrypt from "bcrypt";
 import { eq, sql } from "drizzle-orm";
+import path from "path";
 
-// Create PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes("localhost") ? false : { rejectUnauthorized: false },
-});
+// Database path: set by Electron main before server loads, or fall back to cwd
+// Ignore PostgreSQL URLs — only accept file: or relative paths without protocol
+function getDbUrl(): string {
+  const envUrl = process.env.DATABASE_URL;
+  if (envUrl && !envUrl.startsWith("postgres")) {
+    return envUrl.startsWith("file:") ? envUrl : `file:${envUrl}`;
+  }
+  return `file:${path.join(process.cwd(), "habilitations.db")}`;
+}
 
-// Initialize Drizzle ORM
-export const db = drizzle(pool, { schema });
+const client = createClient({ url: getDbUrl() });
+export const db = drizzle(client, { schema });
 
-// Initialize database with demo user
+async function createTablesIfNotExist() {
+  const statements = [
+    `CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS divisions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS services (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      division_id INTEGER NOT NULL REFERENCES divisions(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(name, division_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS equipes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      service_id INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(name, service_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS employees (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      matricule TEXT NOT NULL UNIQUE,
+      nom TEXT NOT NULL,
+      prenom TEXT NOT NULL,
+      current_version_id INTEGER,
+      deleted INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS employee_versions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      version_number INTEGER NOT NULL,
+      st_codes TEXT NOT NULL DEFAULT '[]',
+      ht_codes TEXT NOT NULL DEFAULT '[]',
+      n_de_titre TEXT NOT NULL,
+      fonction TEXT NOT NULL,
+      division_id INTEGER NOT NULL REFERENCES divisions(id),
+      service_id INTEGER NOT NULL REFERENCES services(id),
+      equipe_id INTEGER REFERENCES equipes(id),
+      date_validation TEXT NOT NULL,
+      date_expiration TEXT NOT NULL,
+      pdf_path TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      created_by INTEGER REFERENCES users(id),
+      audit_log_id INTEGER,
+      UNIQUE(employee_id, version_number)
+    )`,
+    `CREATE TABLE IF NOT EXISTS pending_renewals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      snapshot TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      action TEXT NOT NULL,
+      entity_id INTEGER NOT NULL,
+      user_id INTEGER REFERENCES users(id),
+      snapshot_old TEXT,
+      snapshot_new TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS users_email_idx ON users(email)`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS divisions_name_idx ON divisions(name)`,
+    `CREATE INDEX IF NOT EXISTS services_division_idx ON services(division_id)`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS services_name_division_idx ON services(name, division_id)`,
+    `CREATE INDEX IF NOT EXISTS equipes_service_idx ON equipes(service_id)`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS equipes_name_service_idx ON equipes(name, service_id)`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS employees_matricule_idx ON employees(matricule)`,
+    `CREATE INDEX IF NOT EXISTS idx_emp_versions_emp ON employee_versions(employee_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_expiration ON employee_versions(date_expiration)`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS employee_versions_employee_version_idx ON employee_versions(employee_id, version_number)`,
+    `CREATE INDEX IF NOT EXISTS pending_renewals_employee_id_idx ON pending_renewals(employee_id)`,
+    `CREATE INDEX IF NOT EXISTS audit_logs_entity_idx ON audit_logs(entity_id)`,
+    `CREATE INDEX IF NOT EXISTS audit_logs_action_idx ON audit_logs(action)`,
+    `CREATE INDEX IF NOT EXISTS audit_logs_created_at_idx ON audit_logs(created_at)`,
+  ];
+
+  await client.batch(statements, "write");
+}
+
 export async function initializeDatabase() {
   try {
-    console.log("Checking database connection...");
+    console.log("Initializing SQLite database...");
+    await createTablesIfNotExist();
 
-    // Test connection
-    await pool.query("SELECT NOW()");
-    console.log("Database connection successful");
-
-    // Check if demo user exists
     const existingUser = await db
       .select()
       .from(schema.users)
@@ -30,7 +119,6 @@ export async function initializeDatabase() {
       .limit(1);
 
     if (existingUser.length === 0) {
-      // Create demo user (password: admin123)
       const hashedPassword = bcrypt.hashSync("admin123", 10);
       await db.insert(schema.users).values({
         email: "admin@example.com",
@@ -41,13 +129,12 @@ export async function initializeDatabase() {
       console.log("Demo user already exists");
     }
 
-    // Check if organizational structure is already seeded
-    const divisionsCount = await db
+    const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })
       .from(schema.divisions);
 
-    if (!divisionsCount[0] || divisionsCount[0].count === 0) {
-      console.log("Seeding organizational structure and employee data...");
+    if (Number(count) === 0) {
+      console.log("Seeding organizational structure...");
       const { seedDatabasePG } = await import("./seed-pg");
       await seedDatabasePG();
     } else {
@@ -57,85 +144,16 @@ export async function initializeDatabase() {
     console.log("Database initialized successfully");
   } catch (err) {
     console.error("Database initialization error:", err);
-    console.warn("WARNING: Database connection failed. The server will continue running, but database operations will fail.");
-    // Don't throw - allow server to continue running
+    console.warn("Server will continue, but database operations may fail.");
   }
 }
 
-// Helper function to get database instance
-export async function getDatabase() {
-  return db;
-}
-
-// ============================================================================
-// PHASE 1: TRANSACTION SUPPORT FOR ATOMIC OPERATIONS
-// ============================================================================
-
-/**
- * Execute a callback within a database transaction
- * CRITICAL: If callback throws, entire transaction rolls back
- * Used for: mutation + audit logging together
- *
- * Pattern:
- *   try {
- *     const result = await withAuditTransaction(async (txDb) => {
- *       // mutation 1
- *       // mutation 2
- *       // audit logging
- *       return { success: true, data };
- *     });
- *   } catch (err) {
- *     // Transaction rolled back, error returned
- *   }
- *
- * @param callback Function to execute within transaction
- * @throws Error if transaction fails or callback throws
- * @returns Result of callback
- */
 export async function withAuditTransaction<T>(
   callback: (txDb: typeof db) => Promise<T>
 ): Promise<T> {
-  const client = await pool.connect();
-  try {
-    // Begin transaction
-    await client.query("BEGIN TRANSACTION");
-
-    // Create transaction-scoped Drizzle instance
-    const txDb = drizzle(client, { schema });
-
-    // Execute callback
-    const result = await callback(txDb);
-
-    // Commit on success
-    await client.query("COMMIT");
-    return result;
-  } catch (err) {
-    // Rollback on any error
-    try {
-      await client.query("ROLLBACK");
-    } catch (rollbackErr) {
-      console.error("Error during rollback:", rollbackErr);
-    }
-
-    // Re-throw original error with context
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    throw new Error(
-      `Transaction failed and rolled back. No data was modified. Details: ${errorMsg}`
-    );
-  } finally {
-    // Always release client back to pool
-    client.release();
-  }
+  return db.transaction(callback);
 }
 
-/**
- * Validate data against schema before mutation
- * Prevents invalid data from being inserted/updated
- *
- * @param data Data to validate
- * @param schema Validation schema object
- * @throws Error if validation fails
- */
 export function validateDataIntegrity(
   data: Record<string, any>,
   requiredFields: string[]
@@ -146,9 +164,6 @@ export function validateDataIntegrity(
   }
 }
 
-/**
- * Validate employee data format and constraints
- */
 export function validateEmployeeData(employee: Record<string, any>): void {
   if (!employee.matricule || !/^\d{5}$/.test(employee.matricule)) {
     throw new Error(`Invalid matricule format: must be 5 digits`);
@@ -159,72 +174,22 @@ export function validateEmployeeData(employee: Record<string, any>): void {
   if (!employee.nom || employee.nom.trim().length === 0) {
     throw new Error(`Invalid nom: cannot be empty`);
   }
-  if (!employee.divisionId || employee.divisionId <= 0) {
-    throw new Error(`Invalid divisionId: must be positive`);
-  }
-  if (!employee.serviceId || employee.serviceId <= 0) {
-    throw new Error(`Invalid serviceId: must be positive`);
-  }
-  if (!employee.equipeId || employee.equipeId <= 0) {
-    throw new Error(`Invalid equipeId: must be positive`);
-  }
 }
 
-/**
- * Validate habilitation data format and constraints
- * CORRECTION 2: Supports both stCodes and htCodes (independent fields)
- * Both can be empty independently, but at least ONE must be non-empty
- */
 export function validateHabilitationData(hab: Record<string, any>): void {
-  // Get codes arrays (normalize from old or new format)
   let stCodes = hab.stCodes || [];
   let htCodes = hab.htCodes || [];
-
-  // Handle legacy format: if codes provided without stCodes/htCodes, treat as HT
-  if (!hab.stCodes && !hab.htCodes && hab.codes) {
-    htCodes = Array.isArray(hab.codes) ? hab.codes : [];
-  }
-
-  // Ensure arrays
   if (!Array.isArray(stCodes)) stCodes = [];
   if (!Array.isArray(htCodes)) htCodes = [];
-
-  // CORRECTION 2: At least one array must be non-empty
   if (stCodes.length === 0 && htCodes.length === 0) {
     throw new Error(`Invalid habilitation: at least one code (ST or HT) is required`);
   }
-
-  // Valid codes for both ST and HT
-  const validCodes = ["H0V", "H1V", "H2V", "HC", "B0V", "B1V", "B2V", "BC", "H1N", "H2N", "BR", "SF6"];
-
-  // Check ST codes
-  const invalidSTCodes = stCodes.filter((code: string) => !validCodes.includes(code));
-  if (invalidSTCodes.length > 0) {
-    throw new Error(
-      `Invalid ST codes: ${invalidSTCodes.join(", ")}. Valid codes: ${validCodes.join(", ")}`
-    );
-  }
-
-  // Check HT codes
-  const invalidHTCodes = htCodes.filter((code: string) => !validCodes.includes(code));
-  if (invalidHTCodes.length > 0) {
-    throw new Error(
-      `Invalid HT codes: ${invalidHTCodes.join(", ")}. Valid codes: ${validCodes.join(", ")}`
-    );
-  }
-
-  // Dates must be valid
-  if (!hab.dateValidation || isNaN(new Date(hab.dateValidation).getTime())) {
-    throw new Error(`Invalid date_validation: must be valid date`);
-  }
-
-  // Expiration should be after validation (optional check - can be auto-calculated)
-  if (hab.dateExpiration && isNaN(new Date(hab.dateExpiration).getTime())) {
-    throw new Error(`Invalid date_expiration: must be valid date`);
-  }
 }
 
-// Export schema for use in other files
+export async function getDatabase() {
+  return db;
+}
+
 export * from "./schema";
 
 export default {
