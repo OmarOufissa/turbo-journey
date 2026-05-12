@@ -150,6 +150,64 @@ async function importOneRow(row: ImportRow) {
   await db.update(schema.employeeVersions).set({ auditLogId: auditLog.id }).where(eq(schema.employeeVersions.id, version.id));
 }
 
+export interface PreviewRow {
+  row: number;
+  matricule: string;
+  nom: string;
+  prenom: string;
+  fonction: string;
+  division: string;
+  service: string;
+  stCodes: string[];
+  htCodes: string[];
+  dateExpiration: string;
+  isNew: boolean;
+  errors: ImportError[];
+}
+
+// Dry-run: validate + check existing, return preview without writing to DB
+export async function previewImportFromBuffer(buffer: Buffer): Promise<{
+  rows: PreviewRow[];
+  totalNew: number;
+  totalUpdate: number;
+  totalErrors: number;
+}> {
+  const rows = parseEmployeesFromExcel(buffer);
+  const preview: PreviewRow[] = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const rowNum = i + 2;
+    const errors = validateRow(row, i);
+
+    const existing = row.matricule
+      ? await db.select({ id: schema.employees.id }).from(schema.employees).where(eq(schema.employees.matricule, row.matricule))
+      : [];
+
+    preview.push({
+      row: rowNum,
+      matricule: row.matricule,
+      nom: row.nom,
+      prenom: row.prenom,
+      fonction: row.fonction,
+      division: row.division,
+      service: row.service,
+      stCodes: row.stCodes,
+      htCodes: row.htCodes,
+      dateExpiration: row.dateExpiration,
+      isNew: existing.length === 0,
+      errors,
+    });
+  }
+
+  return {
+    rows: preview,
+    totalNew: preview.filter(r => r.isNew && r.errors.length === 0).length,
+    totalUpdate: preview.filter(r => !r.isNew && r.errors.length === 0).length,
+    totalErrors: preview.filter(r => r.errors.length > 0).length,
+  };
+}
+
 // Mode A: all-or-nothing; Mode B: skip bad rows
 export async function importEmployeesFromBuffer(
   buffer: Buffer,

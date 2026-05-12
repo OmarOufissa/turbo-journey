@@ -99,6 +99,84 @@ export function createServer() {
     authMiddleware(req, res, () => exportEmployees(req, res));
   });
 
+  app.post("/api/employees/bulk-generate-pdf", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq, isNull } = await import("drizzle-orm");
+        const { generateHabilitationPdf } = await import("./services/pdfService");
+
+        const rows = await db
+          .select({
+            empId: schema.employees.id,
+            matricule: schema.employees.matricule,
+            nom: schema.employees.nom,
+            prenom: schema.employees.prenom,
+            verId: schema.employeeVersions.id,
+            versionNumber: schema.employeeVersions.versionNumber,
+            nDeTitre: schema.employeeVersions.nDeTitre,
+            fonction: schema.employeeVersions.fonction,
+            divisionId: schema.employeeVersions.divisionId,
+            serviceId: schema.employeeVersions.serviceId,
+            equipeId: schema.employeeVersions.equipeId,
+            stCodes: schema.employeeVersions.stCodes,
+            htCodes: schema.employeeVersions.htCodes,
+            dateValidation: schema.employeeVersions.dateValidation,
+            dateExpiration: schema.employeeVersions.dateExpiration,
+          })
+          .from(schema.employees)
+          .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+          .where(eq(schema.employees.deleted, false) as any);
+
+        const missing = rows.filter(r => !r.verId);
+        // Also include those with no PDF on the version
+        const allRows = rows;
+
+        let generated = 0;
+        let failed = 0;
+        const errors: string[] = [];
+
+        for (const row of allRows) {
+          try {
+            const [div] = await db.select({ name: schema.divisions.name }).from(schema.divisions).where(eq(schema.divisions.id, row.divisionId));
+            const [svc] = await db.select({ name: schema.services.name }).from(schema.services).where(eq(schema.services.id, row.serviceId));
+            const equipe = row.equipeId
+              ? (await db.select({ name: schema.equipes.name }).from(schema.equipes).where(eq(schema.equipes.id, row.equipeId)))[0]
+              : null;
+
+            const result = await generateHabilitationPdf({
+              matricule: row.matricule,
+              nom: row.nom,
+              prenom: row.prenom,
+              nDeTitre: row.nDeTitre,
+              fonction: row.fonction,
+              division: div?.name ?? "",
+              service: svc?.name ?? "",
+              equipe: equipe?.name ?? null,
+              stCodes: (row.stCodes as string[]) ?? [],
+              htCodes: (row.htCodes as string[]) ?? [],
+              dateValidation: row.dateValidation,
+              dateExpiration: row.dateExpiration,
+            }, row.versionNumber);
+
+            await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath }).where(eq(schema.employeeVersions.id, row.verId));
+            generated++;
+          } catch (err) {
+            failed++;
+            errors.push(`${row.matricule}: ${(err as Error).message}`);
+          }
+        }
+
+        res.json({ success: true, data: { generated, failed, errors }, error: null });
+      } catch (err) {
+        console.error("bulk-generate-pdf error:", err);
+        res.status(500).json({ success: false, data: null, error: (err as Error).message });
+      }
+    });
+  });
+
   // ============================================================================
   // EMPLOYEES (V4)
   // ============================================================================
@@ -227,6 +305,26 @@ export function createServer() {
   // ============================================================================
   // IMPORT (Excel .xlsx)
   // ============================================================================
+
+  app.post("/api/import-employees/preview", uploadExcel.single("file"), async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ success: false, data: null, error: "Fichier .xlsx requis" });
+        }
+        const fs = await import("fs");
+        const buffer = fs.readFileSync(req.file.path);
+        const { previewImportFromBuffer } = await import("./import-employees");
+        const result = await previewImportFromBuffer(buffer);
+        fs.unlinkSync(req.file.path);
+        res.json({ success: true, data: result, error: null });
+      } catch (err) {
+        console.error("Preview import error:", err);
+        res.status(500).json({ success: false, data: null, error: (err as Error).message });
+      }
+    });
+  });
 
   app.post("/api/import-employees", uploadExcel.single("file"), async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");

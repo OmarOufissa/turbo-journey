@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +64,61 @@ interface AuditFilter {
   matricule?: string;
   startDate?: string;
   endDate?: string;
+}
+
+function formatVal(v: unknown): string {
+  if (v === null || v === undefined) return "—";
+  if (Array.isArray(v)) return v.length > 0 ? v.join(", ") : "[]";
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+
+function SnapshotDiff({
+  old: oldSnap,
+  next: newSnap,
+}: {
+  old: Record<string, any> | null;
+  next: Record<string, any> | null;
+}) {
+  const allKeys = Array.from(
+    new Set([...Object.keys(oldSnap ?? {}), ...Object.keys(newSnap ?? {})])
+  );
+
+  if (allKeys.length === 0) {
+    return <p className="text-muted-foreground text-sm">Aucune donnée snapshot disponible</p>;
+  }
+
+  return (
+    <div className="overflow-auto rounded-lg border">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b bg-muted/50">
+            <th className="text-left px-3 py-2 font-medium text-muted-foreground w-32">Champ</th>
+            <th className="text-left px-3 py-2 font-medium text-orange-600 dark:text-orange-400">Avant</th>
+            <th className="text-left px-3 py-2 font-medium text-green-600 dark:text-green-400">Après</th>
+          </tr>
+        </thead>
+        <tbody>
+          {allKeys.map((key) => {
+            const oldVal = formatVal(oldSnap?.[key]);
+            const newVal = formatVal(newSnap?.[key]);
+            const changed = oldSnap && newSnap && oldVal !== newVal;
+            return (
+              <tr key={key} className={cn("border-b", changed && "bg-yellow-50/60 dark:bg-yellow-900/20")}>
+                <td className="px-3 py-1.5 font-mono text-muted-foreground">{key}</td>
+                <td className={cn("px-3 py-1.5 font-mono", changed && "text-orange-700 dark:text-orange-300 line-through opacity-70")}>
+                  {oldSnap ? oldVal : "—"}
+                </td>
+                <td className={cn("px-3 py-1.5 font-mono", changed && "text-green-700 dark:text-green-300 font-semibold")}>
+                  {newSnap ? newVal : "—"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export default function AuditLog() {
@@ -420,48 +476,15 @@ export default function AuditLog() {
                       </TableCell>
                     </TableRow>
 
-                    {/* Expanded Details Row */}
+                    {/* Expanded Details Row — side-by-side diff */}
                     {expandedId === log.id && (
                       <TableRow className="border-b border-white/10 bg-black/20">
-                        <TableCell colSpan={6} className="p-6">
-                          <div className="space-y-6">
-                            {/* Old Data */}
-                            {log.snapshotOld && (
-                              <div className="space-y-2">
-                                <h4 className="font-semibold text-sm text-orange-400">
-                                  Anciennes données
-                                </h4>
-                                <pre className="text-xs bg-black/40 p-3 rounded overflow-x-auto max-h-64">
-                                  {JSON.stringify(log.snapshotOld, null, 2)}
-                                </pre>
-                              </div>
-                            )}
-
-                            {/* Arrow */}
-                            {log.snapshotOld && log.snapshotNew && (
-                              <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground">↓</span>
-                              </div>
-                            )}
-
-                            {/* New Data */}
-                            {log.snapshotNew && (
-                              <div className="space-y-2">
-                                <h4 className="font-semibold text-sm text-green-400">
-                                  Nouvelles données
-                                </h4>
-                                <pre className="text-xs bg-black/40 p-3 rounded overflow-x-auto max-h-64">
-                                  {JSON.stringify(log.snapshotNew, null, 2)}
-                                </pre>
-                              </div>
-                            )}
-
-                            {!log.snapshotOld && !log.snapshotNew && (
-                              <p className="text-muted-foreground text-sm">
-                                Aucune donnée snapshot disponible
-                              </p>
-                            )}
-                          </div>
+                        <TableCell colSpan={6} className="p-4">
+                          {!log.snapshotOld && !log.snapshotNew ? (
+                            <p className="text-muted-foreground text-sm">Aucune donnée snapshot disponible</p>
+                          ) : (
+                            <SnapshotDiff old={log.snapshotOld} next={log.snapshotNew} />
+                          )}
                         </TableCell>
                       </TableRow>
                     )}

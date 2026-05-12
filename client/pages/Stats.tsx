@@ -2,7 +2,12 @@ import { Layout } from "@/components/Layout";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { getStats } from "@/api/employees";
+import { FileText, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface StatsData {
   total: number;
@@ -13,11 +18,15 @@ interface StatsData {
   stOnly: number;
   htOnly: number;
   both: number;
-  byDivision: Array<{ name: string; count: number }>;
+  missingPdf: number;
+  pendingRenewals: number;
+  mostCommonCodes: Array<{ code: string; count: number }>;
+  monthlyForecast: Array<{ month: string; count: number }>;
+  byDivision: Array<{ name: string; total: number; expired: number; critical: number }>;
   byService: Array<{ name: string; count: number }>;
 }
 
-function StatCard({ title, value, color }: { title: string; value: number; color?: string }) {
+function StatCard({ title, value, color, sub }: { title: string; value: number; color?: string; sub?: string }) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -25,35 +34,85 @@ function StatCard({ title, value, color }: { title: string; value: number; color
       </CardHeader>
       <CardContent>
         <p className={`text-3xl font-bold ${color ?? ""}`}>{value}</p>
+        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
       </CardContent>
     </Card>
   );
 }
 
+function monthLabel(ym: string) {
+  const [y, m] = ym.split("-");
+  const months = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Aoû","Sep","Oct","Nov","Déc"];
+  return `${months[parseInt(m) - 1]} ${y.slice(2)}`;
+}
+
+function barColor(count: number, max: number) {
+  const ratio = count / max;
+  if (ratio > 0.7) return "#ef4444";
+  if (ratio > 0.4) return "#f97316";
+  return "#3b82f6";
+}
+
 export default function Stats() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const token = localStorage.getItem("token");
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
     getStats()
       .then(res => { if (res.success) setStats(res.data); })
       .catch(() => toast({ title: "Erreur", description: "Impossible de charger les statistiques", variant: "destructive" }))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(load, []);
+
+  const handleBulkPdf = async () => {
+    if (!window.confirm("Générer les PDFs pour tous les employés actifs ? Cela peut prendre quelques minutes.")) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch("/api/employees/bulk-generate-pdf", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Génération terminée", description: `${data.data.generated} PDF(s) générés, ${data.data.failed} erreur(s)` });
+        load();
+      }
+    } catch {
+      toast({ title: "Erreur", description: "Erreur lors de la génération", variant: "destructive" });
+    } finally {
+      setBulkLoading(false);
+    }
+  };
 
   if (loading) return <Layout><div className="p-6">Chargement...</div></Layout>;
   if (!stats) return <Layout><div className="p-6">Aucune donnée</div></Layout>;
 
-  const maxDiv = Math.max(...stats.byDivision.map(d => d.count), 1);
+  const maxDiv = Math.max(...stats.byDivision.map(d => d.total), 1);
   const maxSvc = Math.max(...stats.byService.map(s => s.count), 1);
+  const maxForecast = Math.max(...(stats.monthlyForecast?.map(m => m.count) ?? []), 1);
 
   return (
     <Layout>
       <div className="p-6 space-y-6">
-        <h1 className="text-2xl font-bold">Statistiques</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Statistiques</h1>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={load}><RefreshCw className="w-4 h-4 mr-1" />Actualiser</Button>
+            <Button size="sm" onClick={handleBulkPdf} disabled={bulkLoading}>
+              <FileText className="w-4 h-4 mr-1" />{bulkLoading ? "Génération..." : "Générer tous les PDFs"}
+            </Button>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           <StatCard title="Total employés" value={stats.total} />
           <StatCard title="Expirés" value={stats.expired} color="text-red-600" />
           <StatCard title="< 3 mois" value={stats.lessThan3Months} color="text-orange-600" />
@@ -62,49 +121,96 @@ export default function Stats() {
           <StatCard title="ST uniquement" value={stats.stOnly} />
           <StatCard title="HT uniquement" value={stats.htOnly} />
           <StatCard title="ST + HT" value={stats.both} />
+          <StatCard title="Sans PDF" value={stats.missingPdf} color={stats.missingPdf > 0 ? "text-amber-600" : ""} sub="version actuelle" />
+          <StatCard title="Renouvellements" value={stats.pendingRenewals} color={stats.pendingRenewals > 0 ? "text-purple-600" : ""} sub="en attente" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Monthly forecast */}
+        {stats.monthlyForecast && stats.monthlyForecast.length > 0 && (
           <Card>
-            <CardHeader><CardTitle>Par division</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Expirations par mois (12 prochains mois)</CardTitle></CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={stats.monthlyForecast.map(m => ({ ...m, label: monthLabel(m.month) }))}>
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                  <Tooltip
+                    formatter={(val: number) => [`${val} employé(s)`, "Expirations"]}
+                    labelFormatter={(label) => `Mois : ${label}`}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {stats.monthlyForecast.map((entry, i) => (
+                      <Cell key={i} fill={barColor(entry.count, maxForecast)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* By division with risk heatmap */}
+          <Card>
+            <CardHeader><CardTitle>Par division (risque)</CardTitle></CardHeader>
             <CardContent className="space-y-2">
-              {stats.byDivision.sort((a, b) => b.count - a.count).map(d => (
+              {stats.byDivision.sort((a, b) => b.total - a.total).map(d => (
                 <div key={d.name} className="space-y-1">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm items-center">
                     <span className="font-medium">{d.name}</span>
-                    <span className="text-muted-foreground">{d.count}</span>
+                    <div className="flex gap-1 items-center">
+                      {d.expired > 0 && <Badge variant="destructive" className="text-xs px-1">{d.expired} exp.</Badge>}
+                      {d.critical > 0 && <Badge className="text-xs px-1 bg-orange-500">{d.critical} &lt;3m</Badge>}
+                      <span className="text-muted-foreground ml-1">{d.total}</span>
+                    </div>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full"
-                      style={{ width: `${(d.count / maxDiv) * 100}%` }}
-                    />
+                    <div className="h-full rounded-full flex overflow-hidden">
+                      <div className="h-full bg-red-500" style={{ width: `${(d.expired / maxDiv) * 100}%` }} />
+                      <div className="h-full bg-orange-400" style={{ width: `${(d.critical / maxDiv) * 100}%` }} />
+                      <div className="h-full bg-primary" style={{ width: `${((d.total - d.expired - d.critical) / maxDiv) * 100}%` }} />
+                    </div>
                   </div>
                 </div>
               ))}
             </CardContent>
           </Card>
 
+          {/* By service */}
           <Card>
-            <CardHeader><CardTitle>Par service</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Par service (top 10)</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               {stats.byService.sort((a, b) => b.count - a.count).slice(0, 10).map(s => (
                 <div key={s.name} className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium">{s.name}</span>
+                    <span className="font-medium truncate max-w-[180px]">{s.name}</span>
                     <span className="text-muted-foreground">{s.count}</span>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full bg-blue-500 rounded-full"
-                      style={{ width: `${(s.count / maxSvc) * 100}%` }}
-                    />
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(s.count / maxSvc) * 100}%` }} />
                   </div>
                 </div>
               ))}
             </CardContent>
           </Card>
         </div>
+
+        {/* Most common codes */}
+        {stats.mostCommonCodes && stats.mostCommonCodes.length > 0 && (
+          <Card>
+            <CardHeader><CardTitle>Codes les plus fréquents</CardTitle></CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {stats.mostCommonCodes.map(({ code, count }) => (
+                  <div key={code} className="flex items-center gap-1 px-3 py-1 rounded-full border bg-muted/50 text-sm">
+                    <span className="font-mono font-semibold">{code}</span>
+                    <Badge variant="secondary" className="text-xs">{count}</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </Layout>
   );
