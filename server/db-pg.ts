@@ -52,6 +52,7 @@ async function createTablesIfNotExist() {
       prenom TEXT NOT NULL,
       current_version_id INTEGER,
       deleted INTEGER NOT NULL DEFAULT 0,
+      deleted_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )`,
     `CREATE TABLE IF NOT EXISTS employee_versions (
@@ -133,8 +134,10 @@ export async function initializeDatabase() {
       .select({ count: sql<number>`count(*)` })
       .from(schema.divisions);
 
-    if (Number(count) === 0) {
-      console.log("Seeding organizational structure...");
+    const forceSeed = process.env.SEED === "true";
+    if (Number(count) === 0 || forceSeed) {
+      if (forceSeed) console.log("SEED=true — forcing re-seed of organizational structure...");
+      else console.log("Seeding organizational structure...");
       const { seedDatabasePG } = await import("./seed-pg");
       await seedDatabasePG();
     } else {

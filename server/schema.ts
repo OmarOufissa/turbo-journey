@@ -46,6 +46,7 @@ export const employees = sqliteTable("employees", {
   prenom: text("prenom").notNull(),
   currentVersionId: integer("current_version_id"),
   deleted: integer("deleted", { mode: "boolean" }).notNull().default(false),
+  deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   matriculeIdx: uniqueIndex("employees_matricule_idx").on(table.matricule),

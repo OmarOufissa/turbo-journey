@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit2, History, RotateCcw, FileText } from "lucide-react";
+import { ArrowLeft, Edit2, History, RotateCcw, FileText, Download, Eye, Trash2, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Employee, EmployeeVersion } from "@/types/employee";
@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 
 export default function EmployeeCard() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,8 +42,11 @@ export default function EmployeeCard() {
     }
   };
 
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+
   const handleGeneratePdf = async () => {
     if (!employee) return;
+    setPdfGenerating(true);
     try {
       const res = await fetch(`/api/employees/${employee.id}/generate-pdf`, {
         method: "POST",
@@ -53,9 +55,31 @@ export default function EmployeeCard() {
       const data = await res.json();
       if (data.success) {
         toast({ title: "Succès", description: "PDF généré" });
+        const updated = await getEmployee(employee.id.toString());
+        if (updated.success) setEmployee(updated.data);
       }
     } catch {
       toast({ title: "Erreur", description: "Impossible de générer le PDF", variant: "destructive" });
+    } finally {
+      setPdfGenerating(false);
+    }
+  };
+
+  const handleDeletePdf = async () => {
+    if (!employee || !window.confirm("Supprimer le PDF de cette version ?")) return;
+    try {
+      const res = await fetch(`/api/employees/${employee.id}/pdf`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Succès", description: "PDF supprimé" });
+        const updated = await getEmployee(employee.id.toString());
+        if (updated.success) setEmployee(updated.data);
+      }
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de supprimer le PDF", variant: "destructive" });
     }
   };
 
@@ -130,6 +154,42 @@ export default function EmployeeCard() {
                 </div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Validation</span><span>{new Date(ver.dateValidation).toLocaleDateString("fr-FR")}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Expiration</span><span className={cn("font-medium", config.textColor)}>{new Date(ver.dateExpiration).toLocaleDateString("fr-FR")}</span></div>
+
+                <div className="pt-3 border-t">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Document PDF</span>
+                    <div className="flex gap-1">
+                      {ver.pdfPath ? (
+                        <>
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={`/uploads/pdfs/${ver.pdfPath}`} target="_blank" rel="noreferrer">
+                              <Eye className="w-3 h-3 mr-1" />Voir
+                            </a>
+                          </Button>
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={`/uploads/pdfs/${ver.pdfPath}`} download>
+                              <Download className="w-3 h-3 mr-1" />Télécharger
+                            </a>
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
+                            <RefreshCw className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />Régénérer
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={handleDeletePdf}>
+                            <Trash2 className="w-3 h-3 mr-1" />Supprimer
+                          </Button>
+                        </>
+                      ) : (
+                        <Button size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
+                          <FileText className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />
+                          {pdfGenerating ? "Génération..." : "Générer PDF"}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {ver.pdfPath && (
+                    <p className="text-xs text-muted-foreground mt-1">{ver.pdfPath}</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>

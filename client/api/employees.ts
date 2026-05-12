@@ -5,11 +5,27 @@ export async function getEmployees(params?: {
   page?: number;
   limit?: number;
   deleted?: boolean;
+  search?: string;
+  expirationFrom?: string;
+  expirationTo?: string;
+  hasPdf?: string;
+  stCode?: string;
+  htCode?: string;
+  sort?: string;
+  sortDir?: string;
 }): Promise<{ success: boolean; data: EmployeesPage; error: null }> {
   const qs = new URLSearchParams();
   if (params?.page) qs.set('page', String(params.page));
   if (params?.limit) qs.set('limit', String(params.limit));
   if (params?.deleted) qs.set('deleted', 'true');
+  if (params?.search) qs.set('search', params.search);
+  if (params?.expirationFrom) qs.set('expirationFrom', params.expirationFrom);
+  if (params?.expirationTo) qs.set('expirationTo', params.expirationTo);
+  if (params?.hasPdf) qs.set('hasPdf', params.hasPdf);
+  if (params?.stCode) qs.set('stCode', params.stCode);
+  if (params?.htCode) qs.set('htCode', params.htCode);
+  if (params?.sort) qs.set('sort', params.sort);
+  if (params?.sortDir) qs.set('sortDir', params.sortDir);
   const query = qs.toString() ? `?${qs}` : '';
   return apiClient(`/api/employees${query}`);
 }

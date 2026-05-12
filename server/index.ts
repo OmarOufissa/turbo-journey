@@ -26,6 +26,12 @@ async function initializeSeedOnStartup() {
   } catch (err) {
     console.error("Error initializing seeds:", err);
   }
+  try {
+    const { initializeNotificationJobs } = await import("./jobs/notificationJobs");
+    await initializeNotificationJobs();
+  } catch (err) {
+    console.error("Error initializing notification jobs:", err);
+  }
 }
 
 export function createServer() {
@@ -86,6 +92,11 @@ export function createServer() {
   app.get("/api/stats", async (req, res) => {
     const { authMiddleware, getStats } = await import("./routes/employees-audit");
     authMiddleware(req, res, () => getStats(req, res));
+  });
+
+  app.get("/api/employees/export", async (req, res) => {
+    const { authMiddleware, exportEmployees } = await import("./routes/employees-audit");
+    authMiddleware(req, res, () => exportEmployees(req, res));
   });
 
   // ============================================================================
@@ -241,6 +252,11 @@ export function createServer() {
   // ============================================================================
   // PDF GENERATION
   // ============================================================================
+
+  app.delete("/api/employees/:employeeId/pdf", async (req, res) => {
+    const { authMiddleware, deletePdf } = await import("./routes/employees-audit");
+    authMiddleware(req, res, () => deletePdf(req, res));
+  });
 
   app.post("/api/employees/:employeeId/generate-pdf", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");

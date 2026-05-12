@@ -76,7 +76,7 @@ export async function generateHabilitationPdf(
       const entite = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean).join(' / ');
       doc.fontSize(9).text(`Entité: ${entite}`);
       doc.text(`Fonction: ${snapshot.fonction}`);
-      doc.text(`Direction: Direction Générale`);
+      doc.text(`Direction: Transport Région centre - Casablanca`);
       doc.text(`N° de titre: ${snapshot.nDeTitre}`);
       doc.text(`Date de validation: ${formatDateFrench(snapshot.dateValidation)}`);
       doc.text(`Date d'expiration: ${formatDateFrench(snapshot.dateExpiration)}`);

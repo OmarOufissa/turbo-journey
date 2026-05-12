@@ -1,7 +1,38 @@
 import { RequestHandler } from "express";
 import { db } from "../db-pg";
 import * as schema from "../schema";
-import { eq, desc, asc, sql } from "drizzle-orm";
+import { eq, desc, asc, sql, and, or, like, gte, lte, isNull, isNotNull } from "drizzle-orm";
+import { z } from "zod";
+
+const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "SF6"] as const;
+const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"] as const;
+
+const versionFields = z.object({
+  stCodes: z.array(z.string()).default([]),
+  htCodes: z.array(z.string()).default([]),
+  nDeTitre: z.string().min(1, "N° de titre requis"),
+  fonction: z.string().min(1, "Fonction requise"),
+  divisionId: z.coerce.number().positive("Division requise"),
+  serviceId: z.coerce.number().positive("Service requis"),
+  equipeId: z.coerce.number().positive().nullable().optional(),
+  dateValidation: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
+  dateExpiration: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
+}).refine((d) => (d.stCodes.length > 0 || d.htCodes.length > 0), {
+  message: "Au moins un code ST ou HT requis",
+}).refine((d) => d.dateExpiration > d.dateValidation, {
+  message: "Date d'expiration doit être après date de validation",
+});
+
+const createEmployeeSchema = versionFields.extend({
+  matricule: z.string().regex(/^\d{5}$/, "Matricule doit être 5 chiffres"),
+  nom: z.string().min(1, "Nom requis"),
+  prenom: z.string().min(1, "Prénom requis"),
+});
+
+const updateEmployeeSchema = versionFields.extend({
+  nom: z.string().min(1).optional(),
+  prenom: z.string().min(1).optional(),
+});
 
 // ============================================================================
 // AUTH MIDDLEWARE
@@ -109,33 +140,74 @@ export const getEmployees: RequestHandler = async (req, res) => {
     const limit = Math.min(100, parseInt(req.query.limit as string) || 20);
     const offset = (page - 1) * limit;
     const showDeleted = req.query.deleted === "true";
+    const search = req.query.search as string | undefined;
+    const expirationFrom = req.query.expirationFrom as string | undefined;
+    const expirationTo = req.query.expirationTo as string | undefined;
+    const hasPdf = req.query.hasPdf as string | undefined;
+    const stCode = req.query.stCode as string | undefined;
+    const htCode = req.query.htCode as string | undefined;
 
-    const baseWhere = showDeleted ? eq(schema.employees.deleted, true) : eq(schema.employees.deleted, false);
-
-    const emps = await db
-      .select()
+    // Build base query with join to current version for filtering
+    let query = db
+      .select({
+        id: schema.employees.id,
+        matricule: schema.employees.matricule,
+        nom: schema.employees.nom,
+        prenom: schema.employees.prenom,
+        deleted: schema.employees.deleted,
+        createdAt: schema.employees.createdAt,
+        currentVersionId: schema.employees.currentVersionId,
+        dateExpiration: schema.employeeVersions.dateExpiration,
+        pdfPath: schema.employeeVersions.pdfPath,
+        stCodes: schema.employeeVersions.stCodes,
+        htCodes: schema.employeeVersions.htCodes,
+      })
       .from(schema.employees)
-      .where(baseWhere)
-      .orderBy(asc(schema.employees.matricule))
-      .limit(limit)
-      .offset(offset);
+      .leftJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id));
 
-    const [{ count }] = await db
+    const conditions: any[] = [eq(schema.employees.deleted, showDeleted)];
+
+    if (search) {
+      const pat = `%${search}%`;
+      conditions.push(or(
+        like(schema.employees.matricule, pat),
+        like(schema.employees.nom, pat),
+        like(schema.employees.prenom, pat)
+      ));
+    }
+    if (expirationFrom) conditions.push(gte(schema.employeeVersions.dateExpiration, expirationFrom));
+    if (expirationTo) conditions.push(lte(schema.employeeVersions.dateExpiration, expirationTo));
+    if (hasPdf === "true") conditions.push(isNotNull(schema.employeeVersions.pdfPath));
+    if (hasPdf === "false") conditions.push(isNull(schema.employeeVersions.pdfPath));
+    if (stCode) conditions.push(like(schema.employeeVersions.stCodes, `%"${stCode}"%`));
+    if (htCode) conditions.push(like(schema.employeeVersions.htCodes, `%"${htCode}"%`));
+
+    const whereClause = conditions.length === 1 ? conditions[0] : and(...conditions);
+
+    const sortField = req.query.sort === "expiration" ? schema.employeeVersions.dateExpiration : schema.employees.matricule;
+    const sortDir = req.query.sortDir === "desc" ? desc(sortField) : asc(sortField);
+
+    const rows = await (query as any).where(whereClause).orderBy(sortDir).limit(limit).offset(offset);
+
+    const countQuery = db
       .select({ count: sql<number>`count(*)` })
       .from(schema.employees)
-      .where(baseWhere);
+      .leftJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+      .where(whereClause);
 
-    const data = await Promise.all(emps.map(async (emp) => {
-      const currentVersion = emp.currentVersionId
-        ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId)))[0]
+    const [{ count }] = await countQuery;
+
+    const data = await Promise.all(rows.map(async (row: any) => {
+      const currentVersion = row.currentVersionId
+        ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, row.currentVersionId)))[0]
         : null;
       return {
-        id: emp.id,
-        matricule: emp.matricule,
-        nom: emp.nom,
-        prenom: emp.prenom,
-        deleted: emp.deleted,
-        createdAt: emp.createdAt,
+        id: row.id,
+        matricule: row.matricule,
+        nom: row.nom,
+        prenom: row.prenom,
+        deleted: row.deleted,
+        createdAt: row.createdAt,
         currentVersion: currentVersion ? await buildVersionResponse(currentVersion) : null,
       };
     }));
@@ -197,17 +269,11 @@ export const getEmployee: RequestHandler = async (req, res) => {
 
 export const createEmployee: RequestHandler = async (req, res) => {
   try {
-    const { matricule, nom, prenom, stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration } = req.body;
-
-    if (!matricule || !nom || !prenom || !nDeTitre || !fonction || !divisionId || !serviceId || !dateValidation || !dateExpiration) {
-      return res.status(400).json({ success: false, data: null, error: "Champs requis manquants" });
+    const parsed = createEmployeeSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, data: null, error: parsed.error.errors[0]?.message ?? "Données invalides" });
     }
-    if ((!stCodes || stCodes.length === 0) && (!htCodes || htCodes.length === 0)) {
-      return res.status(400).json({ success: false, data: null, error: "Au moins un code ST ou HT requis" });
-    }
-    if (new Date(dateExpiration) <= new Date(dateValidation)) {
-      return res.status(400).json({ success: false, data: null, error: "Date d'expiration doit être après date de validation" });
-    }
+    const { matricule, nom, prenom, stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration } = parsed.data;
 
     const existing = await db.select({ id: schema.employees.id }).from(schema.employees).where(eq(schema.employees.matricule, matricule));
     if (existing.length > 0) {
@@ -224,9 +290,9 @@ export const createEmployee: RequestHandler = async (req, res) => {
         htCodes: htCodes ?? [],
         nDeTitre,
         fonction,
-        divisionId: parseInt(divisionId),
-        serviceId: parseInt(serviceId),
-        equipeId: equipeId ? parseInt(equipeId) : null,
+        divisionId,
+        serviceId,
+        equipeId: equipeId ?? null,
         dateValidation,
         dateExpiration,
       }).returning();
@@ -262,14 +328,11 @@ export const updateEmployee: RequestHandler = async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
 
-    const { stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration, nom, prenom } = req.body;
-
-    if ((!stCodes || stCodes.length === 0) && (!htCodes || htCodes.length === 0)) {
-      return res.status(400).json({ success: false, data: null, error: "Au moins un code ST ou HT requis" });
+    const parsed = updateEmployeeSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, data: null, error: parsed.error.errors[0]?.message ?? "Données invalides" });
     }
-    if (new Date(dateExpiration) <= new Date(dateValidation)) {
-      return res.status(400).json({ success: false, data: null, error: "Date d'expiration doit être après date de validation" });
-    }
+    const { stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration, nom, prenom } = parsed.data;
 
     const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
@@ -300,9 +363,9 @@ export const updateEmployee: RequestHandler = async (req, res) => {
         htCodes: htCodes ?? [],
         nDeTitre,
         fonction,
-        divisionId: parseInt(divisionId),
-        serviceId: parseInt(serviceId),
-        equipeId: equipeId ? parseInt(equipeId) : null,
+        divisionId,
+        serviceId,
+        equipeId: equipeId ?? null,
         dateValidation,
         dateExpiration,
       }).returning();
@@ -508,6 +571,7 @@ export const getStats: RequestHandler = async (_req, res) => {
         dateExpiration: schema.employeeVersions.dateExpiration,
         stCodes: schema.employeeVersions.stCodes,
         htCodes: schema.employeeVersions.htCodes,
+        pdfPath: schema.employeeVersions.pdfPath,
         divisionName: schema.divisions.name,
         serviceName: schema.services.name,
       })
@@ -518,9 +582,11 @@ export const getStats: RequestHandler = async (_req, res) => {
       .where(eq(schema.employees.deleted, false));
 
     let expired = 0, lessThan3m = 0, lessThan6m = 0, lessThan9m = 0;
-    let stOnly = 0, htOnly = 0, both = 0;
-    const byDivision: Record<string, number> = {};
+    let stOnly = 0, htOnly = 0, both = 0, missingPdf = 0;
+    const byDivision: Record<string, { total: number; expired: number; critical: number }> = {};
     const byService: Record<string, number> = {};
+    const codeCounts: Record<string, number> = {};
+    const monthlyForecast: Record<string, number> = {};
 
     for (const r of rows) {
       const exp = r.dateExpiration;
@@ -535,11 +601,40 @@ export const getStats: RequestHandler = async (_req, res) => {
       else if (hasSt) stOnly++;
       else if (hasHt) htOnly++;
 
+      if (!r.pdfPath) missingPdf++;
+
       const div = r.divisionName ?? "Unknown";
-      byDivision[div] = (byDivision[div] ?? 0) + 1;
+      if (!byDivision[div]) byDivision[div] = { total: 0, expired: 0, critical: 0 };
+      byDivision[div].total++;
+      if (exp < now) byDivision[div].expired++;
+      else if (exp <= in3m) byDivision[div].critical++;
+
       const svc = r.serviceName ?? "Unknown";
       byService[svc] = (byService[svc] ?? 0) + 1;
+
+      for (const c of [...(r.stCodes ?? []), ...(r.htCodes ?? [])]) {
+        codeCounts[c] = (codeCounts[c] ?? 0) + 1;
+      }
+
+      // Monthly forecast: group expirations by YYYY-MM
+      const ym = exp.substring(0, 7);
+      monthlyForecast[ym] = (monthlyForecast[ym] ?? 0) + 1;
     }
+
+    // Pending renewals count
+    const [{ pendingCount }] = await db
+      .select({ pendingCount: sql<number>`count(*)` })
+      .from(schema.pendingRenewals);
+
+    const mostCommonCodes = Object.entries(codeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([code, count]) => ({ code, count }));
+
+    const forecastSorted = Object.entries(monthlyForecast)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(0, 12)
+      .map(([month, count]) => ({ month, count }));
 
     res.json({
       success: true,
@@ -552,13 +647,125 @@ export const getStats: RequestHandler = async (_req, res) => {
         stOnly,
         htOnly,
         both,
-        byDivision: Object.entries(byDivision).map(([name, count]) => ({ name, count })),
+        missingPdf,
+        pendingRenewals: Number(pendingCount),
+        mostCommonCodes,
+        monthlyForecast: forecastSorted,
+        byDivision: Object.entries(byDivision).map(([name, v]) => ({ name, ...v })),
         byService: Object.entries(byService).map(([name, count]) => ({ name, count })),
       },
       error: null,
     });
   } catch (err) {
     console.error("getStats error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
+
+// ============================================================================
+// DELETE PDF
+// ============================================================================
+
+export const deletePdf: RequestHandler = async (req, res) => {
+  try {
+    const empId = parseInt(req.params.employeeId);
+    if (isNaN(empId)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
+
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, empId));
+    if (!emp || !emp.currentVersionId) {
+      return res.status(404).json({ success: false, data: null, error: "Employé ou version introuvable" });
+    }
+    const [ver] = await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId));
+    if (!ver) return res.status(404).json({ success: false, data: null, error: "Version introuvable" });
+
+    if (ver.pdfPath) {
+      const { deletePdf: deletePdfFile } = await import("../services/pdfService");
+      deletePdfFile(ver.pdfPath);
+      await db.update(schema.employeeVersions).set({ pdfPath: null }).where(eq(schema.employeeVersions.id, ver.id));
+    }
+
+    res.json({ success: true, data: { deleted: true }, error: null });
+  } catch (err) {
+    console.error("deletePdf error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
+
+// ============================================================================
+// EXCEL EXPORT
+// ============================================================================
+
+export const exportEmployees: RequestHandler = async (_req, res) => {
+  try {
+    const rows = await db
+      .select({
+        matricule: schema.employees.matricule,
+        nom: schema.employees.nom,
+        prenom: schema.employees.prenom,
+        stCodes: schema.employeeVersions.stCodes,
+        htCodes: schema.employeeVersions.htCodes,
+        nDeTitre: schema.employeeVersions.nDeTitre,
+        fonction: schema.employeeVersions.fonction,
+        divisionName: schema.divisions.name,
+        serviceName: schema.services.name,
+        equipeName: schema.equipes.name,
+        dateValidation: schema.employeeVersions.dateValidation,
+        dateExpiration: schema.employeeVersions.dateExpiration,
+        pdfPath: schema.employeeVersions.pdfPath,
+        versionNumber: schema.employeeVersions.versionNumber,
+      })
+      .from(schema.employees)
+      .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+      .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
+      .leftJoin(schema.services, eq(schema.employeeVersions.serviceId, schema.services.id))
+      .leftJoin(schema.equipes, eq(schema.employeeVersions.equipeId, schema.equipes.id))
+      .where(eq(schema.employees.deleted, false))
+      .orderBy(asc(schema.employees.matricule));
+
+    const XLSX = await import("xlsx");
+
+    const now = new Date().toISOString().split("T")[0];
+    const in3m = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const in6m = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const in9m = new Date(Date.now() + 270 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    function expirationColor(exp: string): string {
+      if (exp < now) return "EXPIRÉ";
+      if (exp <= in3m) return "< 3 mois";
+      if (exp <= in6m) return "< 6 mois";
+      if (exp <= in9m) return "< 9 mois";
+      return "Valide";
+    }
+
+    const wsData = rows.map((r) => ({
+      Matricule: r.matricule,
+      Nom: r.nom,
+      Prenom: r.prenom,
+      Fonction: r.fonction,
+      Division: r.divisionName ?? "",
+      Service: r.serviceName ?? "",
+      Equipe: r.equipeName ?? "",
+      ST_codes: (r.stCodes ?? []).join(", "),
+      HT_codes: (r.htCodes ?? []).join(", "),
+      N_de_titre: r.nDeTitre,
+      Date_validation: r.dateValidation,
+      Date_expiration: r.dateExpiration,
+      Statut_expiration: expirationColor(r.dateExpiration),
+      PDF: r.pdfPath ? "Oui" : "Non",
+      Version: r.versionNumber,
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, "Habilitations");
+
+    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="habilitations_${now}.xlsx"`);
+    res.send(buf);
+  } catch (err) {
+    console.error("exportEmployees error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
