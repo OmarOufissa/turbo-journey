@@ -11,11 +11,18 @@ export const createPendingRenewal: RequestHandler = async (req, res) => {
       return res.status(400).json({ success: false, data: null, error: "employeeId et snapshot requis" });
     }
 
-    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, parseInt(employeeId)));
+    const empIdInt = parseInt(employeeId);
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, empIdInt));
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
 
+    // Enforce ONE pending renewal per employee
+    const existing = await db.select({ id: schema.pendingRenewals.id }).from(schema.pendingRenewals).where(eq(schema.pendingRenewals.employeeId, empIdInt));
+    if (existing.length > 0) {
+      return res.status(409).json({ success: false, data: null, error: "Un renouvellement est déjà en attente pour cet employé" });
+    }
+
     const [renewal] = await db.insert(schema.pendingRenewals).values({
-      employeeId: parseInt(employeeId),
+      employeeId: empIdInt,
       snapshot,
     }).returning();
 

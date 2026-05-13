@@ -1,4 +1,7 @@
 import { findExpiringHabilitations, getAlertStatistics } from "../services/alertService";
+import { db } from "../db-pg";
+import * as schema from "../schema";
+import { eq, and } from "drizzle-orm";
 
 export const CRON_PATTERNS = {
   DAILY_8AM: "0 8 * * *",
@@ -7,23 +10,77 @@ export const CRON_PATTERNS = {
 
 let cronJobs: any[] = [];
 
-// Log employees expiring within 3/6/9 months
+type Threshold = "3m" | "6m" | "9m" | "expired";
+
+function getThreshold(daysLeft: number): Threshold | null {
+  if (daysLeft < 0) return "expired";
+  if (daysLeft <= 90) return "3m";
+  if (daysLeft <= 180) return "6m";
+  if (daysLeft <= 270) return "9m";
+  return null;
+}
+
+// Log employees expiring within 3/6/9 months, using notification_logs to deduplicate
 export async function dailyExpirationCheckJob(): Promise<{ employeesNotified: number; errors: string[] }> {
   const errors: string[] = [];
+  let notified = 0;
   try {
-    const expiring270 = await findExpiringHabilitations(270);
-    const critical = expiring270.filter((e) => e.daysUntilExpiration <= 90);
-    const warning = expiring270.filter((e) => e.daysUntilExpiration > 90 && e.daysUntilExpiration <= 180);
-    const notice = expiring270.filter((e) => e.daysUntilExpiration > 180);
+    const expiring = await findExpiringHabilitations(270);
 
+    for (const emp of expiring) {
+      const threshold = getThreshold(emp.daysUntilExpiration);
+      if (!threshold) continue;
+
+      try {
+        // Check if we already sent this threshold for this employee
+        const existing = await db
+          .select({ id: schema.notificationLogs.id })
+          .from(schema.notificationLogs)
+          .where(
+            and(
+              eq(schema.notificationLogs.employeeId, emp.employeeId),
+              eq(schema.notificationLogs.threshold, threshold)
+            )
+          )
+          .limit(1);
+
+        if (existing.length > 0) continue; // Already notified at this threshold
+
+        // Log the notification (prevents future duplicates)
+        await db.insert(schema.notificationLogs).values({
+          employeeId: emp.employeeId,
+          threshold,
+        }).onConflictDoNothing();
+
+        notified++;
+        console.log(
+          `[JOB] Alert [${threshold}] — ${emp.matricule} ${emp.prenom} ${emp.nom} (${emp.daysUntilExpiration}j)`
+        );
+      } catch (e) {
+        errors.push(`${emp.matricule}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+
+    const critical = expiring.filter((e) => e.daysUntilExpiration <= 90).length;
+    const warning = expiring.filter((e) => e.daysUntilExpiration > 90 && e.daysUntilExpiration <= 180).length;
+    const notice = expiring.filter((e) => e.daysUntilExpiration > 180).length;
     console.log(
-      `[JOB] Expiration check — Critical (<3m): ${critical.length}, Warning (<6m): ${warning.length}, Notice (<9m): ${notice.length}`
+      `[JOB] Expiration check — Critical (<3m): ${critical}, Warning (<6m): ${warning}, Notice (<9m): ${notice}, New alerts: ${notified}`
     );
-    return { employeesNotified: expiring270.length, errors };
+    return { employeesNotified: notified, errors };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[JOB] Daily expiration check error:", msg);
     return { employeesNotified: 0, errors: [msg] };
+  }
+}
+
+// Reset notification log for an employee when a new version is created (re-enable future alerts)
+export async function resetNotificationLogsForEmployee(employeeId: number): Promise<void> {
+  try {
+    await db.delete(schema.notificationLogs).where(eq(schema.notificationLogs.employeeId, employeeId));
+  } catch (err) {
+    console.error(`[JOB] Failed to reset notification logs for employee ${employeeId}:`, err);
   }
 }
 

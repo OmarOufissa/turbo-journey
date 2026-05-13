@@ -45,7 +45,7 @@ export function ExportDialog({
 
     if (exportFilters.division !== "all") {
       filteredEmps = filteredEmps.filter(
-        (emp) => emp.division === exportFilters.division
+        (emp) => emp.currentVersion?.division === exportFilters.division
       );
     }
 

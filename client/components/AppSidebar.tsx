@@ -11,6 +11,7 @@ import {
   LogOut,
   Trash2,
   Clock,
+  Building2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -146,6 +147,14 @@ export function AppSidebar() {
                   <Link to="/settings">
                     <Settings className="w-4 h-4" />
                     <span>Paramètres</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/settings/organization")}>
+                  <Link to="/settings/organization">
+                    <Building2 className="w-4 h-4" />
+                    <span>Structure org.</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

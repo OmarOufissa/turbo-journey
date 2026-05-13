@@ -53,7 +53,8 @@ async function createTablesIfNotExist() {
       current_version_id INTEGER,
       deleted INTEGER NOT NULL DEFAULT 0,
       deleted_at TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )`,
     `CREATE TABLE IF NOT EXISTS employee_versions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,6 +81,14 @@ async function createTablesIfNotExist() {
       snapshot TEXT NOT NULL DEFAULT '{}',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )`,
+    `CREATE TABLE IF NOT EXISTS notification_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+      threshold TEXT NOT NULL,
+      sent_at TEXT NOT NULL DEFAULT (datetime('now')),
+      version_id INTEGER REFERENCES employee_versions(id),
+      UNIQUE(employee_id, threshold)
+    )`,
     `CREATE TABLE IF NOT EXISTS audit_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       action TEXT NOT NULL,
@@ -103,9 +112,18 @@ async function createTablesIfNotExist() {
     `CREATE INDEX IF NOT EXISTS audit_logs_entity_idx ON audit_logs(entity_id)`,
     `CREATE INDEX IF NOT EXISTS audit_logs_action_idx ON audit_logs(action)`,
     `CREATE INDEX IF NOT EXISTS audit_logs_created_at_idx ON audit_logs(created_at)`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS notif_logs_emp_threshold_idx ON notification_logs(employee_id, threshold)`,
   ];
 
   await client.batch(statements, "write");
+
+  // Migrations for columns added after initial creation (safe on existing DBs)
+  const migrations = [
+    `ALTER TABLE employees ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'))`,
+  ];
+  for (const m of migrations) {
+    try { await client.execute(m); } catch { /* column already exists */ }
+  }
 }
 
 export async function initializeDatabase() {

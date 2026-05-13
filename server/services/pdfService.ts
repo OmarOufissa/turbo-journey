@@ -39,11 +39,11 @@ function formatDateFrench(dateStr: string): string {
 
 // Table rows: label + which ST and HT codes map to this row
 const TABLE_ROWS: Array<{ label: string; stKey: string; htKey: string }> = [
-  { label: 'H0V / B0V', stKey: 'H0V', htKey: 'B0V' },
-  { label: 'H1V / B1V', stKey: 'H1V', htKey: 'B1V' },
+  { label: 'H0V - B0V', stKey: 'H0V', htKey: 'B0V' },
+  { label: 'H1V - B1V', stKey: 'H1V', htKey: 'B1V' },
   { label: 'BR',        stKey: 'BR',  htKey: 'BR'  },
-  { label: 'H2V / B2V', stKey: 'H2V', htKey: 'B2V' },
-  { label: 'HC / BC',   stKey: 'HC',  htKey: 'BC'  },
+  { label: 'H2V - B2V', stKey: 'H2V', htKey: 'B2V' },
+  { label: 'HC - BC',   stKey: 'HC',  htKey: 'BC'  },
   { label: 'SF6',       stKey: 'SF6', htKey: 'SF6' },
 ];
 

@@ -81,7 +81,7 @@ async function resolveOrgIds(row: ImportRow): Promise<{ divisionId: number; serv
   return { divisionId: div.id, serviceId: svc.id, equipeId };
 }
 
-function validateRow(row: ImportRow, index: number): ImportError[] {
+function validateRow(row: ImportRow, index: number, duplicateMatricules?: Set<string>): ImportError[] {
   const errors: ImportError[] = [];
   const r = index + 2; // 1-based + header row
 
@@ -98,8 +98,23 @@ function validateRow(row: ImportRow, index: number): ImportError[] {
   if (row.dateValidation && row.dateExpiration && new Date(row.dateExpiration) <= new Date(row.dateValidation)) {
     errors.push({ row: r, field: 'Date_expiration', message: 'Doit être après Date_validation' });
   }
+  if (row.matricule && duplicateMatricules?.has(row.matricule)) {
+    errors.push({ row: r, field: 'Matricule', message: `Matricule en double dans le fichier: ${row.matricule}` });
+  }
 
   return errors;
+}
+
+function detectInFileDuplicates(rows: ImportRow[]): Set<string> {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const row of rows) {
+    if (row.matricule) {
+      if (seen.has(row.matricule)) duplicates.add(row.matricule);
+      else seen.add(row.matricule);
+    }
+  }
+  return duplicates;
 }
 
 async function importOneRow(row: ImportRow) {
@@ -173,12 +188,13 @@ export async function previewImportFromBuffer(buffer: Buffer): Promise<{
   totalErrors: number;
 }> {
   const rows = parseEmployeesFromExcel(buffer);
+  const duplicates = detectInFileDuplicates(rows);
   const preview: PreviewRow[] = [];
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const rowNum = i + 2;
-    const errors = validateRow(row, i);
+    const errors = validateRow(row, i, duplicates);
 
     const existing = row.matricule
       ? await db.select({ id: schema.employees.id }).from(schema.employees).where(eq(schema.employees.matricule, row.matricule))
@@ -214,11 +230,12 @@ export async function importEmployeesFromBuffer(
   mode: 'A' | 'B' = 'A'
 ): Promise<{ successCount: number; errorCount: number; errors: ImportError[] }> {
   const rows = parseEmployeesFromExcel(buffer);
+  const duplicates = detectInFileDuplicates(rows);
   const allErrors: ImportError[] = [];
 
-  // Validate all rows first
+  // Validate all rows first (includes in-file duplicate check)
   for (let i = 0; i < rows.length; i++) {
-    const errs = validateRow(rows[i], i);
+    const errs = validateRow(rows[i], i, duplicates);
     allErrors.push(...errs);
   }
 

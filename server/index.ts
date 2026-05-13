@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import multer from "multer";
 import path from "path";
+import rateLimit from "express-rate-limit";
 import { initializeDatabase } from "./db-pg";
 
 let dbInitialized = false;
@@ -42,6 +43,24 @@ export function createServer() {
   app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Rate limiting
+  const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: "Trop de requêtes, réessayez dans quelques minutes", data: null },
+  });
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: "Trop de tentatives de connexion, réessayez dans 15 minutes", data: null },
+  });
+  app.use("/api/", apiLimiter);
+  app.use("/api/auth/login", authLimiter);
 
   app.use(async (_req, _res, next) => {
     try { await initializeDbOnce(); } catch { /* non-fatal */ }
@@ -240,6 +259,111 @@ export function createServer() {
     getEquipesByService(req, res);
   });
 
+  app.get("/api/services", async (req, res) => {
+    const { db } = await import("./db-pg");
+    const schema = await import("./schema");
+    const { asc } = await import("drizzle-orm");
+    const svcs = await db.select().from(schema.services).orderBy(asc(schema.services.name));
+    res.json({ success: true, data: svcs, error: null });
+  });
+
+  // ============================================================================
+  // ORG STRUCTURE MANAGEMENT (CRUD)
+  // ============================================================================
+
+  app.post("/api/org/divisions", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { name } = req.body;
+        if (!name?.trim()) return res.status(400).json({ success: false, error: "Nom requis", data: null });
+        const [div] = await db.insert(schema.divisions).values({ name: name.trim() }).returning();
+        res.json({ success: true, data: div, error: null });
+      } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message, data: null });
+      }
+    });
+  });
+
+  app.delete("/api/org/divisions/:id", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq } = await import("drizzle-orm");
+        await db.delete(schema.divisions).where(eq(schema.divisions.id, parseInt(req.params.id)));
+        res.json({ success: true, data: { deleted: true }, error: null });
+      } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message, data: null });
+      }
+    });
+  });
+
+  app.post("/api/org/services", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { name, divisionId } = req.body;
+        if (!name?.trim() || !divisionId) return res.status(400).json({ success: false, error: "Nom et division requis", data: null });
+        const [svc] = await db.insert(schema.services).values({ name: name.trim(), divisionId: parseInt(divisionId) }).returning();
+        res.json({ success: true, data: svc, error: null });
+      } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message, data: null });
+      }
+    });
+  });
+
+  app.delete("/api/org/services/:id", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq } = await import("drizzle-orm");
+        await db.delete(schema.services).where(eq(schema.services.id, parseInt(req.params.id)));
+        res.json({ success: true, data: { deleted: true }, error: null });
+      } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message, data: null });
+      }
+    });
+  });
+
+  app.post("/api/org/equipes", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { name, serviceId } = req.body;
+        if (!name?.trim() || !serviceId) return res.status(400).json({ success: false, error: "Nom et service requis", data: null });
+        const [eq_] = await db.insert(schema.equipes).values({ name: name.trim(), serviceId: parseInt(serviceId) }).returning();
+        res.json({ success: true, data: eq_, error: null });
+      } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message, data: null });
+      }
+    });
+  });
+
+  app.delete("/api/org/equipes/:id", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq } = await import("drizzle-orm");
+        await db.delete(schema.equipes).where(eq(schema.equipes.id, parseInt(req.params.id)));
+        res.json({ success: true, data: { deleted: true }, error: null });
+      } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message, data: null });
+      }
+    });
+  });
+
   // ============================================================================
   // RENEWALS
   // ============================================================================
@@ -344,6 +468,58 @@ export function createServer() {
         console.error("Import error:", err);
         res.status(500).json({ success: false, data: null, error: (err as Error).message });
       }
+    });
+  });
+
+  // ============================================================================
+  // BACKUPS
+  // ============================================================================
+
+  app.post("/api/backups/create", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { createBackup_Handler } = await import("./routes/backup");
+      createBackup_Handler(req, res, () => {});
+    });
+  });
+
+  app.get("/api/backups/list", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { listBackups_Handler } = await import("./routes/backup");
+      listBackups_Handler(req, res, () => {});
+    });
+  });
+
+  app.get("/api/backups/download/:backupId", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { downloadBackup_Handler } = await import("./routes/backup");
+      downloadBackup_Handler(req, res, () => {});
+    });
+  });
+
+  app.post("/api/backups/verify", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { verifyBackup_Handler } = await import("./routes/backup");
+      verifyBackup_Handler(req, res, () => {});
+    });
+  });
+
+  app.get("/api/backups/statistics", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { getBackupStatistics_Handler } = await import("./routes/backup");
+      getBackupStatistics_Handler(req, res, () => {});
+    });
+  });
+
+  app.post("/api/backups/cleanup", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { cleanupBackups_Handler } = await import("./routes/backup");
+      cleanupBackups_Handler(req, res, () => {});
     });
   });
 

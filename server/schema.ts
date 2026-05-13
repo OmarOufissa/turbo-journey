@@ -48,6 +48,7 @@ export const employees = sqliteTable("employees", {
   deleted: integer("deleted", { mode: "boolean" }).notNull().default(false),
   deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+  updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   matriculeIdx: uniqueIndex("employees_matricule_idx").on(table.matricule),
 }));
@@ -83,6 +84,16 @@ export const pendingRenewals = sqliteTable("pending_renewals", {
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   employeeIdx: index("pending_renewals_employee_id_idx").on(table.employeeId),
+}));
+
+export const notificationLogs = sqliteTable("notification_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  threshold: text("threshold").notNull(), // "3m" | "6m" | "9m" | "expired"
+  sentAt: text("sent_at").notNull().default(sql`(datetime('now'))`),
+  versionId: integer("version_id").references(() => employeeVersions.id),
+}, (table) => ({
+  empThresholdIdx: uniqueIndex("notif_logs_emp_threshold_idx").on(table.employeeId, table.threshold),
 }));
 
 export const auditLogs = sqliteTable("audit_logs", {

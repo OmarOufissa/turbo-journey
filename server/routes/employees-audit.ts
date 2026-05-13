@@ -32,6 +32,7 @@ const createEmployeeSchema = versionFields.extend({
 const updateEmployeeSchema = versionFields.extend({
   nom: z.string().min(1).optional(),
   prenom: z.string().min(1).optional(),
+  expectedUpdatedAt: z.string().optional(),
 });
 
 // ============================================================================
@@ -147,24 +148,6 @@ export const getEmployees: RequestHandler = async (req, res) => {
     const stCode = req.query.stCode as string | undefined;
     const htCode = req.query.htCode as string | undefined;
 
-    // Build base query with join to current version for filtering
-    let query = db
-      .select({
-        id: schema.employees.id,
-        matricule: schema.employees.matricule,
-        nom: schema.employees.nom,
-        prenom: schema.employees.prenom,
-        deleted: schema.employees.deleted,
-        createdAt: schema.employees.createdAt,
-        currentVersionId: schema.employees.currentVersionId,
-        dateExpiration: schema.employeeVersions.dateExpiration,
-        pdfPath: schema.employeeVersions.pdfPath,
-        stCodes: schema.employeeVersions.stCodes,
-        htCodes: schema.employeeVersions.htCodes,
-      })
-      .from(schema.employees)
-      .leftJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id));
-
     const conditions: any[] = [eq(schema.employees.deleted, showDeleted)];
 
     if (search) {
@@ -187,7 +170,41 @@ export const getEmployees: RequestHandler = async (req, res) => {
     const sortField = req.query.sort === "expiration" ? schema.employeeVersions.dateExpiration : schema.employees.matricule;
     const sortDir = req.query.sortDir === "desc" ? desc(sortField) : asc(sortField);
 
-    const rows = await (query as any).where(whereClause).orderBy(sortDir).limit(limit).offset(offset);
+    // Full JOIN query: employees + versions + org names in one shot (no N+1)
+    const fullQuery = db
+      .select({
+        id: schema.employees.id,
+        matricule: schema.employees.matricule,
+        nom: schema.employees.nom,
+        prenom: schema.employees.prenom,
+        deleted: schema.employees.deleted,
+        createdAt: schema.employees.createdAt,
+        updatedAt: schema.employees.updatedAt,
+        currentVersionId: schema.employees.currentVersionId,
+        verId: schema.employeeVersions.id,
+        versionNumber: schema.employeeVersions.versionNumber,
+        stCodes: schema.employeeVersions.stCodes,
+        htCodes: schema.employeeVersions.htCodes,
+        nDeTitre: schema.employeeVersions.nDeTitre,
+        fonction: schema.employeeVersions.fonction,
+        divisionId: schema.employeeVersions.divisionId,
+        serviceId: schema.employeeVersions.serviceId,
+        equipeId: schema.employeeVersions.equipeId,
+        dateValidation: schema.employeeVersions.dateValidation,
+        dateExpiration: schema.employeeVersions.dateExpiration,
+        pdfPath: schema.employeeVersions.pdfPath,
+        verCreatedAt: schema.employeeVersions.createdAt,
+        divisionName: schema.divisions.name,
+        serviceName: schema.services.name,
+        equipeName: schema.equipes.name,
+      })
+      .from(schema.employees)
+      .leftJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+      .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
+      .leftJoin(schema.services, eq(schema.employeeVersions.serviceId, schema.services.id))
+      .leftJoin(schema.equipes, eq(schema.employeeVersions.equipeId, schema.equipes.id));
+
+    const rows = await (fullQuery as any).where(whereClause).orderBy(sortDir).limit(limit).offset(offset);
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
@@ -197,19 +214,32 @@ export const getEmployees: RequestHandler = async (req, res) => {
 
     const [{ count }] = await countQuery;
 
-    const data = await Promise.all(rows.map(async (row: any) => {
-      const currentVersion = row.currentVersionId
-        ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, row.currentVersionId)))[0]
-        : null;
-      return {
-        id: row.id,
-        matricule: row.matricule,
-        nom: row.nom,
-        prenom: row.prenom,
-        deleted: row.deleted,
-        createdAt: row.createdAt,
-        currentVersion: currentVersion ? await buildVersionResponse(currentVersion) : null,
-      };
+    const data = rows.map((row: any) => ({
+      id: row.id,
+      matricule: row.matricule,
+      nom: row.nom,
+      prenom: row.prenom,
+      deleted: row.deleted,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      currentVersion: row.verId ? {
+        id: row.verId,
+        versionNumber: row.versionNumber,
+        stCodes: row.stCodes ?? [],
+        htCodes: row.htCodes ?? [],
+        nDeTitre: row.nDeTitre,
+        fonction: row.fonction,
+        divisionId: row.divisionId,
+        serviceId: row.serviceId,
+        equipeId: row.equipeId,
+        division: row.divisionName ?? "",
+        service: row.serviceName ?? "",
+        equipe: row.equipeName ?? null,
+        dateValidation: row.dateValidation,
+        dateExpiration: row.dateExpiration,
+        pdfPath: row.pdfPath ?? null,
+        createdAt: row.verCreatedAt,
+      } : null,
     }));
 
     res.json({ success: true, data: { employees: data, total: Number(count), page, limit }, error: null });
@@ -332,10 +362,15 @@ export const updateEmployee: RequestHandler = async (req, res) => {
     if (!parsed.success) {
       return res.status(400).json({ success: false, data: null, error: parsed.error.errors[0]?.message ?? "Données invalides" });
     }
-    const { stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration, nom, prenom } = parsed.data;
+    const { stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration, nom, prenom, expectedUpdatedAt } = parsed.data;
 
     const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
+
+    // Optimistic concurrency check
+    if (expectedUpdatedAt && emp.updatedAt !== expectedUpdatedAt) {
+      return res.status(409).json({ success: false, data: null, error: "Conflit: l'employé a été modifié entre-temps. Rechargez et réessayez." });
+    }
 
     const oldVersion = emp.currentVersionId
       ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId)))[0]
@@ -348,13 +383,12 @@ export const updateEmployee: RequestHandler = async (req, res) => {
         .where(eq(schema.employeeVersions.employeeId, id));
 
       const newVersionNum = Number(maxVer) + 1;
+      const nowStr = new Date().toISOString().replace("T", " ").substring(0, 19);
 
-      const empUpdate: Record<string, unknown> = {};
+      const empUpdate: Record<string, unknown> = { updatedAt: nowStr };
       if (nom) empUpdate.nom = nom;
       if (prenom) empUpdate.prenom = prenom;
-      if (Object.keys(empUpdate).length > 0) {
-        await tx.update(schema.employees).set(empUpdate as any).where(eq(schema.employees.id, id));
-      }
+      await tx.update(schema.employees).set(empUpdate as any).where(eq(schema.employees.id, id));
 
       const [version] = await tx.insert(schema.employeeVersions).values({
         employeeId: id,
@@ -436,14 +470,50 @@ export const restoreEmployee: RequestHandler = async (req, res) => {
     const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
 
+    const currentVersion = emp.currentVersionId
+      ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId)))[0]
+      : null;
+
     const result = await db.transaction(async (tx) => {
-      await tx.update(schema.employees).set({ deleted: false }).where(eq(schema.employees.id, id));
+      const nowStr = new Date().toISOString().replace("T", " ").substring(0, 19);
+
+      // Restore creates a new version (copy of current) to preserve audit history
+      let newVersionId = emp.currentVersionId;
+      if (currentVersion) {
+        const [{ maxVer }] = await tx
+          .select({ maxVer: sql<number>`coalesce(max(version_number), 0)` })
+          .from(schema.employeeVersions)
+          .where(eq(schema.employeeVersions.employeeId, id));
+
+        const [newVersion] = await tx.insert(schema.employeeVersions).values({
+          employeeId: id,
+          versionNumber: Number(maxVer) + 1,
+          stCodes: currentVersion.stCodes,
+          htCodes: currentVersion.htCodes,
+          nDeTitre: currentVersion.nDeTitre,
+          fonction: currentVersion.fonction,
+          divisionId: currentVersion.divisionId,
+          serviceId: currentVersion.serviceId,
+          equipeId: currentVersion.equipeId,
+          dateValidation: currentVersion.dateValidation,
+          dateExpiration: currentVersion.dateExpiration,
+          pdfPath: null,
+        }).returning();
+        newVersionId = newVersion.id;
+      }
+
+      await tx.update(schema.employees).set({
+        deleted: false,
+        deletedAt: null,
+        currentVersionId: newVersionId,
+        updatedAt: nowStr,
+      } as any).where(eq(schema.employees.id, id));
 
       const [auditLog] = await tx.insert(schema.auditLogs).values({
         action: "RESTORE_EMPLOYEE",
         entityId: id,
         snapshotOld: { deleted: true } as any,
-        snapshotNew: { deleted: false } as any,
+        snapshotNew: { deleted: false, newVersionId } as any,
       }).returning();
 
       return { auditLogId: auditLog.id };
@@ -678,13 +748,42 @@ export const deletePdf: RequestHandler = async (req, res) => {
     const [ver] = await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId));
     if (!ver) return res.status(404).json({ success: false, data: null, error: "Version introuvable" });
 
-    if (ver.pdfPath) {
-      const { deletePdf: deletePdfFile } = await import("../services/pdfService");
-      deletePdfFile(ver.pdfPath);
-      await db.update(schema.employeeVersions).set({ pdfPath: null }).where(eq(schema.employeeVersions.id, ver.id));
-    }
+    // PDF deletion creates a new version — old version (with PDF) remains immutable
+    const result = await db.transaction(async (tx) => {
+      const nowStr = new Date().toISOString().replace("T", " ").substring(0, 19);
+      const [{ maxVer }] = await tx
+        .select({ maxVer: sql<number>`coalesce(max(version_number), 0)` })
+        .from(schema.employeeVersions)
+        .where(eq(schema.employeeVersions.employeeId, empId));
 
-    res.json({ success: true, data: { deleted: true }, error: null });
+      const [newVersion] = await tx.insert(schema.employeeVersions).values({
+        employeeId: empId,
+        versionNumber: Number(maxVer) + 1,
+        stCodes: ver.stCodes,
+        htCodes: ver.htCodes,
+        nDeTitre: ver.nDeTitre,
+        fonction: ver.fonction,
+        divisionId: ver.divisionId,
+        serviceId: ver.serviceId,
+        equipeId: ver.equipeId,
+        dateValidation: ver.dateValidation,
+        dateExpiration: ver.dateExpiration,
+        pdfPath: null,
+      }).returning();
+
+      await tx.update(schema.employees).set({ currentVersionId: newVersion.id, updatedAt: nowStr } as any).where(eq(schema.employees.id, empId));
+
+      const [auditLog] = await tx.insert(schema.auditLogs).values({
+        action: "DELETE_PDF",
+        entityId: empId,
+        snapshotOld: { pdfPath: ver.pdfPath, versionId: ver.id } as any,
+        snapshotNew: { pdfPath: null, newVersionId: newVersion.id } as any,
+      }).returning();
+
+      return { auditLogId: auditLog.id };
+    });
+
+    res.json({ success: true, data: { deleted: true, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
     console.error("deletePdf error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
@@ -757,6 +856,29 @@ export const exportEmployees: RequestHandler = async (_req, res) => {
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(wsData);
+
+    // Freeze header row + set column widths
+    ws["!freeze"] = { xSplit: 0, ySplit: 1, topLeftCell: "A2", activePane: "bottomLeft", state: "frozen" };
+    ws["!cols"] = [
+      { wch: 12 }, // Matricule
+      { wch: 18 }, // Nom
+      { wch: 18 }, // Prenom
+      { wch: 22 }, // Fonction
+      { wch: 22 }, // Division
+      { wch: 22 }, // Service
+      { wch: 18 }, // Equipe
+      { wch: 20 }, // ST_codes
+      { wch: 20 }, // HT_codes
+      { wch: 16 }, // N_de_titre
+      { wch: 14 }, // Date_validation
+      { wch: 14 }, // Date_expiration
+      { wch: 14 }, // Statut_expiration
+      { wch: 6  }, // PDF
+      { wch: 8  }, // Version
+    ];
+    // Auto-filter on header row
+    ws["!autofilter"] = { ref: ws["!ref"] ?? "A1" };
+
     XLSX.utils.book_append_sheet(wb, ws, "Habilitations");
 
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });

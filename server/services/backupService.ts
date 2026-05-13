@@ -37,11 +37,9 @@ export interface BackupMetadata {
 export interface BackupData {
   metadata: BackupMetadata;
   employees: any[];
-  habilitations: any[];
-  auditLogs: any[];
   employeeVersions: any[];
-  habilitationArchive: any[];
-  emailLog: any[];
+  pendingRenewals: any[];
+  auditLogs: any[];
   divisions: any[];
   services: any[];
   equipes: any[];
@@ -100,21 +98,17 @@ export async function exportAllData(): Promise<BackupData> {
     // Fetch all data in parallel
     const [
       employees,
-      habilitations,
-      auditLogs,
       employeeVersions,
-      habilitationArchive,
-      emailLog,
+      pendingRenewals,
+      auditLogs,
       divisions,
       services,
       equipes,
     ] = await Promise.all([
       db.select().from(schema.employees),
-      db.select().from(schema.habilitations),
-      db.select().from(schema.auditLogs),
       db.select().from(schema.employeeVersions),
-      db.select().from(schema.habilitationArchive),
-      db.select().from(schema.emailLog),
+      db.select().from(schema.pendingRenewals),
+      db.select().from(schema.auditLogs),
       db.select().from(schema.divisions),
       db.select().from(schema.services),
       db.select().from(schema.equipes),
@@ -130,9 +124,9 @@ export async function exportAllData(): Promise<BackupData> {
       version: VERSION,
       environment: process.env.NODE_ENV || "development",
       totalEmployees: employees.length,
-      totalHabilitations: habilitations.length,
+      totalHabilitations: employeeVersions.length,
       totalAuditLogs: auditLogs.length,
-      databaseSizeBytes: 0, // Will calculate after adding to data
+      databaseSizeBytes: 0,
       checksum: "",
     };
 
@@ -140,11 +134,9 @@ export async function exportAllData(): Promise<BackupData> {
     const data: BackupData = {
       metadata,
       employees,
-      habilitations,
-      auditLogs,
       employeeVersions,
-      habilitationArchive,
-      emailLog,
+      pendingRenewals,
+      auditLogs,
       divisions,
       services,
       equipes,
@@ -155,7 +147,7 @@ export async function exportAllData(): Promise<BackupData> {
     metadata.databaseSizeBytes = dataJson.length;
     metadata.checksum = calculateChecksum(dataJson);
 
-    console.log(`[BACKUP] Export complete: ${employees.length} employees, ${habilitations.length} habilitations, ${auditLogs.length} audit logs`);
+    console.log(`[BACKUP] Export complete: ${employees.length} employees, ${employeeVersions.length} versions, ${auditLogs.length} audit logs`);
 
     return data;
   } catch (err) {
@@ -315,7 +307,7 @@ export function listBackups(backupDir: string = BACKUP_DIR): {
  * Delete old backups (keep only last N)
  */
 export function cleanupOldBackups(
-  keepCount: number = 7,
+  keepCount: number = 30,
   backupDir: string = BACKUP_DIR
 ): {
   deletedCount: number;
