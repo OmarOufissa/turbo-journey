@@ -51,6 +51,8 @@ export const employees = sqliteTable("employees", {
   updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
   matriculeIdx: uniqueIndex("employees_matricule_idx").on(table.matricule),
+  currentVersionIdx: index("idx_employees_current_version").on(table.currentVersionId),
+  deletedIdx: index("idx_employees_deleted").on(table.deleted),
 }));
 
 // Source of truth for all employee data (versioned)
@@ -74,6 +76,8 @@ export const employeeVersions = sqliteTable("employee_versions", {
 }, (table) => ({
   employeeIdx: index("idx_emp_versions_emp").on(table.employeeId),
   expirationIdx: index("idx_expiration").on(table.dateExpiration),
+  divisionIdx: index("idx_emp_versions_division").on(table.divisionId),
+  serviceIdx: index("idx_emp_versions_service").on(table.serviceId),
   uniqueVersion: uniqueIndex("employee_versions_employee_version_idx").on(table.employeeId, table.versionNumber),
 }));
 

@@ -48,20 +48,32 @@ export function parseEmployeesFromExcel(buffer: Buffer): ImportRow[] {
   const ws = wb.Sheets[wb.SheetNames[0]];
   const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: '' });
 
-  return rawRows.map((r): ImportRow => ({
-    matricule: String(r['Matricule'] ?? r['matricule'] ?? '').trim(),
-    nom: String(r['Nom'] ?? r['nom'] ?? '').trim(),
-    prenom: String(r['Prenom'] ?? r['prenom'] ?? '').trim(),
-    fonction: String(r['Fonction'] ?? r['fonction'] ?? '').trim(),
-    division: String(r['Division'] ?? r['division'] ?? '').trim(),
-    service: String(r['Service'] ?? r['service'] ?? '').trim(),
-    equipe: String(r['Equipe'] ?? r['equipe'] ?? '').trim() || undefined,
-    stCodes: parseCodes(r['ST_codes'] ?? r['st_codes'] ?? r['stCodes']),
-    htCodes: parseCodes(r['HT_codes'] ?? r['ht_codes'] ?? r['htCodes']),
-    nDeTitre: String(r['N_de_titre'] ?? r['n_de_titre'] ?? r['nDeTitre'] ?? '').trim(),
-    dateValidation: parseDateCell(r['Date_validation'] ?? r['date_validation'] ?? r['dateValidation']),
-    dateExpiration: parseDateCell(r['Date_expiration'] ?? r['date_expiration'] ?? r['dateExpiration']),
-  }));
+  return rawRows.map((r): ImportRow => {
+    try {
+      return {
+        matricule: String(r['Matricule'] ?? r['matricule'] ?? '').trim(),
+        nom: String(r['Nom'] ?? r['nom'] ?? '').trim(),
+        prenom: String(r['Prenom'] ?? r['prenom'] ?? '').trim(),
+        fonction: String(r['Fonction'] ?? r['fonction'] ?? '').trim(),
+        division: String(r['Division'] ?? r['division'] ?? '').trim(),
+        service: String(r['Service'] ?? r['service'] ?? '').trim(),
+        equipe: String(r['Equipe'] ?? r['equipe'] ?? '').trim() || undefined,
+        stCodes: parseCodes(r['ST_codes'] ?? r['st_codes'] ?? r['stCodes']),
+        htCodes: parseCodes(r['HT_codes'] ?? r['ht_codes'] ?? r['htCodes']),
+        nDeTitre: String(r['N_de_titre'] ?? r['n_de_titre'] ?? r['nDeTitre'] ?? '').trim(),
+        dateValidation: parseDateCell(r['Date_validation'] ?? r['date_validation'] ?? r['dateValidation']),
+        dateExpiration: parseDateCell(r['Date_expiration'] ?? r['date_expiration'] ?? r['dateExpiration']),
+      };
+    } catch {
+      // Return an empty/corrupted row — will fail validation with field errors
+      return {
+        matricule: '', nom: '', prenom: '', fonction: '',
+        division: '', service: '',
+        stCodes: [], htCodes: [], nDeTitre: '',
+        dateValidation: '', dateExpiration: '',
+      };
+    }
+  });
 }
 
 async function resolveOrgIds(row: ImportRow): Promise<{ divisionId: number; serviceId: number; equipeId: number | null }> {
@@ -81,7 +93,11 @@ async function resolveOrgIds(row: ImportRow): Promise<{ divisionId: number; serv
   return { divisionId: div.id, serviceId: svc.id, equipeId };
 }
 
-function validateRow(row: ImportRow, index: number, duplicateMatricules?: Set<string>): ImportError[] {
+function validateRow(
+  row: ImportRow,
+  index: number,
+  duplicates?: { matricules: Set<string>; nDeTitres: Set<string> }
+): ImportError[] {
   const errors: ImportError[] = [];
   const r = index + 2; // 1-based + header row
 
@@ -89,32 +105,43 @@ function validateRow(row: ImportRow, index: number, duplicateMatricules?: Set<st
   if (!row.nom) errors.push({ row: r, field: 'Nom', message: 'Requis' });
   if (!row.prenom) errors.push({ row: r, field: 'Prenom', message: 'Requis' });
   if (!row.fonction) errors.push({ row: r, field: 'Fonction', message: 'Requis' });
+  if (!row.division) errors.push({ row: r, field: 'Division', message: 'Requis' });
+  if (!row.service) errors.push({ row: r, field: 'Service', message: 'Requis' });
   if (!row.nDeTitre) errors.push({ row: r, field: 'N_de_titre', message: 'Requis' });
-  if (!row.dateValidation) errors.push({ row: r, field: 'Date_validation', message: 'Requis' });
-  if (!row.dateExpiration) errors.push({ row: r, field: 'Date_expiration', message: 'Requis' });
+  if (!row.dateValidation) errors.push({ row: r, field: 'Date_validation', message: 'Requis ou format invalide (attendu: JJ/MM/AAAA)' });
+  if (!row.dateExpiration) errors.push({ row: r, field: 'Date_expiration', message: 'Requis ou format invalide (attendu: JJ/MM/AAAA)' });
   if (row.stCodes.length === 0 && row.htCodes.length === 0) {
     errors.push({ row: r, field: 'ST_codes/HT_codes', message: 'Au moins un code ST ou HT requis' });
   }
   if (row.dateValidation && row.dateExpiration && new Date(row.dateExpiration) <= new Date(row.dateValidation)) {
     errors.push({ row: r, field: 'Date_expiration', message: 'Doit être après Date_validation' });
   }
-  if (row.matricule && duplicateMatricules?.has(row.matricule)) {
+  if (row.matricule && duplicates?.matricules.has(row.matricule)) {
     errors.push({ row: r, field: 'Matricule', message: `Matricule en double dans le fichier: ${row.matricule}` });
+  }
+  if (row.nDeTitre && duplicates?.nDeTitres.has(row.nDeTitre)) {
+    errors.push({ row: r, field: 'N_de_titre', message: `N° de titre en double dans le fichier: ${row.nDeTitre}` });
   }
 
   return errors;
 }
 
-function detectInFileDuplicates(rows: ImportRow[]): Set<string> {
-  const seen = new Set<string>();
-  const duplicates = new Set<string>();
+function detectInFileDuplicates(rows: ImportRow[]): { matricules: Set<string>; nDeTitres: Set<string> } {
+  const seenMat = new Set<string>();
+  const dupMat = new Set<string>();
+  const seenTitre = new Set<string>();
+  const dupTitre = new Set<string>();
   for (const row of rows) {
     if (row.matricule) {
-      if (seen.has(row.matricule)) duplicates.add(row.matricule);
-      else seen.add(row.matricule);
+      if (seenMat.has(row.matricule)) dupMat.add(row.matricule);
+      else seenMat.add(row.matricule);
+    }
+    if (row.nDeTitre) {
+      if (seenTitre.has(row.nDeTitre)) dupTitre.add(row.nDeTitre);
+      else seenTitre.add(row.nDeTitre);
     }
   }
-  return duplicates;
+  return { matricules: dupMat, nDeTitres: dupTitre };
 }
 
 async function importOneRow(row: ImportRow) {
@@ -202,6 +229,7 @@ export async function previewImportFromBuffer(buffer: Buffer): Promise<{
 }> {
   const rows = parseEmployeesFromExcel(buffer);
   const duplicates = detectInFileDuplicates(rows);
+  const dupMatricules = duplicates.matricules;
   const preview: PreviewRow[] = [];
 
   for (let i = 0; i < rows.length; i++) {
@@ -210,7 +238,7 @@ export async function previewImportFromBuffer(buffer: Buffer): Promise<{
     const errors = validateRow(row, i, duplicates);
 
     // Determine if matricule is a known in-file duplicate
-    const isInFileDuplicate = row.matricule ? duplicates.has(row.matricule) : false;
+    const isInFileDuplicate = row.matricule ? dupMatricules.has(row.matricule) : false;
 
     // Look up existing employee with current version
     const existing = row.matricule
@@ -299,7 +327,8 @@ export async function previewImportFromBuffer(buffer: Buffer): Promise<{
   };
 }
 
-// Mode A: all-or-nothing; Mode B: skip bad rows
+// Mode A: all-or-nothing (full rollback on any error)
+// Mode B: commit valid rows, skip invalid rows with report
 export async function importEmployeesFromBuffer(
   buffer: Buffer,
   mode: 'A' | 'B' = 'A'
@@ -308,12 +337,12 @@ export async function importEmployeesFromBuffer(
   const duplicates = detectInFileDuplicates(rows);
   const allErrors: ImportError[] = [];
 
-  // Validate all rows first (includes in-file duplicate check)
+  // Pre-validate all rows (in-file duplicates + field validation)
   for (let i = 0; i < rows.length; i++) {
-    const errs = validateRow(rows[i], i, duplicates);
-    allErrors.push(...errs);
+    allErrors.push(...validateRow(rows[i], i, duplicates));
   }
 
+  // Mode A: fail-fast — any validation error aborts the entire import
   if (mode === 'A' && allErrors.length > 0) {
     return { successCount: 0, errorCount: rows.length, errors: allErrors };
   }
@@ -322,24 +351,35 @@ export async function importEmployeesFromBuffer(
   const importErrors: ImportError[] = [...allErrors];
 
   if (mode === 'A') {
-    // Wrap everything in one transaction
-    await db.transaction(async () => {
-      for (const row of rows) {
-        await importOneRow(row);
-        successCount++;
+    // Single atomic transaction covering all rows
+    await db.transaction(async (tx) => {
+      for (let i = 0; i < rows.length; i++) {
+        try {
+          await importOneRow(rows[i]);
+          successCount++;
+        } catch (err) {
+          // Throw to trigger full rollback
+          throw new Error(`Ligne ${i + 2} (${rows[i].matricule}): ${(err as Error).message}`);
+        }
       }
     });
   } else {
-    // Mode B: skip bad rows
-    const badRows = new Set(allErrors.map(e => e.row));
+    // Mode B: each row in its own transaction; bad rows are skipped
+    const badRowNumbers = new Set(allErrors.map((e) => e.row));
     for (let i = 0; i < rows.length; i++) {
       const rowNum = i + 2;
-      if (badRows.has(rowNum)) continue;
+      if (badRowNumbers.has(rowNum)) continue;
       try {
-        await importOneRow(rows[i]);
+        await db.transaction(async () => {
+          await importOneRow(rows[i]);
+        });
         successCount++;
       } catch (err) {
-        importErrors.push({ row: rowNum, field: 'general', message: (err as Error).message });
+        importErrors.push({
+          row: rowNum,
+          field: 'general',
+          message: (err as Error).message,
+        });
       }
     }
   }

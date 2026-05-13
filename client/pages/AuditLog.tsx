@@ -358,7 +358,7 @@ export default function AuditLog() {
                 <SelectContent>
                   <SelectItem value="">Tous types</SelectItem>
                   <SelectItem value="employee">Employé</SelectItem>
-                  <SelectItem value="habilitation">Habilitation</SelectItem>
+                  <SelectItem value="renewal">Renouvellement</SelectItem>
                 </SelectContent>
               </Select>
             </div>

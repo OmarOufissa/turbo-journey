@@ -41,9 +41,9 @@ function getExpirationRange(filter: string): { expirationFrom?: string; expirati
   const now = new Date().toISOString().split("T")[0];
   const plus = (days: number) => new Date(Date.now() + days * 864e5).toISOString().split("T")[0];
   if (filter === "expired") return { expirationTo: now };
-  if (filter === "lessThan3Months") return { expirationFrom: now, expirationTo: plus(90) };
-  if (filter === "lessThan6Months") return { expirationFrom: now, expirationTo: plus(180) };
-  if (filter === "lessThan9Months") return { expirationFrom: now, expirationTo: plus(270) };
+  if (filter === "3m") return { expirationFrom: now, expirationTo: plus(90) };
+  if (filter === "6m") return { expirationFrom: now, expirationTo: plus(180) };
+  if (filter === "9m") return { expirationFrom: now, expirationTo: plus(270) };
   return {};
 }
 
@@ -166,9 +166,9 @@ export default function Employees() {
             <SelectContent>
               <SelectItem value="all">Toutes expirations</SelectItem>
               <SelectItem value="expired">Expirés</SelectItem>
-              <SelectItem value="lessThan3Months">&lt; 3 mois</SelectItem>
-              <SelectItem value="lessThan6Months">&lt; 6 mois</SelectItem>
-              <SelectItem value="lessThan9Months">&lt; 9 mois</SelectItem>
+              <SelectItem value="3m">&lt; 3 mois</SelectItem>
+              <SelectItem value="6m">&lt; 6 mois</SelectItem>
+              <SelectItem value="9m">&lt; 9 mois</SelectItem>
             </SelectContent>
           </Select>
           <Select value={hasPdfFilter} onValueChange={v => { setHasPdfFilter(v); setPage(1); }}>

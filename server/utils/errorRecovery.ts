@@ -257,29 +257,6 @@ export async function employeeExists(employeeId: number): Promise<boolean> {
 }
 
 /**
- * Check if habilitation exists
- */
-export async function habilitationExists(habilitationId: number): Promise<boolean> {
-  try {
-    const result = await db
-      .select({ id: schema.habilitations.id })
-      .from(schema.habilitations)
-      .where(
-        and(
-          eq(schema.habilitations.id, habilitationId),
-          eq(schema.habilitations.deleted, false)
-        )
-      )
-      .limit(1);
-
-    return result.length > 0;
-  } catch (err) {
-    console.error("Error checking habilitation existence:", err);
-    throw err;
-  }
-}
-
-/**
  * Validate organization structure hierarchy
  * Ensure service belongs to division and equipe belongs to service
  */

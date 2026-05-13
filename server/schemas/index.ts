@@ -16,8 +16,7 @@ import { z } from "zod";
 // ============================================================================
 
 const MATRICULE_PATTERN = /^\d{5}$|^[A-Z0-9]{3,10}$/;
-const VALID_HABILITATION_CODES = ["H0V", "B0V", "H1V", "B1V", "H2V", "B2V", "HC", "BR", "BC", "SF6"];
-const VALID_HABILITATION_TYPES = ["ST", "HT"] as const;
+export const VALID_HABILITATION_CODES = ["H0V", "B0V", "H1V", "B1V", "H2V", "B2V", "HC", "BR", "BC", "SF6"];
 
 /**
  * Custom error messages for better UX
@@ -154,98 +153,6 @@ export const employeeDatabaseSchema = z.object({
   deleted: z.boolean().default(false),
 });
 
-// ============================================================================
-// HABILITATION SCHEMAS
-// ============================================================================
-
-/**
- * Habilitation create request
- */
-export const habilitationCreateSchema = z.object({
-  employee_id: z.number().positive(),
-  type: z.enum(VALID_HABILITATION_TYPES)
-    .refine(
-      (val) => val !== "ST",
-      { message: "ST habilitations are not allowed. Only HT is supported." }
-    ),
-  codes: z.array(z.string())
-    .min(1, "At least one code is required")
-    .max(10, "Maximum 10 codes allowed")
-    .refine(
-      (codes) => codes.every((code) => VALID_HABILITATION_CODES.includes(code)),
-      { message: CUSTOM_ERRORS.habCodes }
-    ),
-  numero: z.string()
-    .max(50, "Numero must be less than 50 characters")
-    .optional(),
-  date_validation: flexibleDate.transform((date) => {
-    // Convert to YYYY-MM-DD format
-    return date.toISOString().split("T")[0];
-  }),
-  date_expiration: flexibleDate
-    .transform((date) => {
-      // Convert to YYYY-MM-DD format
-      return date.toISOString().split("T")[0];
-    })
-    .optional(),
-})
-.refine(
-  (data) => {
-    if (!data.date_expiration) return true;
-    return new Date(data.date_expiration) > new Date(data.date_validation);
-  },
-  {
-    message: CUSTOM_ERRORS.dateExpiration,
-    path: ["date_expiration"],
-  }
-);
-
-/**
- * Habilitation update request
- */
-export const habilitationUpdateSchema = z.object({
-  type: z.enum(VALID_HABILITATION_TYPES)
-    .refine(
-      (val) => val !== "ST",
-      { message: "ST habilitations are not allowed" }
-    )
-    .optional(),
-  codes: z.array(z.string())
-    .min(1)
-    .refine(
-      (codes) => codes.every((code) => VALID_HABILITATION_CODES.includes(code)),
-      { message: CUSTOM_ERRORS.habCodes }
-    )
-    .optional(),
-  numero: z.string()
-    .max(50)
-    .optional(),
-  date_validation: flexibleDate
-    .transform((date) => date.toISOString().split("T")[0])
-    .optional(),
-  date_expiration: flexibleDate
-    .transform((date) => date.toISOString().split("T")[0])
-    .optional(),
-}).strict();
-
-/**
- * Habilitation database schema
- */
-export const habilitationDatabaseSchema = z.object({
-  id: z.number(),
-  employee_id: z.number(),
-  type: z.enum(VALID_HABILITATION_TYPES),
-  codes: z.array(z.string()),
-  numero: z.string().nullable(),
-  date_validation: z.string(),
-  date_expiration: z.string().nullable(),
-  pdf_path: z.string().nullable(),
-  pdf_uploaded_at: z.date().nullable(),
-  version: z.number(),
-  created_at: z.date(),
-  updated_at: z.date(),
-  deleted: z.boolean().default(false),
-});
 
 // ============================================================================
 // ORGANIZATION STRUCTURE SCHEMAS
@@ -313,29 +220,6 @@ export const auditLogSchema = z.object({
 });
 
 // ============================================================================
-// BATCH OPERATION SCHEMAS
-// ============================================================================
-
-/**
- * Batch update habilitations
- */
-export const batchUpdateHabilitationsSchema = z.object({
-  ids: z.array(z.number().positive())
-    .min(1, "At least one ID is required")
-    .max(100, "Maximum 100 items per batch"),
-  data: habilitationUpdateSchema,
-});
-
-/**
- * Batch delete habilitations
- */
-export const batchDeleteHabilitationsSchema = z.object({
-  ids: z.array(z.number().positive())
-    .min(1, "At least one ID is required")
-    .max(100, "Maximum 100 items per batch"),
-});
-
-// ============================================================================
 // TYPE EXPORTS FOR TYPESCRIPT
 // ============================================================================
 
@@ -343,18 +227,11 @@ export type EmployeeCreate = z.infer<typeof employeeCreateSchema>;
 export type EmployeeUpdate = z.infer<typeof employeeUpdateSchema>;
 export type EmployeeDatabase = z.infer<typeof employeeDatabaseSchema>;
 
-export type HabilitationCreate = z.infer<typeof habilitationCreateSchema>;
-export type HabilitationUpdate = z.infer<typeof habilitationUpdateSchema>;
-export type HabilitationDatabase = z.infer<typeof habilitationDatabaseSchema>;
-
 export type Division = z.infer<typeof divisionSchema>;
 export type Service = z.infer<typeof serviceSchema>;
 export type Equipe = z.infer<typeof equipeSchema>;
 
 export type AuditLog = z.infer<typeof auditLogSchema>;
-
-export type BatchUpdateHabilitations = z.infer<typeof batchUpdateHabilitationsSchema>;
-export type BatchDeleteHabilitations = z.infer<typeof batchDeleteHabilitationsSchema>;
 
 // ============================================================================
 // VALIDATION HELPERS

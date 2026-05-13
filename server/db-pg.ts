@@ -12,7 +12,7 @@ function getDbUrl(): string {
   if (envUrl && !envUrl.startsWith("postgres")) {
     return envUrl.startsWith("file:") ? envUrl : `file:${envUrl}`;
   }
-  return `file:${path.join(process.cwd(), "habilitations.db")}`;
+  return `file:${path.join(process.cwd(), "app.db")}`;
 }
 
 const client = createClient({ url: getDbUrl() });
@@ -197,15 +197,6 @@ export function validateEmployeeData(employee: Record<string, any>): void {
   }
 }
 
-export function validateHabilitationData(hab: Record<string, any>): void {
-  let stCodes = hab.stCodes || [];
-  let htCodes = hab.htCodes || [];
-  if (!Array.isArray(stCodes)) stCodes = [];
-  if (!Array.isArray(htCodes)) htCodes = [];
-  if (stCodes.length === 0 && htCodes.length === 0) {
-    throw new Error(`Invalid habilitation: at least one code (ST or HT) is required`);
-  }
-}
 
 export async function getDatabase() {
   return db;
@@ -220,5 +211,4 @@ export default {
   withAuditTransaction,
   validateDataIntegrity,
   validateEmployeeData,
-  validateHabilitationData,
 };

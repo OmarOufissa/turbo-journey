@@ -186,12 +186,111 @@ async function checkOrphanedPdfs(): Promise<HealthCheckResult> {
   }
 }
 
+async function checkDuplicateVersionNumbers(): Promise<HealthCheckResult> {
+  try {
+    const dupes = await db.execute(sql`
+      SELECT employee_id, version_number, count(*) as cnt
+      FROM employee_versions
+      GROUP BY employee_id, version_number
+      HAVING count(*) > 1
+    `);
+    const rows: any[] = Array.isArray(dupes) ? dupes : ((dupes as any).rows ?? []);
+    if (rows.length === 0) {
+      return { name: "duplicate_versions", status: "ok", message: "Aucun doublon de numéro de version détecté" };
+    }
+    return {
+      name: "duplicate_versions",
+      status: "error",
+      message: `${rows.length} doublon(s) de version détecté(s) — intervention manuelle requise`,
+    };
+  } catch (err) {
+    return { name: "duplicate_versions", status: "warning", message: `Vérification impossible: ${String(err)}` };
+  }
+}
+
+async function checkBrokenOrgReferences(): Promise<HealthCheckResult> {
+  try {
+    const broken = await db.execute(sql`
+      SELECT ev.id
+      FROM employee_versions ev
+      LEFT JOIN divisions d ON ev.division_id = d.id
+      LEFT JOIN services s ON ev.service_id = s.id
+      WHERE d.id IS NULL OR s.id IS NULL
+      LIMIT 100
+    `);
+    const rows: any[] = Array.isArray(broken) ? broken : ((broken as any).rows ?? []);
+    if (rows.length === 0) {
+      return { name: "org_references", status: "ok", message: "Toutes les références organisationnelles sont valides" };
+    }
+    return {
+      name: "org_references",
+      status: "warning",
+      message: `${rows.length} version(s) avec références organisationnelles manquantes`,
+    };
+  } catch (err) {
+    return { name: "org_references", status: "warning", message: `Vérification impossible: ${String(err)}` };
+  }
+}
+
+async function checkCorruptedRenewals(): Promise<HealthCheckResult> {
+  try {
+    const renewals = await db.select({ id: schema.pendingRenewals.id, snapshot: schema.pendingRenewals.snapshot }).from(schema.pendingRenewals);
+    const corrupted: number[] = [];
+    for (const r of renewals) {
+      const snap = r.snapshot as Record<string, any>;
+      if (!snap || typeof snap !== "object" || !snap.dateValidation || !snap.dateExpiration || !snap.nDeTitre) {
+        corrupted.push(r.id);
+      }
+    }
+    if (corrupted.length === 0) {
+      return { name: "renewals_integrity", status: "ok", message: "Tous les renouvellements en attente sont valides" };
+    }
+    return {
+      name: "renewals_integrity",
+      status: "warning",
+      message: `${corrupted.length} renouvellement(s) corrompu(s) (IDs: ${corrupted.join(", ")})`,
+    };
+  } catch (err) {
+    return { name: "renewals_integrity", status: "warning", message: `Vérification impossible: ${String(err)}` };
+  }
+}
+
+async function checkMalformedCodeArrays(): Promise<HealthCheckResult> {
+  try {
+    const versions = await db
+      .select({ id: schema.employeeVersions.id, stCodes: schema.employeeVersions.stCodes, htCodes: schema.employeeVersions.htCodes })
+      .from(schema.employeeVersions);
+
+    const malformed: number[] = [];
+    for (const v of versions) {
+      const stOk = Array.isArray(v.stCodes) && v.stCodes.every((c) => typeof c === "string");
+      const htOk = Array.isArray(v.htCodes) && v.htCodes.every((c) => typeof c === "string");
+      if (!stOk || !htOk) malformed.push(v.id);
+    }
+
+    if (malformed.length === 0) {
+      return { name: "code_arrays", status: "ok", message: "Tous les tableaux de codes ST/HT sont valides" };
+    }
+    return {
+      name: "code_arrays",
+      status: "warning",
+      message: `${malformed.length} version(s) avec tableaux ST/HT malformés (IDs: ${malformed.slice(0, 10).join(", ")})`,
+    };
+  } catch (err) {
+    return { name: "code_arrays", status: "warning", message: `Vérification impossible: ${String(err)}` };
+  }
+}
+
 // ─── Main runner ───────────────────────────────────────────────────────────
 
 export async function runHealthChecks(): Promise<HealthReport> {
   logger.info("app", "Démarrage des vérifications système...");
 
-  const checkNames = ["directories", "database", "schema", "jwt", "orphaned_versions", "orphaned_pdfs"];
+  const checkNames = [
+    "directories", "database", "schema", "jwt",
+    "orphaned_versions", "orphaned_pdfs",
+    "duplicate_versions", "org_references", "renewals_integrity", "code_arrays",
+  ];
   const settled = await Promise.allSettled([
     checkDirectories(),
     checkDatabase(),
@@ -199,6 +298,10 @@ export async function runHealthChecks(): Promise<HealthReport> {
     checkJwtConfig(),
     checkOrphanedVersions(),
     checkOrphanedPdfs(),
+    checkDuplicateVersionNumbers(),
+    checkBrokenOrgReferences(),
+    checkCorruptedRenewals(),
+    checkMalformedCodeArrays(),
   ]);
 
   const results: HealthCheckResult[] = settled.map((result, i) => {

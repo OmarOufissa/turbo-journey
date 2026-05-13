@@ -22,7 +22,7 @@ export function StatusPieChart({ employees }: StatusPieChartProps) {
     if (!ver) return;
     const status = getExpirationStatus(ver.dateExpiration);
     if (status === "expired") expired++;
-    else if (status === "lessThan3Months" || status === "lessThan6Months") expiringSoon++;
+    else if (status === "3m" || status === "6m") expiringSoon++;
     else valid++;
   });
 

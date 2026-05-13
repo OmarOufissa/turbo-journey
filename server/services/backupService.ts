@@ -1,41 +1,28 @@
-/**
- * PHASE 4: BACKUP SERVICE
- * 
- * Exports complete database to JSON format
- * Verifies backup integrity
- * Prepares for disaster recovery
- * 
- * Can be paired with:
- * - Local filesystem backups
- * - AWS S3
- * - Google Cloud Storage
- * - Any other cloud storage
- */
-
 import { db } from "../db-pg";
 import * as schema from "../schema";
 import { format } from "date-fns";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
+import { BACKUPS_DIR } from "../utils/pathUtils";
 
 // ============================================================================
-// TYPE DEFINITIONS
+// TYPES
 // ============================================================================
 
 export interface BackupMetadata {
   backupId: string;
-  createdAt: Date;
+  createdAt: string;
   version: string;
   environment: string;
   totalEmployees: number;
-  totalHabilitations: number;
+  totalVersions: number;
   totalAuditLogs: number;
-  databaseSizeBytes: number;
-  checksum: string; // SHA256 hash for integrity verification
+  payloadSizeBytes: number;
+  checksum: string;
 }
 
-export interface BackupData {
-  metadata: BackupMetadata;
+export interface BackupPayload {
   employees: any[];
   employeeVersions: any[];
   pendingRenewals: any[];
@@ -45,307 +32,182 @@ export interface BackupData {
   equipes: any[];
 }
 
+export interface BackupData {
+  metadata: BackupMetadata;
+  payload: BackupPayload;
+}
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const BACKUP_DIR = path.join(process.cwd(), "backups", "local");
-const VERSION = "1.0.0";
+const VERSION = "2.0.0";
 
 // Ensure backup directory exists
-if (!fs.existsSync(BACKUP_DIR)) {
-  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+if (!fs.existsSync(BACKUPS_DIR)) {
+  fs.mkdirSync(BACKUPS_DIR, { recursive: true });
 }
 
 // ============================================================================
-// HELPER FUNCTIONS
+// HELPERS
 // ============================================================================
 
-/**
- * Calculate SHA256 checksum of data
- */
-function calculateChecksum(data: string): string {
-  const crypto = require("crypto");
+function sha256(data: string): string {
   return crypto.createHash("sha256").update(data).digest("hex");
 }
 
-/**
- * Generate unique backup ID
- */
 function generateBackupId(): string {
-  return `backup_${format(new Date(), "yyyy-MM-dd_HH-mm-ss")}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-/**
- * Get total size of backup in bytes
- */
-function calculateBackupSize(data: BackupData): number {
-  return JSON.stringify(data).length;
+  return `backup_${format(new Date(), "yyyy-MM-dd_HH-mm-ss")}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
 // ============================================================================
-// CORE BACKUP FUNCTIONS
+// CORE FUNCTIONS
 // ============================================================================
 
-/**
- * Export all data from database to JSON
- * Includes all tables and audit trails
- */
 export async function exportAllData(): Promise<BackupData> {
-  try {
-    console.log("[BACKUP] Starting data export...");
+  const [
+    employees,
+    employeeVersions,
+    pendingRenewals,
+    auditLogs,
+    divisions,
+    services,
+    equipes,
+  ] = await Promise.all([
+    db.select().from(schema.employees),
+    db.select().from(schema.employeeVersions),
+    db.select().from(schema.pendingRenewals),
+    db.select().from(schema.auditLogs),
+    db.select().from(schema.divisions),
+    db.select().from(schema.services),
+    db.select().from(schema.equipes),
+  ]);
 
-    // Fetch all data in parallel
-    const [
-      employees,
-      employeeVersions,
-      pendingRenewals,
-      auditLogs,
-      divisions,
-      services,
-      equipes,
-    ] = await Promise.all([
-      db.select().from(schema.employees),
-      db.select().from(schema.employeeVersions),
-      db.select().from(schema.pendingRenewals),
-      db.select().from(schema.auditLogs),
-      db.select().from(schema.divisions),
-      db.select().from(schema.services),
-      db.select().from(schema.equipes),
-    ]);
+  const payload: BackupPayload = {
+    employees,
+    employeeVersions,
+    pendingRenewals,
+    auditLogs,
+    divisions,
+    services,
+    equipes,
+  };
 
-    const backupId = generateBackupId();
-    const createdAt = new Date();
+  // Checksum is computed over the payload only (not the metadata)
+  const payloadJson = JSON.stringify(payload);
+  const checksum = sha256(payloadJson);
 
-    // Create metadata
-    const metadata: BackupMetadata = {
-      backupId,
-      createdAt,
-      version: VERSION,
-      environment: process.env.NODE_ENV || "development",
-      totalEmployees: employees.length,
-      totalHabilitations: employeeVersions.length,
-      totalAuditLogs: auditLogs.length,
-      databaseSizeBytes: 0,
-      checksum: "",
-    };
+  const metadata: BackupMetadata = {
+    backupId: generateBackupId(),
+    createdAt: new Date().toISOString(),
+    version: VERSION,
+    environment: process.env.NODE_ENV || "development",
+    totalEmployees: employees.length,
+    totalVersions: employeeVersions.length,
+    totalAuditLogs: auditLogs.length,
+    payloadSizeBytes: payloadJson.length,
+    checksum,
+  };
 
-    // Create backup data object
-    const data: BackupData = {
-      metadata,
-      employees,
-      employeeVersions,
-      pendingRenewals,
-      auditLogs,
-      divisions,
-      services,
-      equipes,
-    };
-
-    // Calculate size and checksum
-    const dataJson = JSON.stringify(data);
-    metadata.databaseSizeBytes = dataJson.length;
-    metadata.checksum = calculateChecksum(dataJson);
-
-    console.log(`[BACKUP] Export complete: ${employees.length} employees, ${employeeVersions.length} versions, ${auditLogs.length} audit logs`);
-
-    return data;
-  } catch (err) {
-    console.error("[BACKUP] Error exporting data:", err);
-    throw new Error(`Failed to export data: ${err instanceof Error ? err.message : String(err)}`);
-  }
+  return { metadata, payload };
 }
 
-/**
- * Create a backup file and save to disk
- */
-export async function createBackupFile(
-  backupDir: string = BACKUP_DIR
-): Promise<{
+export async function createBackupFile(backupDir: string = BACKUPS_DIR): Promise<{
   backupId: string;
   filePath: string;
   fileSize: number;
   metadata: BackupMetadata;
 }> {
-  try {
-    console.log("[BACKUP] Creating backup file...");
+  const data = await exportAllData();
+  const filename = `${data.metadata.backupId}.json`;
+  const filePath = path.join(backupDir, filename);
 
-    // Export data
-    const data = await exportAllData();
-    const backupId = data.metadata.backupId;
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 
-    // Create filename
-    const filename = `${backupId}.json`;
-    const filePath = path.join(backupDir, filename);
+  const stats = fs.statSync(filePath);
+  console.log(`[BACKUP] Created: ${filePath} (${stats.size} bytes)`);
 
-    // Write to disk
-    const dataJson = JSON.stringify(data, null, 2);
-    fs.writeFileSync(filePath, dataJson);
-
-    const stats = fs.statSync(filePath);
-
-    console.log(`[BACKUP] Backup file created: ${filePath} (${stats.size} bytes)`);
-
-    return {
-      backupId,
-      filePath,
-      fileSize: stats.size,
-      metadata: data.metadata,
-    };
-  } catch (err) {
-    console.error("[BACKUP] Error creating backup file:", err);
-    throw new Error(`Failed to create backup: ${err instanceof Error ? err.message : String(err)}`);
-  }
+  return { backupId: data.metadata.backupId, filePath, fileSize: stats.size, metadata: data.metadata };
 }
 
-/**
- * Verify backup file integrity
- */
 export async function verifyBackup(filePath: string): Promise<{
   isValid: boolean;
   errors: string[];
   metadata?: BackupMetadata;
 }> {
-  try {
-    if (!fs.existsSync(filePath)) {
-      return {
-        isValid: false,
-        errors: ["Backup file not found"],
-      };
-    }
+  const errors: string[] = [];
 
-    // Read and parse backup
-    const fileContent = fs.readFileSync(filePath, "utf-8");
-    let data: BackupData;
-
-    try {
-      data = JSON.parse(fileContent);
-    } catch (parseErr) {
-      return {
-        isValid: false,
-        errors: ["Invalid JSON format"],
-      };
-    }
-
-    const errors: string[] = [];
-
-    // Verify checksum
-    const calculatedChecksum = calculateChecksum(JSON.stringify(data));
-    if (calculatedChecksum !== data.metadata.checksum) {
-      errors.push("Checksum mismatch - file may be corrupted");
-    }
-
-    // Verify required data exists
-    if (!data.employees || data.employees.length === 0) {
-      errors.push("No employee data found");
-    }
-
-    if (!data.auditLogs || data.auditLogs.length === 0) {
-      errors.push("No audit logs found");
-    }
-
-    // Verify metadata
-    if (!data.metadata) {
-      errors.push("Metadata missing");
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      metadata: data.metadata,
-    };
-  } catch (err) {
-    console.error("[BACKUP] Error verifying backup:", err);
-    return {
-      isValid: false,
-      errors: [
-        `Verification failed: ${err instanceof Error ? err.message : String(err)}`,
-      ],
-    };
+  if (!fs.existsSync(filePath)) {
+    return { isValid: false, errors: ["Backup file not found"] };
   }
+
+  let data: BackupData;
+  try {
+    data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch {
+    return { isValid: false, errors: ["Invalid JSON format"] };
+  }
+
+  if (!data.metadata) errors.push("Metadata missing");
+  if (!data.payload) errors.push("Payload missing");
+  if (errors.length > 0) return { isValid: false, errors };
+
+  // Verify checksum over payload only
+  const actualChecksum = sha256(JSON.stringify(data.payload));
+  if (actualChecksum !== data.metadata.checksum) {
+    errors.push(`Checksum mismatch — file may be corrupted (expected ${data.metadata.checksum.slice(0, 8)}…, got ${actualChecksum.slice(0, 8)}…)`);
+  }
+
+  // Schema compatibility check
+  if (data.metadata.version && data.metadata.version.split(".")[0] !== VERSION.split(".")[0]) {
+    errors.push(`Schema version mismatch: backup is v${data.metadata.version}, current is v${VERSION}`);
+  }
+
+  if (!data.payload.employees) errors.push("No employee data found");
+  if (!data.payload.divisions) errors.push("No divisions data found");
+
+  return { isValid: errors.length === 0, errors, metadata: data.metadata };
 }
 
-/**
- * List all local backups
- */
-export function listBackups(backupDir: string = BACKUP_DIR): {
+export function listBackups(backupDir: string = BACKUPS_DIR): {
   backupId: string;
   filename: string;
   filePath: string;
   fileSize: number;
   createdAt: Date;
 }[] {
-  try {
-    if (!fs.existsSync(backupDir)) {
-      return [];
-    }
+  if (!fs.existsSync(backupDir)) return [];
 
-    const files = fs.readdirSync(backupDir).filter((f) => f.endsWith(".json"));
-
-    return files
-      .map((filename) => {
-        const filePath = path.join(backupDir, filename);
-        const stats = fs.statSync(filePath);
-        const backupId = filename.replace(".json", "");
-
-        return {
-          backupId,
-          filename,
-          filePath,
-          fileSize: stats.size,
-          createdAt: stats.mtime,
-        };
-      })
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  } catch (err) {
-    console.error("[BACKUP] Error listing backups:", err);
-    return [];
-  }
+  return fs
+    .readdirSync(backupDir)
+    .filter((f) => f.endsWith(".json"))
+    .map((filename) => {
+      const filePath = path.join(backupDir, filename);
+      const stats = fs.statSync(filePath);
+      return { backupId: filename.replace(".json", ""), filename, filePath, fileSize: stats.size, createdAt: stats.mtime };
+    })
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
-/**
- * Delete old backups (keep only last N)
- */
-export function cleanupOldBackups(
-  keepCount: number = 30,
-  backupDir: string = BACKUP_DIR
-): {
+export function cleanupOldBackups(keepCount: number = 30, backupDir: string = BACKUPS_DIR): {
   deletedCount: number;
   remainingCount: number;
 } {
-  try {
-    const backups = listBackups(backupDir);
+  const backups = listBackups(backupDir);
+  if (backups.length <= keepCount) return { deletedCount: 0, remainingCount: backups.length };
 
-    if (backups.length <= keepCount) {
-      return { deletedCount: 0, remainingCount: backups.length };
+  let deletedCount = 0;
+  for (const backup of backups.slice(keepCount)) {
+    try {
+      fs.unlinkSync(backup.filePath);
+      deletedCount++;
+    } catch (err) {
+      console.error(`[BACKUP] Failed to delete ${backup.filename}:`, err);
     }
-
-    const toDelete = backups.slice(keepCount);
-    let deletedCount = 0;
-
-    for (const backup of toDelete) {
-      try {
-        fs.unlinkSync(backup.filePath);
-        deletedCount++;
-        console.log(`[BACKUP] Deleted old backup: ${backup.filename}`);
-      } catch (deleteErr) {
-        console.error(`[BACKUP] Failed to delete backup ${backup.filename}:`, deleteErr);
-      }
-    }
-
-    return {
-      deletedCount,
-      remainingCount: backups.length - deletedCount,
-    };
-  } catch (err) {
-    console.error("[BACKUP] Error cleaning up backups:", err);
-    return { deletedCount: 0, remainingCount: 0 };
   }
+  return { deletedCount, remainingCount: backups.length - deletedCount };
 }
 
-/**
- * Get backup statistics
- */
 export function getBackupStatistics(): {
   totalBackups: number;
   totalStorageBytes: number;
@@ -353,46 +215,18 @@ export function getBackupStatistics(): {
   newestBackup: Date | null;
   averageBackupSize: number;
 } {
-  try {
-    const backups = listBackups();
-
-    if (backups.length === 0) {
-      return {
-        totalBackups: 0,
-        totalStorageBytes: 0,
-        oldestBackup: null,
-        newestBackup: null,
-        averageBackupSize: 0,
-      };
-    }
-
-    const totalStorageBytes = backups.reduce((sum, b) => sum + b.fileSize, 0);
-    const averageBackupSize = Math.round(totalStorageBytes / backups.length);
-
-    return {
-      totalBackups: backups.length,
-      totalStorageBytes,
-      oldestBackup: backups[backups.length - 1].createdAt,
-      newestBackup: backups[0].createdAt,
-      averageBackupSize,
-    };
-  } catch (err) {
-    console.error("[BACKUP] Error getting backup statistics:", err);
-    return {
-      totalBackups: 0,
-      totalStorageBytes: 0,
-      oldestBackup: null,
-      newestBackup: null,
-      averageBackupSize: 0,
-    };
+  const backups = listBackups();
+  if (backups.length === 0) {
+    return { totalBackups: 0, totalStorageBytes: 0, oldestBackup: null, newestBackup: null, averageBackupSize: 0 };
   }
+  const totalStorageBytes = backups.reduce((s, b) => s + b.fileSize, 0);
+  return {
+    totalBackups: backups.length,
+    totalStorageBytes,
+    oldestBackup: backups[backups.length - 1].createdAt,
+    newestBackup: backups[0].createdAt,
+    averageBackupSize: Math.round(totalStorageBytes / backups.length),
+  };
 }
 
-export default {
-  exportAllData,
-  createBackupFile,
-  verifyBackup,
-  listBackups,
-  cleanupOldBackups,
-  getBackupStatistics,
-};
+export default { exportAllData, createBackupFile, verifyBackup, listBackups, cleanupOldBackups, getBackupStatistics };

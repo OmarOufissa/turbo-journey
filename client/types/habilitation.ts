@@ -1,4 +1,4 @@
-export type ExpirationStatus = "expired" | "lessThan3Months" | "lessThan6Months" | "lessThan9Months" | "valid";
+export type ExpirationStatus = "expired" | "3m" | "6m" | "9m" | "valid";
 
 export interface ExpirationStatusConfig {
   name: string;
@@ -14,19 +14,19 @@ export const EXPIRATION_COLOR_CONFIG: Record<ExpirationStatus, ExpirationStatusC
     textColor: "text-red-600 dark:text-red-400",
     bgColor: "bg-red-100 dark:bg-red-950",
   },
-  lessThan3Months: {
+  "3m": {
     name: "< 3 mois",
     color: "orange",
     textColor: "text-orange-600 dark:text-orange-400",
     bgColor: "bg-orange-100 dark:bg-orange-950",
   },
-  lessThan6Months: {
+  "6m": {
     name: "< 6 mois",
     color: "yellow",
     textColor: "text-yellow-600 dark:text-yellow-400",
     bgColor: "bg-yellow-100 dark:bg-yellow-950",
   },
-  lessThan9Months: {
+  "9m": {
     name: "< 9 mois",
     color: "blue",
     textColor: "text-blue-600 dark:text-blue-400",
@@ -55,9 +55,9 @@ export function getExpirationStatus(dateExpiration: string): ExpirationStatus {
   const ms270 = 270 * 24 * 60 * 60 * 1000;
 
   if (diff < 0) return "expired";
-  if (diff <= ms90) return "lessThan3Months";
-  if (diff <= ms180) return "lessThan6Months";
-  if (diff <= ms270) return "lessThan9Months";
+  if (diff <= ms90) return "3m";
+  if (diff <= ms180) return "6m";
+  if (diff <= ms270) return "9m";
   return "valid";
 }
 
