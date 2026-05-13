@@ -130,5 +130,68 @@
     "vitest": "^3.2.4",
     "wait-on": "^9.0.10"
   },
-  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
+  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748",
+  "build": {
+    "appId": "ma.company.gestion-habilitations",
+    "productName": "Gestion des Habilitations",
+    "copyright": "Copyright © 2026",
+    "asar": true,
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*",
+      "!node_modules/**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "uploads",
+        "to": "uploads",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "logs",
+        "to": "logs",
+        "filter": ["**/*"]
+      }
+    ],
+    "directories": {
+      "output": "dist-electron",
+      "buildResources": "build-resources"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build-resources/icon.ico",
+      "publisherName": "Company",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "build-resources/icon.ico",
+      "installerHeaderIcon": "build-resources/icon.ico",
+      "shortcutName": "Gestion Habilitations"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "build-resources/icon.png",
+      "category": "Office"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "build-resources/icon.icns",
+      "category": "public.app-category.business"
+    },
+    "publish": null
+  }
 }

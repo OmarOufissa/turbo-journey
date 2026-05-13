@@ -165,6 +165,15 @@ async function importOneRow(row: ImportRow) {
   await db.update(schema.employeeVersions).set({ auditLogId: auditLog.id }).where(eq(schema.employeeVersions.id, version.id));
 }
 
+export type DiffStatus = "new" | "modified" | "unchanged" | "duplicate" | "invalid";
+
+export interface DiffField {
+  field: string;
+  before: string | null;
+  after: string;
+  changed: boolean;
+}
+
 export interface PreviewRow {
   row: number;
   matricule: string;
@@ -176,15 +185,19 @@ export interface PreviewRow {
   stCodes: string[];
   htCodes: string[];
   dateExpiration: string;
+  status: DiffStatus;
   isNew: boolean;
   errors: ImportError[];
+  diff?: DiffField[];       // present when status === "modified"
+  existingEmployeeId?: number;
 }
 
-// Dry-run: validate + check existing, return preview without writing to DB
+// Dry-run: validate + check existing, return per-row diff without writing to DB
 export async function previewImportFromBuffer(buffer: Buffer): Promise<{
   rows: PreviewRow[];
   totalNew: number;
   totalUpdate: number;
+  totalUnchanged: number;
   totalErrors: number;
 }> {
   const rows = parseEmployeesFromExcel(buffer);
@@ -196,9 +209,67 @@ export async function previewImportFromBuffer(buffer: Buffer): Promise<{
     const rowNum = i + 2;
     const errors = validateRow(row, i, duplicates);
 
+    // Determine if matricule is a known in-file duplicate
+    const isInFileDuplicate = row.matricule ? duplicates.has(row.matricule) : false;
+
+    // Look up existing employee with current version
     const existing = row.matricule
-      ? await db.select({ id: schema.employees.id }).from(schema.employees).where(eq(schema.employees.matricule, row.matricule))
+      ? await db
+          .select({
+            id: schema.employees.id,
+            nom: schema.employees.nom,
+            prenom: schema.employees.prenom,
+            currentVersionId: schema.employees.currentVersionId,
+          })
+          .from(schema.employees)
+          .where(eq(schema.employees.matricule, row.matricule))
+          .limit(1)
       : [];
+
+    let status: DiffStatus;
+    let diff: DiffField[] | undefined;
+    let existingEmployeeId: number | undefined;
+
+    if (errors.length > 0 || isInFileDuplicate) {
+      status = "invalid";
+    } else if (existing.length === 0) {
+      status = "new";
+    } else {
+      existingEmployeeId = existing[0].id;
+
+      // Load the current version to compare fields
+      let currentVer: any = null;
+      if (existing[0].currentVersionId) {
+        const [ver] = await db
+          .select()
+          .from(schema.employeeVersions)
+          .where(eq(schema.employeeVersions.id, existing[0].currentVersionId))
+          .limit(1);
+        currentVer = ver;
+      }
+
+      // Build field-level diff
+      const comparisons: Array<{ field: string; before: string | null; after: string }> = [
+        { field: "Nom", before: existing[0].nom ?? null, after: row.nom },
+        { field: "Prénom", before: existing[0].prenom ?? null, after: row.prenom },
+        { field: "Fonction", before: currentVer?.fonction ?? null, after: row.fonction },
+        { field: "Division", before: null, after: row.division },
+        { field: "Service", before: null, after: row.service },
+        { field: "Codes HT", before: currentVer ? (currentVer.htCodes as string[]).join(", ") : null, after: row.htCodes.join(", ") },
+        { field: "Codes ST", before: currentVer ? (currentVer.stCodes as string[]).join(", ") : null, after: row.stCodes.join(", ") },
+        { field: "Date expiration", before: currentVer?.dateExpiration ?? null, after: row.dateExpiration },
+      ];
+
+      diff = comparisons.map(({ field, before, after }) => ({
+        field,
+        before,
+        after,
+        changed: before !== null && before !== after,
+      }));
+
+      const hasChanges = diff.some((d) => d.changed);
+      status = hasChanges ? "modified" : "unchanged";
+    }
 
     preview.push({
       row: rowNum,
@@ -211,16 +282,20 @@ export async function previewImportFromBuffer(buffer: Buffer): Promise<{
       stCodes: row.stCodes,
       htCodes: row.htCodes,
       dateExpiration: row.dateExpiration,
+      status,
       isNew: existing.length === 0,
       errors,
+      diff,
+      existingEmployeeId,
     });
   }
 
   return {
     rows: preview,
-    totalNew: preview.filter(r => r.isNew && r.errors.length === 0).length,
-    totalUpdate: preview.filter(r => !r.isNew && r.errors.length === 0).length,
-    totalErrors: preview.filter(r => r.errors.length > 0).length,
+    totalNew: preview.filter((r) => r.status === "new").length,
+    totalUpdate: preview.filter((r) => r.status === "modified").length,
+    totalUnchanged: preview.filter((r) => r.status === "unchanged").length,
+    totalErrors: preview.filter((r) => r.status === "invalid").length,
   };
 }
 

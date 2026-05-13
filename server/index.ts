@@ -5,6 +5,11 @@ import multer from "multer";
 import path from "path";
 import rateLimit from "express-rate-limit";
 import { initializeDatabase } from "./db-pg";
+import { ensureRequiredDirectories } from "./utils/pathUtils";
+import { logger } from "./utils/logger";
+
+// Ensure required directories exist before anything else
+ensureRequiredDirectories();
 
 let dbInitialized = false;
 
@@ -25,13 +30,20 @@ async function initializeSeedOnStartup() {
     const { initializeOrgStructureOnce } = await import("./seeds/organizationStructure");
     await initializeOrgStructureOnce();
   } catch (err) {
-    console.error("Error initializing seeds:", err);
+    logger.error("app", "Error initializing seeds", { error: String(err) });
   }
   try {
     const { initializeNotificationJobs } = await import("./jobs/notificationJobs");
     await initializeNotificationJobs();
   } catch (err) {
-    console.error("Error initializing notification jobs:", err);
+    logger.error("app", "Error initializing notification jobs", { error: String(err) });
+  }
+  // Run health checks after DB is ready (non-blocking)
+  try {
+    const { runHealthChecks } = await import("./utils/healthCheck");
+    await runHealthChecks();
+  } catch (err) {
+    logger.warn("app", "Health checks failed to run", { error: String(err) });
   }
 }
 
@@ -83,6 +95,16 @@ export function createServer() {
 
   app.get("/api/ping", (_req, res) => {
     res.json({ message: process.env.PING_MESSAGE ?? "ping" });
+  });
+
+  app.get("/api/health", async (req, res) => {
+    const { healthEndpointHandler } = await import("./utils/healthCheck");
+    healthEndpointHandler(req, res);
+  });
+
+  app.get("/api/search", async (req, res) => {
+    const { globalSearch } = await import("./routes/search");
+    globalSearch(req, res);
   });
 
   // ============================================================================
@@ -293,8 +315,14 @@ export function createServer() {
       try {
         const { db } = await import("./db-pg");
         const schema = await import("./schema");
-        const { eq } = await import("drizzle-orm");
-        await db.delete(schema.divisions).where(eq(schema.divisions.id, parseInt(req.params.id)));
+        const { eq, count } = await import("drizzle-orm");
+        const divId = parseInt(req.params.id);
+        // Cascade check: no services under this division
+        const [{ total }] = await db.select({ total: count() }).from(schema.services).where(eq(schema.services.divisionId, divId));
+        if (Number(total) > 0) {
+          return res.status(409).json({ success: false, error: `Impossible de supprimer: cette division contient ${total} service(s). Supprimez d'abord les services.`, data: null });
+        }
+        await db.delete(schema.divisions).where(eq(schema.divisions.id, divId));
         res.json({ success: true, data: { deleted: true }, error: null });
       } catch (err: any) {
         res.status(500).json({ success: false, error: err.message, data: null });
@@ -324,8 +352,14 @@ export function createServer() {
       try {
         const { db } = await import("./db-pg");
         const schema = await import("./schema");
-        const { eq } = await import("drizzle-orm");
-        await db.delete(schema.services).where(eq(schema.services.id, parseInt(req.params.id)));
+        const { eq, count } = await import("drizzle-orm");
+        const svcId = parseInt(req.params.id);
+        // Cascade check: no equipes under this service
+        const [{ total }] = await db.select({ total: count() }).from(schema.equipes).where(eq(schema.equipes.serviceId, svcId));
+        if (Number(total) > 0) {
+          return res.status(409).json({ success: false, error: `Impossible de supprimer: ce service contient ${total} équipe(s). Supprimez d'abord les équipes.`, data: null });
+        }
+        await db.delete(schema.services).where(eq(schema.services.id, svcId));
         res.json({ success: true, data: { deleted: true }, error: null });
       } catch (err: any) {
         res.status(500).json({ success: false, error: err.message, data: null });
@@ -355,13 +389,61 @@ export function createServer() {
       try {
         const { db } = await import("./db-pg");
         const schema = await import("./schema");
-        const { eq } = await import("drizzle-orm");
-        await db.delete(schema.equipes).where(eq(schema.equipes.id, parseInt(req.params.id)));
+        const { eq, count } = await import("drizzle-orm");
+        const equipeId = parseInt(req.params.id);
+        // Cascade check: no active employee versions in this equipe
+        const [{ total }] = await db
+          .select({ total: count() })
+          .from(schema.employeeVersions)
+          .where(eq(schema.employeeVersions.equipeId, equipeId));
+        if (Number(total) > 0) {
+          return res.status(409).json({ success: false, error: `Impossible de supprimer: ${total} version(s) d'employé référence(nt) cette équipe.`, data: null });
+        }
+        await db.delete(schema.equipes).where(eq(schema.equipes.id, equipeId));
         res.json({ success: true, data: { deleted: true }, error: null });
       } catch (err: any) {
         res.status(500).json({ success: false, error: err.message, data: null });
       }
     });
+  });
+
+  // Employee counts for org structure UI
+  app.get("/api/org/counts", async (req, res) => {
+    try {
+      const { db } = await import("./db-pg");
+      const schema = await import("./schema");
+      const { eq, count, and } = await import("drizzle-orm");
+      // Count active employee versions per division/service/equipe
+      const divCounts = await db
+        .select({ divisionId: schema.employeeVersions.divisionId, total: count() })
+        .from(schema.employeeVersions)
+        .innerJoin(schema.employees, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+        .where(eq(schema.employees.deleted, false))
+        .groupBy(schema.employeeVersions.divisionId);
+      const svcCounts = await db
+        .select({ serviceId: schema.employeeVersions.serviceId, total: count() })
+        .from(schema.employeeVersions)
+        .innerJoin(schema.employees, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+        .where(eq(schema.employees.deleted, false))
+        .groupBy(schema.employeeVersions.serviceId);
+      const eqCounts = await db
+        .select({ equipeId: schema.employeeVersions.equipeId, total: count() })
+        .from(schema.employeeVersions)
+        .innerJoin(schema.employees, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+        .where(eq(schema.employees.deleted, false))
+        .groupBy(schema.employeeVersions.equipeId);
+      res.json({
+        success: true,
+        data: {
+          byDivision: Object.fromEntries(divCounts.map((r) => [r.divisionId, Number(r.total)])),
+          byService: Object.fromEntries(svcCounts.map((r) => [r.serviceId, Number(r.total)])),
+          byEquipe: Object.fromEntries(eqCounts.filter((r) => r.equipeId != null).map((r) => [r.equipeId!, Number(r.total)])),
+        },
+        error: null,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message, data: null });
+    }
   });
 
   // ============================================================================
