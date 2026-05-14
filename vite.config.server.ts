@@ -32,6 +32,18 @@ export default defineConfig({
         // External dependencies that should not be bundled
         "express",
         "cors",
+        "node-cron",
+        "multer",
+        "bcrypt",
+        "@libsql/client",
+        "xlsx",
+        /^drizzle-orm/,
+        "pdfkit",
+        "jsonwebtoken",
+        "express-rate-limit",
+        "zod",
+        "dotenv",
+        "dotenv/config",
       ],
       output: {
         format: "es",

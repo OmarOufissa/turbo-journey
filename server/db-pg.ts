@@ -126,6 +126,8 @@ async function createTablesIfNotExist() {
   }
 }
 
+export { createTablesIfNotExist };
+
 export async function initializeDatabase() {
   try {
     console.log("Initializing SQLite database...");

@@ -1,7 +1,6 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import multer from "multer";
 import path from "path";
 import rateLimit from "express-rate-limit";
 import { initializeDatabase } from "./db-pg";
@@ -79,17 +78,6 @@ export function createServer() {
     next();
   });
 
-  const uploadExcel = multer({
-    dest: path.join(process.cwd(), "uploads", "temp"),
-    limits: { fileSize: 10 * 1024 * 1024 },
-    fileFilter: (_req, file, cb) => {
-      if (file.originalname.endsWith('.xlsx') || file.mimetype.includes('spreadsheet')) {
-        cb(null, true);
-      } else {
-        cb(new Error("Only .xlsx files are allowed"));
-      }
-    },
-  });
 
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
@@ -506,51 +494,6 @@ export function createServer() {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { revertAuditLog_Handler } = await import("./routes/auditLog");
     authMiddleware(req, res, () => revertAuditLog_Handler(req, res));
-  });
-
-  // ============================================================================
-  // IMPORT (Excel .xlsx)
-  // ============================================================================
-
-  app.post("/api/import-employees/preview", uploadExcel.single("file"), async (req, res) => {
-    const { authMiddleware } = await import("./routes/employees-audit");
-    authMiddleware(req, res, async () => {
-      try {
-        if (!req.file) {
-          return res.status(400).json({ success: false, data: null, error: "Fichier .xlsx requis" });
-        }
-        const fs = await import("fs");
-        const buffer = fs.readFileSync(req.file.path);
-        const { previewImportFromBuffer } = await import("./import-employees");
-        const result = await previewImportFromBuffer(buffer);
-        fs.unlinkSync(req.file.path);
-        res.json({ success: true, data: result, error: null });
-      } catch (err) {
-        console.error("Preview import error:", err);
-        res.status(500).json({ success: false, data: null, error: (err as Error).message });
-      }
-    });
-  });
-
-  app.post("/api/import-employees", uploadExcel.single("file"), async (req, res) => {
-    const { authMiddleware } = await import("./routes/employees-audit");
-    authMiddleware(req, res, async () => {
-      try {
-        if (!req.file) {
-          return res.status(400).json({ success: false, data: null, error: "Fichier .xlsx requis" });
-        }
-        const fs = await import("fs");
-        const buffer = fs.readFileSync(req.file.path);
-        const mode = (req.query.mode as string ?? 'A').toUpperCase() as 'A' | 'B';
-        const { importEmployeesFromBuffer } = await import("./import-employees");
-        const result = await importEmployeesFromBuffer(buffer, mode);
-        fs.unlinkSync(req.file.path);
-        res.json({ success: true, data: result, error: null });
-      } catch (err) {
-        console.error("Import error:", err);
-        res.status(500).json({ success: false, data: null, error: (err as Error).message });
-      }
-    });
   });
 
   // ============================================================================

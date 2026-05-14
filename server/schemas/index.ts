@@ -18,6 +18,44 @@ import { z } from "zod";
 const MATRICULE_PATTERN = /^\d{5}$|^[A-Z0-9]{3,10}$/;
 export const VALID_HABILITATION_CODES = ["H0V", "B0V", "H1V", "B1V", "H2V", "B2V", "HC", "BR", "BC", "SF6"];
 
+export const VALID_FONCTIONS = [
+  "Cadre Contrôle Commande RT",
+  "Cadre Exploitation Réseau",
+  "Cadre Lignes THT&HT",
+  "Cadre Postes THT/HT",
+  "Cadre TST Lignes THT&HT",
+  "Cadre Technique",
+  "Cadre Télécom",
+  "Chef d'Equipe Electromécanicien",
+  "Chef d'Equipe Isolation Thermique",
+  "Chef d'Equipe Lignes THT&HT",
+  "Chef d'Equipe Postes THT/HT",
+  "Chef de Division",
+  "Chef de Service",
+  "Conducteur Engins Spéciaux",
+  "Conducteur Mécanicien",
+  "Conducteur Principal de Direction",
+  "Conducteur Travaux Génie Civil",
+  "Contremaître Lignes THT&HT",
+  "Contremaître Postes THT/HT",
+  "Contremaître TST Postes THT/HT",
+  "Contrôleur Travaux Génie Civil",
+  "Monteur de Lignes THT&HT",
+  "Opérateur TST Lignes THT&HT",
+  "Opérateur TST Postes THT/HT",
+  "Ouvrier Professionnel Réseau",
+  "Projeteur Lignes THT&HT",
+  "Surveillant Travaux Génie Civil",
+  "Technicien Contrôle Commande RT",
+  "Technicien Exploitation Réseau",
+  "Technicien Lignes THT&HT",
+  "Technicien Principal Contrôle Commande RT",
+  "Technicien Principal Exploitation Réseau",
+  "Technicien Spécialisé Télécom",
+] as const;
+
+export type ValidFonction = (typeof VALID_FONCTIONS)[number];
+
 /**
  * Custom error messages for better UX
  */

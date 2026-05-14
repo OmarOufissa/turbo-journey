@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   Users, AlertCircle, Clock, Plus, FileText, RefreshCw,
-  CalendarDays, TrendingUp, ShieldCheck, BarChart3, Trash2, Upload
+  CalendarDays, TrendingUp, ShieldCheck, BarChart3, Trash2
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { getStats } from "@/api/employees";
@@ -150,7 +150,6 @@ export default function Home() {
                 { to: "/renewals", icon: RefreshCw, label: "Renouvellements en attente" },
                 { to: "/calendar", icon: CalendarDays, label: "Calendrier des expirations" },
                 { to: "/stats", icon: BarChart3, label: "Statistiques avancées" },
-                { to: "/import", icon: Upload, label: "Importer des employés" },
                 { to: "/audit-log", icon: ShieldCheck, label: "Journal d'audit" },
                 { to: "/trash", icon: Trash2, label: "Corbeille" },
               ].map(({ to, icon: Icon, label }) => (

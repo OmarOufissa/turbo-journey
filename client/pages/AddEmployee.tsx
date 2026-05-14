@@ -11,6 +11,7 @@ import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createEmployee } from "@/api/employees";
 import { ST_CODES, HT_CODES } from "@/types/habilitation";
+import { VALID_FONCTIONS } from "@/types/fonctions";
 
 interface OrgItem { id: number; name: string; }
 
@@ -138,7 +139,12 @@ export default function AddEmployee() {
               </div>
               <div className="space-y-1">
                 <Label>Fonction *</Label>
-                <Input value={form.fonction} onChange={e => setForm(f => ({ ...f, fonction: e.target.value }))} required />
+                <Select value={form.fonction} onValueChange={v => setForm(f => ({ ...f, fonction: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Sélectionner une fonction" /></SelectTrigger>
+                  <SelectContent>
+                    {VALID_FONCTIONS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>

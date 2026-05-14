@@ -22,8 +22,6 @@ import Employees from "./pages/Employees";
 import AddEmployee from "./pages/AddEmployee";
 import EditEmployee from "./pages/EditEmployee";
 import EmployeeCard from "./pages/EmployeeCard";
-import ImportEmployees from "./pages/ImportEmployees";
-import RenewalsImproved from "./pages/RenewalsImproved";
 import PendingRenewals from "./pages/PendingRenewals";
 import Trash from "./pages/Trash";
 import Stats from "./pages/Stats";
@@ -100,14 +98,6 @@ function App() {
             }
           />
           <Route
-            path="/employees/import"
-            element={
-              <ProtectedRoute>
-                <ImportEmployees />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/employees/:id"
             element={
               <ProtectedRoute>
@@ -151,7 +141,7 @@ function App() {
             path="/renewals"
             element={
               <ProtectedRoute>
-                <RenewalsImproved />
+                <PendingRenewals />
               </ProtectedRoute>
             }
           />
