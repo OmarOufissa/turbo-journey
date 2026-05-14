@@ -189,7 +189,9 @@ function fillPage2(
   // N° de titre in the title area (top right)
   drawText(page, snapshot.nDeTitre, P2.nDeTitre.x, P2.nDeTitre.y, bold, SZ);
 
-  // Footer dates
+  // "Autorisations (ou restrictions) spéciales :" label sits at y=251.83 (x=22–180)
+  // which overlaps "Valable jusqu'au" fill at y=250.15. Clear the whole band.
+  clearRect(page, 0, P2.valableJusquau.y - 4, 340, 14);
   drawText(page, formatDateFrench(snapshot.dateValidation), P2.dateDelivrance.x, P2.dateDelivrance.y, regular, SZ);
   drawText(page, formatDateFrench(snapshot.dateExpiration), P2.valableJusquau.x,  P2.valableJusquau.y,  regular, SZ);
 
