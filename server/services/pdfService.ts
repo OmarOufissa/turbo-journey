@@ -123,64 +123,81 @@ function clearRect(page: PDFPage, x: number, y: number, w: number, h: number) {
   page.drawRectangle({ x, y, width: w, height: h, color: rgb(1, 1, 1), borderWidth: 0 });
 }
 
-// ─── Fill one page ────────────────────────────────────────────────────────────
+// ─── Fill page 1 (the certificate with the table) ────────────────────────────
 
-function fillPage(
+function fillPage1(
   page: PDFPage,
   snapshot: VersionSnapshot,
-  coords: typeof P1,
   fonts: { regular: any; bold: any },
 ) {
   const { regular, bold } = fonts;
-  const black = rgb(0, 0, 0);
-  const SZ = 9;    // main field font size (matches template ~9.12pt)
-  const SZS = 8;   // table cell font size
+  const SZ = 9;
+  const SZS = 8;
 
-  // ── Header fields ──────────────────────────────────────────────────────────
-  drawText(page, snapshot.nDeTitre, coords.nDeTitre.x, coords.nDeTitre.y, bold, SZ);
+  drawText(page, snapshot.nDeTitre, P1.nDeTitre.x, P1.nDeTitre.y, bold, SZ);
 
   const fullName = `${snapshot.prenom} ${snapshot.nom}`;
-  drawText(page, fullName, coords.nomPrenom.x, coords.nomPrenom.y, bold, SZ);
-  drawText(page, snapshot.matricule, coords.matricule.x, coords.matricule.y, bold, SZ);
-  drawText(page, snapshot.fonction, coords.fonction.x, coords.fonction.y, bold, SZ);
+  drawText(page, fullName, P1.nomPrenom.x, P1.nomPrenom.y, bold, SZ);
+  drawText(page, snapshot.matricule, P1.matricule.x, P1.matricule.y, bold, SZ);
+  drawText(page, snapshot.fonction, P1.fonction.x, P1.fonction.y, bold, SZ);
 
-  // Entité: clear the "/ /" placeholder, then write
-  clearRect(page, coords.entite.x, coords.entite.y - 2, 415, 12);
+  // Clear "/ /" entité placeholder then write
+  clearRect(page, P1.entite.x, P1.entite.y - 2, 415, 12);
   const entiteParts = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean);
-  drawText(page, entiteParts.join(' / '), coords.entite.x, coords.entite.y, bold, SZ);
+  drawText(page, entiteParts.join(' / '), P1.entite.x, P1.entite.y, bold, SZ);
 
-  // ── Footer date fields ─────────────────────────────────────────────────────
-  drawText(page, formatDateFrench(snapshot.dateValidation), coords.dateDelivrance.x, coords.dateDelivrance.y, regular, SZ);
-  drawText(page, formatDateFrench(snapshot.dateExpiration), coords.valableJusquau.x, coords.valableJusquau.y, regular, SZ);
+  drawText(page, formatDateFrench(snapshot.dateValidation), P1.dateDelivrance.x, P1.dateDelivrance.y, regular, SZ);
+  drawText(page, formatDateFrench(snapshot.dateExpiration), P1.valableJusquau.x, P1.valableJusquau.y, regular, SZ);
 
-  // ── Footer repeated nom/fonction (clear sample data) ──────────────────────
-  clearRect(page, coords.footerNom.x, coords.footerNom.y - 2, 220, 12);
-  drawText(page, fullName, coords.footerNom.x, coords.footerNom.y, bold, SZ);
-  clearRect(page, coords.footerFonction.x, coords.footerFonction.y - 2, 220, 12);
-  drawText(page, snapshot.fonction, coords.footerFonction.x, coords.footerFonction.y, regular, SZ);
+  // Footer repeated nom/fonction — clear "BRAHIMI ALI" sample
+  clearRect(page, P1.footerNom.x, P1.footerNom.y - 2, 220, 12);
+  drawText(page, fullName, P1.footerNom.x, P1.footerNom.y, bold, SZ);
+  clearRect(page, P1.footerFonction.x, P1.footerFonction.y - 2, 220, 12);
+  drawText(page, snapshot.fonction, P1.footerFonction.x, P1.footerFonction.y, regular, SZ);
 
-  // ── Table ──────────────────────────────────────────────────────────────────
+  // Table
   for (const row of TABLE_ROWS) {
     const hasST = row.stKey && snapshot.stCodes.includes(row.stKey);
     const hasHT = row.htKey && snapshot.htCodes.includes(row.htKey);
     if (!hasST && !hasHT) continue;
 
-    // Write code values in Symbole column
-    if (hasST && row.stKey) {
-      drawText(page, row.stKey, COL_ST, row.ySym, bold, SZS);
-    }
-    if (hasHT && row.htKey) {
-      drawText(page, row.htKey, COL_HT, row.ySym, bold, SZS);
-    }
+    if (hasST && row.stKey) drawText(page, row.stKey, COL_ST, row.ySym, bold, SZS);
+    if (hasHT && row.htKey) drawText(page, row.htKey, COL_HT, row.ySym, bold, SZS);
 
-    // Write domaine / ouvrage / indication for this row
     const rowData = snapshot.habRows?.[row.rowKey];
     if (rowData) {
-      if (rowData.domaine) drawText(page, rowData.domaine, COL_DOM, row.yData, regular, SZS);
-      if (rowData.ouvrage) drawText(page, rowData.ouvrage, COL_OUV, row.yData, regular, SZS);
+      if (rowData.domaine)    drawText(page, rowData.domaine,    COL_DOM, row.yData, regular, SZS);
+      if (rowData.ouvrage)    drawText(page, rowData.ouvrage,    COL_OUV, row.yData, regular, SZS);
       if (rowData.indication) drawText(page, rowData.indication, COL_IND, row.yData, regular, SZS);
     }
   }
+}
+
+// ─── Fill page 2 (AVIS / back page — only title + footer) ────────────────────
+// Page 2 body contains the legal AVIS text; only the n° de titre (top) and
+// the footer date/signature area need to be filled.
+
+function fillPage2(
+  page: PDFPage,
+  snapshot: VersionSnapshot,
+  fonts: { regular: any; bold: any },
+) {
+  const { regular, bold } = fonts;
+  const SZ = 9;
+  const fullName = `${snapshot.prenom} ${snapshot.nom}`;
+
+  // N° de titre in the title area (top right)
+  drawText(page, snapshot.nDeTitre, P2.nDeTitre.x, P2.nDeTitre.y, bold, SZ);
+
+  // Footer dates
+  drawText(page, formatDateFrench(snapshot.dateValidation), P2.dateDelivrance.x, P2.dateDelivrance.y, regular, SZ);
+  drawText(page, formatDateFrench(snapshot.dateExpiration), P2.valableJusquau.x,  P2.valableJusquau.y,  regular, SZ);
+
+  // Footer signature area — clear sample data and write actual values
+  clearRect(page, P2.footerNom.x,     P2.footerNom.y - 2,     220, 12);
+  drawText(page, fullName,             P2.footerNom.x,     P2.footerNom.y,     bold,    SZ);
+  clearRect(page, P2.footerFonction.x, P2.footerFonction.y - 2, 220, 12);
+  drawText(page, snapshot.fonction,    P2.footerFonction.x, P2.footerFonction.y, regular, SZ);
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -201,9 +218,9 @@ export async function generateHabilitationPdf(
   const pages = pdfDoc.getPages();
 
   // Fill page 1 (front)
-  if (pages[0]) fillPage(pages[0], snapshot, P1, fonts);
-  // Fill page 2 (back / carbon copy) with same content
-  if (pages[1]) fillPage(pages[1], snapshot, P2, fonts);
+  if (pages[0]) fillPage1(pages[0], snapshot, fonts);
+  // Fill page 2 (AVIS page — only title + footer)
+  if (pages[1]) fillPage2(pages[1], snapshot, fonts);
 
   const pdfBytes = await pdfDoc.save();
   const filename = `hab${snapshot.matricule}_v${versionNumber}.pdf`;
