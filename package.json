@@ -43,6 +43,7 @@
     "express-rate-limit": "^8.5.1",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
+    "pdf-lib": "^1.17.1",
     "pdfkit": "^0.18.0",
     "pg": "^8.16.3",
     "sql.js": "^1.13.0",
@@ -146,12 +147,16 @@
       {
         "from": "uploads",
         "to": "uploads",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "logs",
         "to": "logs",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "directories": {
@@ -162,11 +167,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "build-resources/icon.ico",
@@ -183,12 +192,17 @@
       "shortcutName": "Gestion Habilitations"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "build-resources/icon.png",
       "category": "Office"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "icon": "build-resources/icon.icns",
       "category": "public.app-category.business"
     },

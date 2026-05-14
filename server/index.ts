@@ -152,6 +152,7 @@ export function createServer() {
             equipeId: schema.employeeVersions.equipeId,
             stCodes: schema.employeeVersions.stCodes,
             htCodes: schema.employeeVersions.htCodes,
+            habRows: schema.employeeVersions.habRows,
             dateValidation: schema.employeeVersions.dateValidation,
             dateExpiration: schema.employeeVersions.dateExpiration,
           })
@@ -182,10 +183,11 @@ export function createServer() {
               nDeTitre: row.nDeTitre,
               fonction: row.fonction,
               division: div?.name ?? "",
-              service: svc?.name ?? "",
+              service: svc?.name ?? null,
               equipe: equipe?.name ?? null,
               stCodes: (row.stCodes as string[]) ?? [],
               htCodes: (row.htCodes as string[]) ?? [],
+              habRows: (row.habRows as any) ?? null,
               dateValidation: row.dateValidation,
               dateExpiration: row.dateExpiration,
             }, row.versionNumber);
@@ -586,10 +588,11 @@ export function createServer() {
           nDeTitre: ver.nDeTitre,
           fonction: ver.fonction,
           division: div?.name ?? "",
-          service: svc?.name ?? "",
+          service: svc?.name ?? null,
           equipe: equipe?.name ?? null,
           stCodes: ver.stCodes ?? [],
           htCodes: ver.htCodes ?? [],
+          habRows: ver.habRows ?? null,
           dateValidation: ver.dateValidation,
           dateExpiration: ver.dateExpiration,
         }, ver.versionNumber);

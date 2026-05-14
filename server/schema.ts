@@ -55,6 +55,10 @@ export const employees = sqliteTable("employees", {
   deletedIdx: index("idx_employees_deleted").on(table.deleted),
 }));
 
+export type HabRowData = { domaine: string; ouvrage: string; indication: string };
+// Keys match the 6 official table rows: H0V/B0V, H1V/B1V, H2V/B2V, HC/BC, BR, SF6
+export type HabRows = Partial<Record<'H0V_B0V' | 'H1V_B1V' | 'H2V_B2V' | 'HC_BC' | 'BR' | 'SF6', HabRowData>>;
+
 // Source of truth for all employee data (versioned)
 export const employeeVersions = sqliteTable("employee_versions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -69,6 +73,7 @@ export const employeeVersions = sqliteTable("employee_versions", {
   equipeId: integer("equipe_id").references(() => equipes.id),
   dateValidation: text("date_validation").notNull(),
   dateExpiration: text("date_expiration").notNull(),
+  habRows: text("hab_rows", { mode: "json" }).$type<HabRows | null>(),
   pdfPath: text("pdf_path"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   createdBy: integer("created_by").references(() => users.id),

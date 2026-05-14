@@ -22,6 +22,7 @@ import { fileURLToPath } from "url";
 import XLSX from "xlsx";
 import { db } from "../db-pg";
 import * as schema from "../schema";
+import type { HabRows, HabRowData } from "../schema";
 import { eq, sql } from "drizzle-orm";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -165,12 +166,49 @@ function parseCodes(row: Record<string, unknown>): { stCodes: string[]; htCodes:
   for (const col of ALL_CODE_COLS) {
     const val = normalizeString(row[col]);
     if (val === col) {
-      // Present: column contains its own name
       if (CODE_MAP[col] === "st") stCodes.push(col);
       else htCodes.push(col);
     }
   }
   return { stCodes, htCodes };
+}
+
+function normalizeCell(v: unknown): string {
+  const s = normalizeString(v);
+  return s === "xxx" || s === "" ? "" : s;
+}
+
+// Excel column groups: [stKey, htKey|null, domCol, ouvCol, indCol, rowKey]
+const ROW_GROUPS: Array<{
+  stKey: string | null;
+  htKey: string | null;
+  domCol: string;
+  ouvCol: string;
+  indCol: string;
+  rowKey: keyof HabRows;
+}> = [
+  { stKey: "H0V", htKey: "B0V",  domCol: "Domaine de tension",  ouvCol: "ouvrages concernés", indCol: "indications", rowKey: "H0V_B0V" },
+  { stKey: "H1V", htKey: "B1V",  domCol: "Domaine de tension_1", ouvCol: "ouvrages concernés_1", indCol: "indications_1", rowKey: "H1V_B1V" },
+  { stKey: "H2V", htKey: "B2V",  domCol: "Domaine de tension_2", ouvCol: "ouvrages concernés_2", indCol: "indications_2", rowKey: "H2V_B2V" },
+  { stKey: "HC",  htKey: "BC",   domCol: "Domaine de tension_3", ouvCol: "ouvrages concernés_3", indCol: "indications_3", rowKey: "HC_BC" },
+  { stKey: null,  htKey: "BR",   domCol: "Domaine de tension_4", ouvCol: "ouvrages concernés_4", indCol: "indications_4", rowKey: "BR" },
+  { stKey: null,  htKey: "SF6",  domCol: null as any, ouvCol: null as any, indCol: null as any, rowKey: "SF6" },
+];
+
+function parseHabRows(row: Record<string, unknown>): HabRows {
+  const result: HabRows = {};
+  for (const g of ROW_GROUPS) {
+    const hasCode =
+      (g.stKey && normalizeString(row[g.stKey]) === g.stKey) ||
+      (g.htKey && normalizeString(row[g.htKey]) === g.htKey);
+    if (!hasCode) continue;
+
+    const domaine  = g.domCol ? normalizeCell(row[g.domCol]) : "";
+    const ouvrage  = g.ouvCol ? normalizeCell(row[g.ouvCol]) : "";
+    const indication = g.indCol ? normalizeCell(row[g.indCol]) : "";
+    result[g.rowKey] = { domaine, ouvrage, indication };
+  }
+  return result;
 }
 
 // Upsert helpers — return id
@@ -213,13 +251,14 @@ async function importEmployee(
   prenom: string,
   fonction: string,
   divisionId: number,
-  serviceId: number,
+  serviceId: number | null,
   equipeId: number | null,
   stCodes: string[],
   htCodes: string[],
   nDeTitre: string,
   dateValidation: string,
   dateExpiration: string,
+  habRows: HabRows,
 ): Promise<void> {
   const existing = await db
     .select({ id: schema.employees.id })
@@ -258,6 +297,7 @@ async function importEmployee(
       equipeId,
       dateValidation,
       dateExpiration,
+      habRows: Object.keys(habRows).length > 0 ? habRows : null,
     })
     .returning({ id: schema.employeeVersions.id });
 
@@ -310,16 +350,13 @@ export async function runExcelImport(): Promise<void> {
       skipped++;
       continue;
     }
-    if (!svcName) {
-      skippedLog.push(`Row ${rowNum} (${matricule}): service=xxx — skipped (no service assigned)`);
-      skipped++;
-      continue;
-    }
+    // svcName empty = Chef de Division or similar with no service; still import with serviceId=null
 
     const fullName = normalizeString(r["Nom & Prénom "]);
     const { nom, prenom } = splitName(fullName);
     const fonction = normalizeFonction(r["fonction RH"]) || "Non spécifié";
     const { stCodes, htCodes } = parseCodes(r);
+    const habRows = parseHabRows(r);
     const dateValidation = excelDateToISO(r["Date Validation"]);
     const dateExpiration = excelDateToISO(r["Date Expiration"]);
 
@@ -337,14 +374,17 @@ export async function runExcelImport(): Promise<void> {
       if (!divCache.has(divName)) divCache.set(divName, await upsertDivision(divName));
       const divisionId = divCache.get(divName)!;
 
-      // Upsert service
-      const svcKey = `${divisionId}::${svcName}`;
-      if (!svcCache.has(svcKey)) svcCache.set(svcKey, await upsertService(svcName, divisionId));
-      const serviceId = svcCache.get(svcKey)!;
+      // Upsert service (null if not assigned)
+      let serviceId: number | null = null;
+      if (svcName) {
+        const svcKey = `${divisionId}::${svcName}`;
+        if (!svcCache.has(svcKey)) svcCache.set(svcKey, await upsertService(svcName, divisionId));
+        serviceId = svcCache.get(svcKey)!;
+      }
 
-      // Upsert equipe (if valid: not empty, not equal to division name)
+      // Upsert equipe (if valid: not empty, not equal to division name, and service exists)
       let equipeId: number | null = null;
-      if (eqpRaw && eqpRaw !== divName) {
+      if (serviceId && eqpRaw && eqpRaw !== divName) {
         const eqpKey = `${serviceId}::${eqpRaw}`;
         if (!eqpCache.has(eqpKey)) eqpCache.set(eqpKey, await upsertEquipe(eqpRaw, serviceId));
         equipeId = eqpCache.get(eqpKey)!;
@@ -352,9 +392,10 @@ export async function runExcelImport(): Promise<void> {
 
       await importEmployee(
         matricule, nom, prenom, fonction,
-        divisionId, serviceId, equipeId,
+        divisionId, serviceId ?? null, equipeId,
         stCodes, htCodes, nDeTitre,
         dateValidation, dateExpiration,
+        habRows,
       );
 
       imported++;

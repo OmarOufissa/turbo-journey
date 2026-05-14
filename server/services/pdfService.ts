@@ -1,6 +1,7 @@
-import PDFDocument from 'pdfkit';
+import { PDFDocument, StandardFonts, rgb, PDFPage } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
+import type { HabRows } from '../schema';
 
 export interface VersionSnapshot {
   matricule: string;
@@ -13,10 +14,12 @@ export interface VersionSnapshot {
   equipe?: string | null;
   stCodes: string[];
   htCodes: string[];
+  habRows?: HabRows | null;
   dateValidation: string;
   dateExpiration: string;
 }
 
+const TEMPLATE_PATH = path.join(process.cwd(), 'server', 'seeds', 'data', 'titre_HAE_vierge.pdf');
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'pdfs');
 
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -31,26 +34,12 @@ const FRENCH_MONTHS = [
 function formatDateFrench(dateStr: string): string {
   try {
     const d = new Date(dateStr);
-    const day = d.getUTCDate();
-    const month = FRENCH_MONTHS[d.getUTCMonth()];
-    const year = d.getUTCFullYear();
-    return `${day} ${month} ${year}`;
+    return `${d.getUTCDate()} ${FRENCH_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
   } catch {
     return dateStr;
   }
 }
 
-// Row definitions: label | stKey | htKey
-const TABLE_ROWS: Array<{ label: string; stKey: string; htKey: string }> = [
-  { label: 'H0V / B0V', stKey: 'H0V', htKey: 'B0V' },
-  { label: 'H1V / B1V', stKey: 'H1V', htKey: 'B1V' },
-  { label: 'BR',        stKey: 'BR',  htKey: 'BR'  },
-  { label: 'H2V / B2V', stKey: 'H2V', htKey: 'B2V' },
-  { label: 'HC / BC',   stKey: 'HC',  htKey: 'BC'  },
-  { label: 'SF6',       stKey: 'SF6', htKey: 'SF6' },
-];
-
-// Pre-validation errors
 export class PdfValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -58,157 +47,173 @@ export class PdfValidationError extends Error {
   }
 }
 
-function validateSnapshot(snapshot: VersionSnapshot): void {
-  if (!snapshot.nDeTitre || snapshot.nDeTitre.trim().length === 0) {
-    throw new PdfValidationError('n_de_titre is required');
-  }
-  if (snapshot.stCodes.length === 0 && snapshot.htCodes.length === 0) {
-    throw new PdfValidationError('Employee must have at least one ST or HT code');
-  }
-  if (snapshot.dateExpiration <= snapshot.dateValidation) {
+function validate(snapshot: VersionSnapshot): void {
+  if (!snapshot.nDeTitre?.trim()) throw new PdfValidationError('n_de_titre is required');
+  if (snapshot.stCodes.length === 0 && snapshot.htCodes.length === 0)
+    throw new PdfValidationError('Employee must have at least one code');
+  if (snapshot.dateExpiration <= snapshot.dateValidation)
     throw new PdfValidationError('date_expiration must be after date_validation');
+}
+
+// ─── Coordinate constants (PDF points, y=0 at bottom) ────────────────────────
+
+// Page 1 main body fields
+const P1 = {
+  nDeTitre:  { x: 375.5,  y: 741.82 },
+  nomPrenom: { x: 134.45, y: 694.51 },
+  matricule: { x: 382.94, y: 694.51 },
+  fonction:  { x: 134.45, y: 674.59 },
+  entite:    { x: 134.45, y: 654.67 },
+  // Footer date fields
+  dateDelivrance: { x: 128.21, y: 254.23 },
+  valableJusquau: { x: 129.17, y: 243.19 },
+  // Footer repeated nom+prénom (has sample "BRAHIMI ALI" to clear)
+  footerNom:    { x: 357.74, y: 224.23 },
+  footerFonction: { x: 357.74, y: 209.81 },
+};
+
+// Page 2 — same main body positions, slightly shifted footer
+const P2 = {
+  ...P1,
+  dateDelivrance: { x: 128.21, y: 261.43 },
+  valableJusquau: { x: 129.17, y: 250.15 },
+  footerNom:    { x: 357.74, y: 231.19 },
+  footerFonction: { x: 357.74, y: 216.79 },
+};
+
+// Table — 6 rows in official order
+// Symbole column: x=120.53–198.07 → split ST(left) / HT(right)
+const COL_ST  = 122;   // left-align in ST sub-column
+const COL_HT  = 161;   // left-align in HT sub-column
+const COL_DOM = 200;   // left-align in Domaine column (starts 198.55)
+const COL_OUV = 271;   // left-align in Ouvrages column (starts 269.38)
+const COL_IND = 413;   // left-align in Indications column (starts 411.29)
+
+interface TableRow {
+  stKey: string | null;
+  htKey: string | null;
+  rowKey: keyof HabRows;
+  ySym: number;   // y for Symbole text
+  yData: number;  // y for Domaine/Ouvrages/Indications text
+}
+
+const TABLE_ROWS: TableRow[] = [
+  { stKey: 'H0V', htKey: 'B0V', rowKey: 'H0V_B0V', ySym: 560.57, yData: 560.57 },
+  { stKey: 'H1V', htKey: 'B1V', rowKey: 'H1V_B1V', ySym: 533.18, yData: 533.66 },
+  { stKey: null,  htKey: 'BR',  rowKey: 'BR',       ySym: 508.22, yData: 508.70 },
+  { stKey: 'H2V', htKey: 'B2V', rowKey: 'H2V_B2V', ySym: 485.66, yData: 485.66 },
+  { stKey: 'HC',  htKey: 'BC',  rowKey: 'HC_BC',   ySym: 462.60, yData: 462.84 },
+  { stKey: null,  htKey: 'SF6', rowKey: 'SF6',      ySym: 436.44, yData: 436.44 },
+];
+
+// ─── Draw helpers ─────────────────────────────────────────────────────────────
+
+function drawText(
+  page: PDFPage,
+  text: string,
+  x: number, y: number,
+  font: any, size: number,
+  color = rgb(0, 0, 0),
+) {
+  if (!text) return;
+  page.drawText(text, { x, y, size, font, color });
+}
+
+function clearRect(page: PDFPage, x: number, y: number, w: number, h: number) {
+  page.drawRectangle({ x, y, width: w, height: h, color: rgb(1, 1, 1), borderWidth: 0 });
+}
+
+// ─── Fill one page ────────────────────────────────────────────────────────────
+
+function fillPage(
+  page: PDFPage,
+  snapshot: VersionSnapshot,
+  coords: typeof P1,
+  fonts: { regular: any; bold: any },
+) {
+  const { regular, bold } = fonts;
+  const black = rgb(0, 0, 0);
+  const SZ = 9;    // main field font size (matches template ~9.12pt)
+  const SZS = 8;   // table cell font size
+
+  // ── Header fields ──────────────────────────────────────────────────────────
+  drawText(page, snapshot.nDeTitre, coords.nDeTitre.x, coords.nDeTitre.y, bold, SZ);
+
+  const fullName = `${snapshot.prenom} ${snapshot.nom}`;
+  drawText(page, fullName, coords.nomPrenom.x, coords.nomPrenom.y, bold, SZ);
+  drawText(page, snapshot.matricule, coords.matricule.x, coords.matricule.y, bold, SZ);
+  drawText(page, snapshot.fonction, coords.fonction.x, coords.fonction.y, bold, SZ);
+
+  // Entité: clear the "/ /" placeholder, then write
+  clearRect(page, coords.entite.x, coords.entite.y - 2, 415, 12);
+  const entiteParts = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean);
+  drawText(page, entiteParts.join(' / '), coords.entite.x, coords.entite.y, bold, SZ);
+
+  // ── Footer date fields ─────────────────────────────────────────────────────
+  drawText(page, formatDateFrench(snapshot.dateValidation), coords.dateDelivrance.x, coords.dateDelivrance.y, regular, SZ);
+  drawText(page, formatDateFrench(snapshot.dateExpiration), coords.valableJusquau.x, coords.valableJusquau.y, regular, SZ);
+
+  // ── Footer repeated nom/fonction (clear sample data) ──────────────────────
+  clearRect(page, coords.footerNom.x, coords.footerNom.y - 2, 220, 12);
+  drawText(page, fullName, coords.footerNom.x, coords.footerNom.y, bold, SZ);
+  clearRect(page, coords.footerFonction.x, coords.footerFonction.y - 2, 220, 12);
+  drawText(page, snapshot.fonction, coords.footerFonction.x, coords.footerFonction.y, regular, SZ);
+
+  // ── Table ──────────────────────────────────────────────────────────────────
+  for (const row of TABLE_ROWS) {
+    const hasST = row.stKey && snapshot.stCodes.includes(row.stKey);
+    const hasHT = row.htKey && snapshot.htCodes.includes(row.htKey);
+    if (!hasST && !hasHT) continue;
+
+    // Write code values in Symbole column
+    if (hasST && row.stKey) {
+      drawText(page, row.stKey, COL_ST, row.ySym, bold, SZS);
+    }
+    if (hasHT && row.htKey) {
+      drawText(page, row.htKey, COL_HT, row.ySym, bold, SZS);
+    }
+
+    // Write domaine / ouvrage / indication for this row
+    const rowData = snapshot.habRows?.[row.rowKey];
+    if (rowData) {
+      if (rowData.domaine) drawText(page, rowData.domaine, COL_DOM, row.yData, regular, SZS);
+      if (rowData.ouvrage) drawText(page, rowData.ouvrage, COL_OUV, row.yData, regular, SZS);
+      if (rowData.indication) drawText(page, rowData.indication, COL_IND, row.yData, regular, SZS);
+    }
   }
 }
 
-function cellValue(codes: string[], key: string, isEmpty: boolean): string {
-  if (isEmpty) return 'XXX';
-  return codes.includes(key) ? '✓' : '';
-}
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 export async function generateHabilitationPdf(
   snapshot: VersionSnapshot,
-  versionNumber: number
+  versionNumber: number,
 ): Promise<{ pdfPath: string; pdfSize: number }> {
-  validateSnapshot(snapshot);
+  validate(snapshot);
 
-  return new Promise((resolve, reject) => {
-    try {
-      const filename = `hab${snapshot.matricule}_v${versionNumber}.pdf`;
-      const fullPath = path.join(UPLOAD_DIR, filename);
-      const doc = new PDFDocument({ size: 'A4', margin: 50 });
-      const stream = fs.createWriteStream(fullPath);
-      doc.pipe(stream);
+  const templateBytes = fs.readFileSync(TEMPLATE_PATH);
+  const pdfDoc = await PDFDocument.load(templateBytes);
 
-      const pageW = doc.page.width;   // 595
-      const marginL = 50;
-      const marginR = 50;
-      const contentW = pageW - marginL - marginR;
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fonts = { regular: helvetica, bold: helveticaBold };
 
-      // ── Title ──────────────────────────────────────────────────────────────
-      doc
-        .fontSize(16)
-        .font('Helvetica-Bold')
-        .text(`Titre D'Habilitation N°${snapshot.nDeTitre}`, marginL, 50, {
-          width: contentW,
-          align: 'center',
-        });
+  const pages = pdfDoc.getPages();
 
-      doc.moveDown(1.2);
+  // Fill page 1 (front)
+  if (pages[0]) fillPage(pages[0], snapshot, P1, fonts);
+  // Fill page 2 (back / carbon copy) with same content
+  if (pages[1]) fillPage(pages[1], snapshot, P2, fonts);
 
-      // ── Info block ─────────────────────────────────────────────────────────
-      const labelX = marginL;
-      const valueX = marginL + 170;
-      const lineH = 18;
+  const pdfBytes = await pdfDoc.save();
+  const filename = `hab${snapshot.matricule}_v${versionNumber}.pdf`;
+  const fullPath = path.join(UPLOAD_DIR, filename);
+  fs.writeFileSync(fullPath, pdfBytes);
 
-      function infoLine(label: string, value: string) {
-        const y = doc.y;
-        doc.fontSize(10).font('Helvetica-Bold').text(label, labelX, y, { continued: false });
-        doc.fontSize(10).font('Helvetica').text(value, valueX, y, { width: contentW - 170 });
-        doc.y = y + lineH;
-      }
+  const stats = fs.statSync(fullPath);
+  if (stats.size === 0) throw new Error('Generated PDF is empty');
 
-      const entiteParts = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean);
-      const entite = entiteParts.join(' / ');
-
-      infoLine('Nom et prénom :', `${snapshot.prenom} ${snapshot.nom}`);
-      infoLine('Entité :', entite);
-      infoLine('Fonction :', snapshot.fonction);
-      infoLine('Direction :', 'Transport Région centre - Casablanca');
-      infoLine('Date de délivrance :', formatDateFrench(snapshot.dateValidation));
-      infoLine('Valable jusqu\'au :', formatDateFrench(snapshot.dateExpiration));
-
-      doc.moveDown(1.5);
-
-      // ── Table ──────────────────────────────────────────────────────────────
-      const tableX = marginL;
-      const tableW = contentW;
-      const col0 = tableW * 0.45;   // Symbole
-      const col1 = tableW * 0.275;  // ST
-      const col2 = tableW * 0.275;  // HT
-      const rowH = 24;
-      const headerH = 28;
-
-      const stEmpty = snapshot.stCodes.length === 0;
-      const htEmpty = snapshot.htCodes.length === 0;
-
-      // Header
-      const hY = doc.y;
-      doc.rect(tableX, hY, tableW, headerH).fillAndStroke('#1a1a2e', '#1a1a2e');
-      doc.fillColor('white').fontSize(10).font('Helvetica-Bold');
-      doc.text('Symbole d\'habilitation', tableX + 6, hY + 8, { width: col0 - 6 });
-      doc.text('ST', tableX + col0 + 4, hY + 8, { width: col1 - 8, align: 'center' });
-      doc.text('HT', tableX + col0 + col1 + 4, hY + 8, { width: col2 - 8, align: 'center' });
-
-      let rowY = hY + headerH;
-
-      TABLE_ROWS.forEach((row, i) => {
-        const bg = i % 2 === 0 ? '#f4f6fb' : '#ffffff';
-        doc.rect(tableX, rowY, tableW, rowH).fillAndStroke(bg, '#c0c8d8');
-
-        const stVal = cellValue(snapshot.stCodes, row.stKey, stEmpty);
-        const htVal = cellValue(snapshot.htCodes, row.htKey, htEmpty);
-
-        doc.fillColor('#222222').fontSize(10).font('Helvetica');
-        doc.text(row.label, tableX + 6, rowY + 6, { width: col0 - 6 });
-
-        // ST cell
-        const stColor = stVal === 'XXX' ? '#cc0000' : stVal === '✓' ? '#1a6b2e' : '#aaaaaa';
-        doc.fillColor(stColor).font(stVal === '✓' ? 'Helvetica-Bold' : 'Helvetica');
-        doc.text(stVal, tableX + col0 + 4, rowY + 6, { width: col1 - 8, align: 'center' });
-
-        // HT cell
-        const htColor = htVal === 'XXX' ? '#cc0000' : htVal === '✓' ? '#1a6b2e' : '#aaaaaa';
-        doc.fillColor(htColor).font(htVal === '✓' ? 'Helvetica-Bold' : 'Helvetica');
-        doc.text(htVal, tableX + col0 + col1 + 4, rowY + 6, { width: col2 - 8, align: 'center' });
-
-        rowY += rowH;
-      });
-
-      // ── Footer ─────────────────────────────────────────────────────────────
-      const pageH = doc.page.height;
-      const footerY = pageH - 40;
-      const generatedDate = formatDateFrench(new Date().toISOString().split('T')[0]);
-
-      doc.fillColor('#888888').fontSize(7).font('Helvetica');
-      doc.text(
-        `Document généré le ${generatedDate}`,
-        marginL,
-        footerY,
-        { width: contentW / 2, align: 'left' }
-      );
-      doc.text(
-        `Version: v${versionNumber}`,
-        marginL + contentW / 2,
-        footerY,
-        { width: contentW / 2, align: 'right' }
-      );
-
-      doc.end();
-
-      stream.on('finish', () => {
-        const stats = fs.statSync(fullPath);
-        if (stats.size === 0) {
-          reject(new Error('Generated PDF is empty'));
-          return;
-        }
-        resolve({ pdfPath: filename, pdfSize: stats.size });
-      });
-      stream.on('error', reject);
-      doc.on('error', reject);
-    } catch (err) {
-      reject(err);
-    }
-  });
+  return { pdfPath: filename, pdfSize: stats.size };
 }
 
 export function getPdfPath(filename: string): string {
