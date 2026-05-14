@@ -65,7 +65,7 @@ export const employeeVersions = sqliteTable("employee_versions", {
   nDeTitre: text("n_de_titre").notNull(),
   fonction: text("fonction").notNull(),
   divisionId: integer("division_id").notNull().references(() => divisions.id),
-  serviceId: integer("service_id").notNull().references(() => services.id),
+  serviceId: integer("service_id").references(() => services.id),
   equipeId: integer("equipe_id").references(() => equipes.id),
   dateValidation: text("date_validation").notNull(),
   dateExpiration: text("date_expiration").notNull(),
