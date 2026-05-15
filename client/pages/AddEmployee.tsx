@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createEmployee } from "@/api/employees";
+import { setLastAction } from "@/components/UndoButton";
 import { ST_CODES, HT_CODES } from "@/types/habilitation";
 import { VALID_FONCTIONS } from "@/types/fonctions";
 
@@ -102,6 +103,7 @@ export default function AddEmployee() {
       });
       if (res.success) {
         toast({ title: "Succès", description: `Employé ${form.matricule} créé` });
+        if (res.data.auditLogId) setLastAction({ auditLogId: res.data.auditLogId, description: `Employé ${form.matricule} créé`, timestamp: Date.now() });
         navigate(`/employees/${res.data.employee?.id}`);
       }
     } catch (err: any) {

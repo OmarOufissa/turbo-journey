@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Employee } from "@/types/employee";
 import { getEmployees, restoreEmployee, permanentDeleteEmployee } from "@/api/employees";
+import { setLastAction } from "@/components/UndoButton";
 
 export default function Trash() {
   const { toast } = useToast();
@@ -37,8 +38,9 @@ export default function Trash() {
 
   async function handleRestore(id: number, matricule: string) {
     try {
-      await restoreEmployee(id);
+      const res = await restoreEmployee(id);
       toast({ title: "Succès", description: `Employé ${matricule} restauré` });
+      if (res.data?.auditLogId) setLastAction({ auditLogId: res.data.auditLogId, description: `Employé ${matricule} restauré`, timestamp: Date.now() });
       fetchData();
     } catch {
       toast({ title: "Erreur", description: "Impossible de restaurer l'employé", variant: "destructive" });

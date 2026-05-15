@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getEmployee, updateEmployee } from "@/api/employees";
+import { setLastAction } from "@/components/UndoButton";
 import { ST_CODES, HT_CODES } from "@/types/habilitation";
 import { VALID_FONCTIONS } from "@/types/fonctions";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -120,6 +121,7 @@ export default function EditEmployee() {
       });
       if (res.success) {
         toast({ title: "Succès", description: `Nouvelle version créée pour ${matricule}` });
+        if (res.data.auditLogId) setLastAction({ auditLogId: res.data.auditLogId, description: `Version mise à jour pour ${matricule}`, timestamp: Date.now() });
         navigate(`/employees/${id}`);
       }
     } catch (err: any) {

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Employee, EmployeeVersion } from "@/types/employee";
 import { getEmployee, revertToVersion } from "@/api/employees";
+import { setLastAction } from "@/components/UndoButton";
 import { getExpirationStatus, EXPIRATION_COLOR_CONFIG } from "@/types/habilitation";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ export default function EmployeeCard() {
       const res = await revertToVersion(employee.id, versionId);
       if (res.success) {
         toast({ title: "Succès", description: `Version ${versionNumber} restaurée` });
+        if (res.data.auditLogId) setLastAction({ auditLogId: res.data.auditLogId, description: `Version ${versionNumber} restaurée pour ${employee.matricule}`, timestamp: Date.now() });
         setEmployee(res.data.employee);
       }
     } catch {
