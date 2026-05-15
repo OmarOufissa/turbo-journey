@@ -73,6 +73,11 @@ const navigationItems = [
         url: "/stats",
       },
       {
+        title: "Rapports",
+        icon: FileText,
+        url: "/reports",
+      },
+      {
         title: "Analyses",
         icon: FileText,
         url: "/analytics",

@@ -33,6 +33,7 @@ import BackupRestore from "./pages/BackupRestore";
 import Settings from "./pages/Settings";
 import OrgSettings from "./pages/OrgSettings";
 import NotFound from "./pages/NotFound";
+import Reports from "./pages/Reports";
 
 const queryClient = new QueryClient();
 
@@ -216,6 +217,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <OrgSettings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
               </ProtectedRoute>
             }
           />

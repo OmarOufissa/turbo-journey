@@ -123,6 +123,18 @@ export function createServer() {
     authMiddleware(req, res, () => getStats(req, res));
   });
 
+  app.get("/api/reports/expiration/pdf", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    const { downloadExpirationReportPdf } = await import("./routes/reports");
+    authMiddleware(req, res, () => downloadExpirationReportPdf(req, res));
+  });
+
+  app.get("/api/reports/expiration", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    const { getExpirationReport } = await import("./routes/reports");
+    authMiddleware(req, res, () => getExpirationReport(req, res));
+  });
+
   app.get("/api/employees/export", async (req, res) => {
     const { authMiddleware, exportEmployees } = await import("./routes/employees-audit");
     authMiddleware(req, res, () => exportEmployees(req, res));
