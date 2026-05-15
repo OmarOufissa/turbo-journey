@@ -40,6 +40,7 @@ export function getLastAction(): LastAction | null {
 export function UndoToast() {
   const [action, setAction] = useState<LastAction | null>(() => getLastAction());
   const [visible, setVisible] = useState(!!action);
+  const [secondsLeft, setSecondsLeft] = useState(5);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -58,6 +59,15 @@ export function UndoToast() {
     if (remaining <= 0) { clearLastAction(); return; }
     const t = setTimeout(() => clearLastAction(), remaining);
     return () => clearTimeout(t);
+  }, [action]);
+
+  useEffect(() => {
+    if (!action) return;
+    const tick = setInterval(() => {
+      const remaining = Math.ceil((5000 - (Date.now() - action.timestamp)) / 1000);
+      setSecondsLeft(Math.max(0, remaining));
+    }, 100);
+    return () => clearInterval(tick);
   }, [action]);
 
   const handleUndo = async () => {
@@ -83,6 +93,7 @@ export function UndoToast() {
     <div className={cn("fixed bottom-4 right-4 bg-background border rounded-lg shadow-lg p-4 flex items-center gap-3 z-50 animate-in slide-in-from-bottom-4")}>
       <RotateCcw className="w-4 h-4 text-muted-foreground flex-shrink-0" />
       <p className="text-sm">{action.description}</p>
+      <span className="text-xs font-mono text-muted-foreground w-4">{secondsLeft}s</span>
       <Button size="sm" variant="outline" onClick={handleUndo}>Annuler</Button>
       <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={clearLastAction}>✕</Button>
     </div>

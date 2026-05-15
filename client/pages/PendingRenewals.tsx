@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
+import { setLastAction } from "@/components/UndoButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -49,8 +50,10 @@ export default function PendingRenewals() {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error((await res.json()).error);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
       toast({ title: "Succès", description: "Renouvellement activé" });
+      if (data.data?.auditLogId) setLastAction({ auditLogId: data.data.auditLogId, description: "Renouvellement activé", timestamp: Date.now() });
       fetchData();
     } catch (err: any) {
       toast({ title: "Erreur", description: err.message, variant: "destructive" });

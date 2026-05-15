@@ -698,7 +698,7 @@ export const getStats: RequestHandler = async (_req, res) => {
 
     const mostCommonCodes = Object.entries(codeCounts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
+      .slice(0, 10)
       .map(([code, count]) => ({ code, count }));
 
     const forecastSorted = Object.entries(monthlyForecast)

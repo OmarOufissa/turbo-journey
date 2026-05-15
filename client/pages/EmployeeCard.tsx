@@ -44,6 +44,7 @@ export default function EmployeeCard() {
     }
   };
 
+  const [expandedVersionId, setExpandedVersionId] = useState<number | null>(null);
   const [pdfGenerating, setPdfGenerating] = useState(false);
 
   const handleGeneratePdf = async () => {
@@ -77,6 +78,7 @@ export default function EmployeeCard() {
       const data = await res.json();
       if (data.success) {
         toast({ title: "Succès", description: "PDF supprimé" });
+        if (data.data?.auditLogId) setLastAction({ auditLogId: data.data.auditLogId, description: `PDF supprimé pour ${employee.matricule}`, timestamp: Date.now() });
         const updated = await getEmployee(employee.id.toString());
         if (updated.success) setEmployee(updated.data);
       }
@@ -87,6 +89,29 @@ export default function EmployeeCard() {
 
   if (isLoading) return <Layout><LoadingSpinner /></Layout>;
   if (!employee) return <Layout><div className="p-6">Employé introuvable</div></Layout>;
+
+  function getDiff(current: EmployeeVersion, previous: EmployeeVersion | undefined) {
+    if (!previous) return [];
+    const diffs: { field: string; old: string; new: string }[] = [];
+    const fields: Array<[string, keyof EmployeeVersion]> = [
+      ["Fonction", "fonction"],
+      ["N° titre", "nDeTitre"],
+      ["Validation", "dateValidation"],
+      ["Expiration", "dateExpiration"],
+    ];
+    for (const [label, key] of fields) {
+      const oldVal = String(previous[key] ?? "");
+      const newVal = String(current[key] ?? "");
+      if (oldVal !== newVal) diffs.push({ field: label, old: oldVal, new: newVal });
+    }
+    const oldST = (previous.stCodes ?? []).join(",");
+    const newST = (current.stCodes ?? []).join(",");
+    if (oldST !== newST) diffs.push({ field: "ST codes", old: oldST || "XXX", new: newST || "XXX" });
+    const oldHT = (previous.htCodes ?? []).join(",");
+    const newHT = (current.htCodes ?? []).join(",");
+    if (oldHT !== newHT) diffs.push({ field: "HT codes", old: oldHT || "XXX", new: newHT || "XXX" });
+    return diffs;
+  }
 
   const ver = employee.currentVersion;
   const status = ver ? getExpirationStatus(ver.dateExpiration) : "valid";
@@ -202,33 +227,64 @@ export default function EmployeeCard() {
           <Card>
             <CardHeader><CardTitle>Historique des versions</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {employee.versions.map((v: EmployeeVersion) => (
-                <div
-                  key={v.id}
-                  className={cn(
-                    "flex items-start justify-between p-3 rounded-lg border",
-                    v.id === ver?.id ? "border-primary bg-primary/5" : "border-border"
-                  )}
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">Version {v.versionNumber}</span>
-                      {v.id === ver?.id && <Badge variant="default" className="text-xs">Actuelle</Badge>}
+              {(() => {
+                const sortedVersions = [...(employee.versions ?? [])].sort((a, b) => a.versionNumber - b.versionNumber);
+                return sortedVersions.map((v: EmployeeVersion, idx: number) => {
+                  const isExpanded = expandedVersionId === v.id;
+                  const prevVersion = idx > 0 ? sortedVersions[idx - 1] : undefined;
+                  const diffs = isExpanded && prevVersion ? getDiff(v, prevVersion) : [];
+                  return (
+                    <div
+                      key={v.id}
+                      className={cn(
+                        "p-3 rounded-lg border",
+                        v.id === ver?.id ? "border-primary bg-primary/5" : "border-border"
+                      )}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm">Version {v.versionNumber}</span>
+                            {v.id === ver?.id && <Badge variant="default" className="text-xs">Actuelle</Badge>}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            ST: {v.stCodes.length > 0 ? v.stCodes.join(", ") : "XXX"} / HT: {v.htCodes.length > 0 ? v.htCodes.join(", ") : "XXX"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            N° {v.nDeTitre} · {v.fonction}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Exp: {new Date(v.dateExpiration).toLocaleDateString("fr-FR")} · Créée le {new Date(v.createdAt).toLocaleDateString("fr-FR")}
+                          </p>
+                          {prevVersion && (
+                            <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setExpandedVersionId(isExpanded ? null : v.id)}>
+                              {isExpanded ? "Masquer diff" : "Voir diff"}
+                            </Button>
+                          )}
+                        </div>
+                        {v.id !== ver?.id && (
+                          <Button variant="outline" size="sm" onClick={() => handleRevert(v.id, v.versionNumber)}>
+                            <RotateCcw className="w-3 h-3 mr-1" />Restaurer
+                          </Button>
+                        )}
+                      </div>
+                      {isExpanded && (
+                        <div className="mt-2 pt-2 border-t space-y-1">
+                          {diffs.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">Aucun changement détecté</p>
+                          ) : diffs.map(d => (
+                            <div key={d.field} className="text-xs grid grid-cols-3 gap-1">
+                              <span className="text-muted-foreground font-medium">{d.field}</span>
+                              <span className="line-through text-red-500">{d.old}</span>
+                              <span className="text-green-600">{d.new}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      ST: {v.stCodes.length > 0 ? v.stCodes.join(", ") : "XXX"} / HT: {v.htCodes.length > 0 ? v.htCodes.join(", ") : "XXX"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Exp: {new Date(v.dateExpiration).toLocaleDateString("fr-FR")} · Créée le {new Date(v.createdAt).toLocaleDateString("fr-FR")}
-                    </p>
-                  </div>
-                  {v.id !== ver?.id && (
-                    <Button variant="outline" size="sm" onClick={() => handleRevert(v.id, v.versionNumber)}>
-                      <RotateCcw className="w-3 h-3 mr-1" />Restaurer
-                    </Button>
-                  )}
-                </div>
-              ))}
+                  );
+                });
+              })()}
             </CardContent>
           </Card>
         )}

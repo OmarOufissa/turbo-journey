@@ -1,4 +1,5 @@
 import { Layout } from "@/components/Layout";
+import { setLastAction } from "@/components/UndoButton";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, XCircle, CheckCircle2, Clock, Download } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
@@ -82,6 +83,7 @@ export default function Renewals() {
       const body = await resp.json();
       if (!resp.ok) throw new Error(body.error ?? "Erreur lors de l'activation");
       toast({ title: "Renouvellement activé", description: `Version créée pour ${renewal.nom} ${renewal.prenom}` });
+      if (body.data?.auditLogId) setLastAction({ auditLogId: body.data.auditLogId, description: `Renouvellement activé pour ${renewal.nom} ${renewal.prenom}`, timestamp: Date.now() });
       setRenewals((prev) => prev.filter((r) => r.id !== renewal.id));
     } catch (err) {
       toast({ title: "Erreur", description: String(err), variant: "destructive" });

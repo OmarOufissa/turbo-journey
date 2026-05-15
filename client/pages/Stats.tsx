@@ -4,10 +4,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
 import { getStats } from "@/api/employees";
 import { FileText, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface StatsData {
   total: number;
@@ -91,12 +93,32 @@ export default function Stats() {
     }
   };
 
-  if (loading) return <Layout><div className="p-6">Chargement...</div></Layout>;
-  if (!stats) return <Layout><div className="p-6">Aucune donnée</div></Layout>;
+  if (loading) return (
+    <Layout>
+      <div className="p-6 space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-5 gap-4">{Array(10).fill(0).map((_, i) => <Skeleton key={i} className="h-24" />)}</div>
+        <Skeleton className="h-64" /><Skeleton className="h-64" />
+      </div>
+    </Layout>
+  );
+
+  if (!stats) return (
+    <Layout>
+      <div className="p-6">
+        <EmptyState title="Aucune statistique disponible" description="Impossible de charger les données. Vérifiez la connexion." />
+      </div>
+    </Layout>
+  );
 
   const maxDiv = Math.max(...stats.byDivision.map(d => d.total), 1);
-  const maxSvc = Math.max(...stats.byService.map(s => s.count), 1);
   const maxForecast = Math.max(...(stats.monthlyForecast?.map(m => m.count) ?? []), 1);
+
+  const pieData = [
+    { name: "ST uniquement", value: stats.stOnly, color: "#3b82f6" },
+    { name: "HT uniquement", value: stats.htOnly, color: "#10b981" },
+    { name: "ST + HT", value: stats.both, color: "#8b5cf6" },
+  ];
 
   return (
     <Layout>
@@ -149,6 +171,24 @@ export default function Stats() {
           </Card>
         )}
 
+        {/* ST / HT pie chart */}
+        <Card>
+          <CardHeader><CardTitle>Répartition ST / HT</CardTitle></CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
+                  {pieData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Legend />
+                <Tooltip formatter={(val: number, name: string) => [`${val}`, name]} />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* By division with risk heatmap */}
           <Card>
@@ -176,21 +216,26 @@ export default function Stats() {
             </CardContent>
           </Card>
 
-          {/* By service */}
+          {/* By service — table */}
           <Card>
             <CardHeader><CardTitle>Par service (top 10)</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
-              {stats.byService.sort((a, b) => b.count - a.count).slice(0, 10).map(s => (
-                <div key={s.name} className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium truncate max-w-[180px]">{s.name}</span>
-                    <span className="text-muted-foreground">{s.count}</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(s.count / maxSvc) * 100}%` }} />
-                  </div>
-                </div>
-              ))}
+            <CardContent>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="text-left pb-2">Service</th>
+                    <th className="text-right pb-2">Effectif</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.byService.sort((a, b) => b.count - a.count).slice(0, 10).map(s => (
+                    <tr key={s.name} className="border-t">
+                      <td className="py-1">{s.name}</td>
+                      <td className="text-right py-1 font-mono">{s.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </CardContent>
           </Card>
         </div>
