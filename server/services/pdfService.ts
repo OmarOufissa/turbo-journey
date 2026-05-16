@@ -82,9 +82,10 @@ const P2 = {
 };
 
 // Table — 6 rows in official order
-// Symbole column: x=120.53–198.07 → split ST(left) / HT(right)
-const COL_ST  = 122;   // left-align in ST sub-column
-const COL_HT  = 161;   // left-align in HT sub-column
+// Symbole column: x=120.53–198.07, split ST(left)/HT(right) at midpoint 159.3
+const ST_CENTER = 140; // center of ST sub-column
+const HT_CENTER = 179; // center of HT sub-column
+const SZ_SYM  = 10;   // symbol font size (bigger + centered)
 const COL_DOM = 200;   // left-align in Domaine column (starts 198.55)
 const COL_OUV = 271;   // left-align in Ouvrages column (starts 269.38)
 const COL_IND = 413;   // left-align in Indications column (starts 411.29)
@@ -123,6 +124,30 @@ function clearRect(page: PDFPage, x: number, y: number, w: number, h: number) {
   page.drawRectangle({ x, y, width: w, height: h, color: rgb(1, 1, 1), borderWidth: 0 });
 }
 
+function drawCentered(
+  page: PDFPage,
+  text: string,
+  centerX: number, y: number,
+  font: any, size: number,
+  color = rgb(0, 0, 0),
+) {
+  const w = font.widthOfTextAtSize(text, size);
+  page.drawText(text, { x: centerX - w / 2, y, size, font, color });
+}
+
+function drawTextScaled(
+  page: PDFPage,
+  text: string,
+  x: number, y: number,
+  maxWidth: number,
+  font: any, size: number,
+) {
+  if (!text) return;
+  const w = font.widthOfTextAtSize(text, size);
+  const actualSize = w > maxWidth ? size * (maxWidth / w) : size;
+  page.drawText(text, { x, y, size: actualSize, font, color: rgb(0, 0, 0) });
+}
+
 // ─── Fill page 1 (the certificate with the table) ────────────────────────────
 
 function fillPage1(
@@ -141,35 +166,42 @@ function fillPage1(
   drawText(page, snapshot.matricule, P1.matricule.x, P1.matricule.y, bold, SZ);
   drawText(page, snapshot.fonction, P1.fonction.x, P1.fonction.y, bold, SZ);
 
-  // Clear "/ /" entité placeholder then write
+  // Entité d'affectation: Division / Service / Equipe — skip any null/empty level
   clearRect(page, P1.entite.x, P1.entite.y - 2, 415, 12);
-  const entiteParts = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean);
-  drawText(page, entiteParts.join(' / '), P1.entite.x, P1.entite.y, bold, SZ);
+  const entiteParts = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean) as string[];
+  const entiteStr = entiteParts.join(' / ');
+  drawTextScaled(page, entiteStr, P1.entite.x, P1.entite.y, 410, bold, SZ);
 
   drawText(page, formatDateFrench(snapshot.dateValidation), P1.dateDelivrance.x, P1.dateDelivrance.y, regular, SZ);
   drawText(page, formatDateFrench(snapshot.dateExpiration), P1.valableJusquau.x, P1.valableJusquau.y, regular, SZ);
 
-  // Footer repeated nom/fonction — clear "BRAHIMI ALI" sample
+  // Footer: clear sample "BRAHIMI ALI" then write real name + fonction
   clearRect(page, P1.footerNom.x, P1.footerNom.y - 2, 220, 12);
   drawText(page, fullName, P1.footerNom.x, P1.footerNom.y, bold, SZ);
   clearRect(page, P1.footerFonction.x, P1.footerFonction.y - 2, 220, 12);
   drawText(page, snapshot.fonction, P1.footerFonction.x, P1.footerFonction.y, regular, SZ);
 
-  // Table
+  // Table: for each active row draw centered symboles + domaine/ouvrage/indication
   for (const row of TABLE_ROWS) {
-    const hasST = row.stKey && snapshot.stCodes.includes(row.stKey);
-    const hasHT = row.htKey && snapshot.htCodes.includes(row.htKey);
+    const allCodes = [...(snapshot.stCodes ?? []), ...(snapshot.htCodes ?? [])];
+    const hasST = row.stKey != null && allCodes.includes(row.stKey);
+    const hasHT = row.htKey != null && allCodes.includes(row.htKey);
     if (!hasST && !hasHT) continue;
 
-    if (hasST && row.stKey) drawText(page, row.stKey, COL_ST, row.ySym, bold, SZS);
-    if (hasHT && row.htKey) drawText(page, row.htKey, COL_HT, row.ySym, bold, SZS);
-
-    const rowData = snapshot.habRows?.[row.rowKey];
-    if (rowData) {
-      if (rowData.domaine)    drawText(page, rowData.domaine,    COL_DOM, row.yData, regular, SZS);
-      if (rowData.ouvrage)    drawText(page, rowData.ouvrage,    COL_OUV, row.yData, regular, SZS);
-      if (rowData.indication) drawText(page, rowData.indication, COL_IND, row.yData, regular, SZS);
+    // ST sub-column: show code if active, XXX if this row has an ST slot but no ST code
+    if (row.stKey != null) {
+      drawCentered(page, hasST ? row.stKey : 'XXX', ST_CENTER, row.ySym, bold, SZ_SYM);
     }
+    // HT sub-column: show code if active, XXX if this row has an HT slot but no HT code
+    if (row.htKey != null) {
+      drawCentered(page, hasHT ? row.htKey : 'XXX', HT_CENTER, row.ySym, bold, SZ_SYM);
+    }
+
+    // Domaine / Ouvrage / Indication — always fill for active rows, XXX if missing
+    const rowData = snapshot.habRows?.[row.rowKey];
+    drawText(page, rowData?.domaine    || 'XXX', COL_DOM, row.yData, regular, SZS);
+    drawText(page, rowData?.ouvrage    || 'XXX', COL_OUV, row.yData, regular, SZS);
+    drawText(page, rowData?.indication || 'XXX', COL_IND, row.yData, regular, SZS);
   }
 }
 

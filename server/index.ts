@@ -618,5 +618,88 @@ export function createServer() {
     });
   });
 
+  // Per-version PDF generation
+  app.post("/api/employees/:employeeId/versions/:versionId/generate-pdf", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const empId = parseInt(req.params.employeeId);
+        const verId = parseInt(req.params.versionId);
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq } = await import("drizzle-orm");
+        const { generateHabilitationPdf } = await import("./services/pdfService");
+
+        const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, empId));
+        if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé introuvable" });
+
+        const [ver] = await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, verId));
+        if (!ver || ver.employeeId !== empId) return res.status(404).json({ success: false, data: null, error: "Version introuvable" });
+
+        const [div] = await db.select({ name: schema.divisions.name }).from(schema.divisions).where(eq(schema.divisions.id, ver.divisionId));
+        const [svc] = await db.select({ name: schema.services.name }).from(schema.services).where(eq(schema.services.id, ver.serviceId));
+        const equipe = ver.equipeId
+          ? (await db.select({ name: schema.equipes.name }).from(schema.equipes).where(eq(schema.equipes.id, ver.equipeId)))[0]
+          : null;
+
+        const result = await generateHabilitationPdf({
+          matricule: emp.matricule,
+          nom: emp.nom,
+          prenom: emp.prenom,
+          nDeTitre: ver.nDeTitre,
+          fonction: ver.fonction,
+          division: div?.name ?? "",
+          service: svc?.name ?? null,
+          equipe: equipe?.name ?? null,
+          stCodes: ver.stCodes ?? [],
+          htCodes: ver.htCodes ?? [],
+          habRows: ver.habRows ?? null,
+          dateValidation: ver.dateValidation,
+          dateExpiration: ver.dateExpiration,
+        }, ver.versionNumber);
+
+        await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath }).where(eq(schema.employeeVersions.id, verId));
+        res.json({ success: true, data: result, error: null });
+      } catch (err) {
+        console.error("Version PDF generation error:", err);
+        res.status(500).json({ success: false, data: null, error: (err as Error).message });
+      }
+    });
+  });
+
+  // Per-version PDF delete
+  app.delete("/api/employees/:employeeId/versions/:versionId/pdf", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const empId = parseInt(req.params.employeeId);
+        const verId = parseInt(req.params.versionId);
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq } = await import("drizzle-orm");
+        const { deletePdf: deletePdfFile } = await import("./services/pdfService");
+
+        const [ver] = await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, verId));
+        if (!ver || ver.employeeId !== empId) return res.status(404).json({ success: false, data: null, error: "Version introuvable" });
+        if (!ver.pdfPath) return res.status(404).json({ success: false, data: null, error: "Aucun PDF pour cette version" });
+
+        deletePdfFile(ver.pdfPath);
+        await db.update(schema.employeeVersions).set({ pdfPath: null }).where(eq(schema.employeeVersions.id, verId));
+
+        const [auditLog] = await db.insert(schema.auditLogs).values({
+          action: "DELETE_PDF",
+          entityId: empId,
+          snapshotOld: { pdfPath: ver.pdfPath, versionId: verId } as any,
+          snapshotNew: { pdfPath: null } as any,
+        }).returning();
+
+        res.json({ success: true, data: { auditLogId: auditLog.id }, error: null });
+      } catch (err) {
+        console.error("Version PDF delete error:", err);
+        res.status(500).json({ success: false, data: null, error: (err as Error).message });
+      }
+    });
+  });
+
   return app;
 }

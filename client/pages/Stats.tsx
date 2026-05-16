@@ -60,14 +60,16 @@ export default function Stats() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
   const token = localStorage.getItem("token");
 
   const load = () => {
     setLoading(true);
+    setError(false);
     getStats()
-      .then(res => { if (res.success) setStats(res.data); })
-      .catch(() => toast({ title: "Erreur", description: "Impossible de charger les statistiques", variant: "destructive" }))
+      .then(res => { if (res.success) setStats(res.data); else setError(true); })
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   };
 
@@ -105,8 +107,15 @@ export default function Stats() {
 
   if (!stats) return (
     <Layout>
-      <div className="p-6">
-        <EmptyState title="Aucune statistique disponible" description="Impossible de charger les données. Vérifiez la connexion." />
+      <div className="p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Statistiques</h1>
+          <Button variant="outline" size="sm" onClick={load}><RefreshCw className="w-4 h-4 mr-1" />Réessayer</Button>
+        </div>
+        <EmptyState
+          title={error ? "Impossible de charger les statistiques" : "Aucune statistique disponible"}
+          description={error ? "Une erreur s'est produite. Vérifiez la connexion et réessayez." : "Aucun employé actif trouvé."}
+        />
       </div>
     </Layout>
   );

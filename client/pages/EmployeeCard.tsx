@@ -4,6 +4,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Edit2, History, RotateCcw, FileText, Download, Eye, Trash2, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -19,7 +20,16 @@ export default function EmployeeCard() {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showVersions, setShowVersions] = useState(false);
+  const [showAllVersions, setShowAllVersions] = useState(false);
+  const [expandedVersionId, setExpandedVersionId] = useState<number | null>(null);
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [versionPdfLoading, setVersionPdfLoading] = useState<Record<number, boolean>>({});
   const token = localStorage.getItem("token");
+
+  const reload = async () => {
+    if (!id) return;
+    getEmployee(id).then(res => { if (res.success) setEmployee(res.data); }).catch(() => {});
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -31,7 +41,7 @@ export default function EmployeeCard() {
   }, [id]);
 
   const handleRevert = async (versionId: number, versionNumber: number) => {
-    if (!employee || !window.confirm(`Revenir à la version ${versionNumber} ?`)) return;
+    if (!employee || employee.deleted || !window.confirm(`Revenir à la version ${versionNumber} ?`)) return;
     try {
       const res = await revertToVersion(employee.id, versionId);
       if (res.success) {
@@ -44,9 +54,6 @@ export default function EmployeeCard() {
     }
   };
 
-  const [expandedVersionId, setExpandedVersionId] = useState<number | null>(null);
-  const [pdfGenerating, setPdfGenerating] = useState(false);
-
   const handleGeneratePdf = async () => {
     if (!employee) return;
     setPdfGenerating(true);
@@ -58,8 +65,7 @@ export default function EmployeeCard() {
       const data = await res.json();
       if (data.success) {
         toast({ title: "Succès", description: "PDF généré" });
-        const updated = await getEmployee(employee.id.toString());
-        if (updated.success) setEmployee(updated.data);
+        await reload();
       }
     } catch {
       toast({ title: "Erreur", description: "Impossible de générer le PDF", variant: "destructive" });
@@ -79,19 +85,60 @@ export default function EmployeeCard() {
       if (data.success) {
         toast({ title: "Succès", description: "PDF supprimé" });
         if (data.data?.auditLogId) setLastAction({ auditLogId: data.data.auditLogId, description: `PDF supprimé pour ${employee.matricule}`, timestamp: Date.now() });
-        const updated = await getEmployee(employee.id.toString());
-        if (updated.success) setEmployee(updated.data);
+        await reload();
       }
     } catch {
       toast({ title: "Erreur", description: "Impossible de supprimer le PDF", variant: "destructive" });
     }
   };
 
+  const handleVersionGeneratePdf = async (versionId: number) => {
+    if (!employee) return;
+    setVersionPdfLoading(p => ({ ...p, [versionId]: true }));
+    try {
+      const res = await fetch(`/api/employees/${employee.id}/versions/${versionId}/generate-pdf`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Succès", description: "PDF généré" });
+        await reload();
+      } else {
+        toast({ title: "Erreur", description: data.error ?? "Impossible de générer le PDF", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de générer le PDF", variant: "destructive" });
+    } finally {
+      setVersionPdfLoading(p => ({ ...p, [versionId]: false }));
+    }
+  };
+
+  const handleVersionDeletePdf = async (versionId: number) => {
+    if (!employee || !window.confirm("Supprimer le PDF de cette version ?")) return;
+    setVersionPdfLoading(p => ({ ...p, [versionId]: true }));
+    try {
+      const res = await fetch(`/api/employees/${employee.id}/versions/${versionId}/pdf`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Succès", description: "PDF supprimé" });
+        if (data.data?.auditLogId) setLastAction({ auditLogId: data.data.auditLogId, description: `PDF supprimé pour ${employee.matricule}`, timestamp: Date.now() });
+        await reload();
+      }
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de supprimer le PDF", variant: "destructive" });
+    } finally {
+      setVersionPdfLoading(p => ({ ...p, [versionId]: false }));
+    }
+  };
+
   if (isLoading) return <Layout><LoadingSpinner /></Layout>;
   if (!employee) return <Layout><div className="p-6">Employé introuvable</div></Layout>;
 
-  function getDiff(current: EmployeeVersion, previous: EmployeeVersion | undefined) {
-    if (!previous) return [];
+  function getDiff(current: EmployeeVersion, previous: EmployeeVersion) {
     const diffs: { field: string; old: string; new: string }[] = [];
     const fields: Array<[string, keyof EmployeeVersion]> = [
       ["Fonction", "fonction"],
@@ -117,9 +164,14 @@ export default function EmployeeCard() {
   const status = ver ? getExpirationStatus(ver.dateExpiration) : "valid";
   const config = EXPIRATION_COLOR_CONFIG[status];
 
+  // Backend returns versions desc (newest first)
+  const sortedVersions = employee.versions ?? [];
+  const visibleVersions = showAllVersions ? sortedVersions : sortedVersions.slice(0, 5);
+
   return (
     <Layout>
       <div className="p-6 space-y-6 max-w-4xl mx-auto">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild>
@@ -127,20 +179,26 @@ export default function EmployeeCard() {
             </Button>
             <h1 className="text-2xl font-bold">{employee.prenom} {employee.nom}</h1>
             <Badge variant="outline" className="font-mono">{employee.matricule}</Badge>
+            {employee.deleted && <Badge variant="destructive">Supprimé</Badge>}
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setShowVersions(v => !v)}>
               <History className="w-4 h-4 mr-1" />{showVersions ? "Masquer" : "Historique"}
             </Button>
-            <Button variant="outline" size="sm" onClick={handleGeneratePdf}>
-              <FileText className="w-4 h-4 mr-1" />PDF
-            </Button>
-            <Button size="sm" asChild>
-              <Link to={`/employees/${employee.id}/edit`}><Edit2 className="w-4 h-4 mr-1" />Modifier</Link>
-            </Button>
+            {!employee.deleted && (
+              <>
+                <Button variant="outline" size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
+                  <FileText className={cn("w-4 h-4 mr-1", pdfGenerating && "animate-spin")} />PDF
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to={`/employees/${employee.id}/edit`}><Edit2 className="w-4 h-4 mr-1" />Modifier</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
+        {/* Identity / Organisation / Habilitation cards */}
         {ver && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
@@ -185,7 +243,7 @@ export default function EmployeeCard() {
                 <div className="pt-3 border-t">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Document PDF</span>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-wrap justify-end">
                       {ver.pdfPath ? (
                         <>
                           <Button variant="outline" size="sm" asChild>
@@ -213,78 +271,143 @@ export default function EmployeeCard() {
                       )}
                     </div>
                   </div>
-                  {ver.pdfPath && (
-                    <p className="text-xs text-muted-foreground mt-1">{ver.pdfPath}</p>
-                  )}
+                  {ver.pdfPath && <p className="text-xs text-muted-foreground mt-1">{ver.pdfPath}</p>}
                 </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Version timeline */}
-        {showVersions && employee.versions && employee.versions.length > 0 && (
+        {/* Version history */}
+        {showVersions && (
           <Card>
-            <CardHeader><CardTitle>Historique des versions</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                Historique des versions
+                <Badge variant="outline">{sortedVersions.length}</Badge>
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-3">
-              {(() => {
-                const sortedVersions = [...(employee.versions ?? [])].sort((a, b) => a.versionNumber - b.versionNumber);
-                return sortedVersions.map((v: EmployeeVersion, idx: number) => {
-                  const isExpanded = expandedVersionId === v.id;
-                  const prevVersion = idx > 0 ? sortedVersions[idx - 1] : undefined;
-                  const diffs = isExpanded && prevVersion ? getDiff(v, prevVersion) : [];
-                  return (
-                    <div
-                      key={v.id}
-                      className={cn(
-                        "p-3 rounded-lg border",
-                        v.id === ver?.id ? "border-primary bg-primary/5" : "border-border"
-                      )}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-sm">Version {v.versionNumber}</span>
-                            {v.id === ver?.id && <Badge variant="default" className="text-xs">Actuelle</Badge>}
+              {sortedVersions.length === 0 ? (
+                <div className="space-y-2">
+                  {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />)}
+                </div>
+              ) : (
+                <>
+                  {visibleVersions.map((v: EmployeeVersion, idx: number) => {
+                    const isCurrent = v.id === ver?.id;
+                    const isExpanded = expandedVersionId === v.id;
+                    // Desc order: previous (older) version is the next element
+                    const prevVersion = sortedVersions[idx + 1] as EmployeeVersion | undefined;
+                    const diffs = isExpanded && prevVersion ? getDiff(v, prevVersion) : [];
+                    const pdfLoading = versionPdfLoading[v.id] ?? false;
+
+                    return (
+                      <div
+                        key={v.id}
+                        className={cn(
+                          "p-3 rounded-lg border",
+                          isCurrent ? "border-primary bg-primary/5" : "border-border"
+                        )}
+                      >
+                        {/* Version info row */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-sm">Version {v.versionNumber}</span>
+                              {isCurrent && <Badge variant="default" className="text-xs">Actuelle</Badge>}
+                            </div>
+                            <p className="text-xs text-muted-foreground">N° {v.nDeTitre} · {v.fonction}</p>
+                            <p className="text-xs font-mono text-muted-foreground">
+                              ST: {v.stCodes.length > 0 ? v.stCodes.join(", ") : "XXX"} / HT: {v.htCodes.length > 0 ? v.htCodes.join(", ") : "XXX"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Val: {new Date(v.dateValidation).toLocaleDateString("fr-FR")} ·{" "}
+                              Exp: {new Date(v.dateExpiration).toLocaleDateString("fr-FR")} ·{" "}
+                              Créée le {new Date(v.createdAt).toLocaleDateString("fr-FR")}
+                            </p>
+                            {prevVersion && (
+                              <Button
+                                variant="ghost" size="sm" className="h-6 text-xs px-1"
+                                onClick={() => setExpandedVersionId(isExpanded ? null : v.id)}
+                              >
+                                {isExpanded ? "Masquer diff" : "Voir diff vs précédente"}
+                              </Button>
+                            )}
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            ST: {v.stCodes.length > 0 ? v.stCodes.join(", ") : "XXX"} / HT: {v.htCodes.length > 0 ? v.htCodes.join(", ") : "XXX"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            N° {v.nDeTitre} · {v.fonction}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Exp: {new Date(v.dateExpiration).toLocaleDateString("fr-FR")} · Créée le {new Date(v.createdAt).toLocaleDateString("fr-FR")}
-                          </p>
-                          {prevVersion && (
-                            <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setExpandedVersionId(isExpanded ? null : v.id)}>
-                              {isExpanded ? "Masquer diff" : "Voir diff"}
+                          {!isCurrent && !employee.deleted && (
+                            <Button
+                              variant="outline" size="sm" className="flex-shrink-0"
+                              onClick={() => handleRevert(v.id, v.versionNumber)}
+                            >
+                              <RotateCcw className="w-3 h-3 mr-1" />Restaurer
                             </Button>
                           )}
                         </div>
-                        {v.id !== ver?.id && (
-                          <Button variant="outline" size="sm" onClick={() => handleRevert(v.id, v.versionNumber)}>
-                            <RotateCcw className="w-3 h-3 mr-1" />Restaurer
-                          </Button>
+
+                        {/* Per-version PDF actions */}
+                        <div className="mt-2 pt-2 border-t flex items-center gap-1 flex-wrap">
+                          <span className="text-xs text-muted-foreground mr-1">PDF :</span>
+                          {v.pdfPath ? (
+                            <>
+                              <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
+                                <a href={`/uploads/pdfs/${v.pdfPath}`} target="_blank" rel="noreferrer">
+                                  <Eye className="w-3 h-3 mr-1" />Voir
+                                </a>
+                              </Button>
+                              <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
+                                <a href={`/uploads/pdfs/${v.pdfPath}`} download>
+                                  <Download className="w-3 h-3 mr-1" />Télécharger
+                                </a>
+                              </Button>
+                              <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionGeneratePdf(v.id)} disabled={pdfLoading}>
+                                <RefreshCw className={cn("w-3 h-3 mr-1", pdfLoading && "animate-spin")} />Régénérer
+                              </Button>
+                              <Button variant="destructive" size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionDeletePdf(v.id)} disabled={pdfLoading}>
+                                <Trash2 className="w-3 h-3 mr-1" />Supprimer
+                              </Button>
+                            </>
+                          ) : (
+                            <Button size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionGeneratePdf(v.id)} disabled={pdfLoading}>
+                              <FileText className={cn("w-3 h-3 mr-1", pdfLoading && "animate-spin")} />
+                              {pdfLoading ? "Génération..." : "Générer PDF"}
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Diff panel */}
+                        {isExpanded && (
+                          <div className="mt-2 pt-2 border-t space-y-2">
+                            {diffs.length === 0 ? (
+                              <p className="text-xs text-muted-foreground">Aucun changement détecté</p>
+                            ) : diffs.map(d => (
+                              <div key={d.field} className="text-xs">
+                                <span className="font-medium text-yellow-700 dark:text-yellow-400">{d.field}</span>
+                                <div className="flex items-center gap-1.5 ml-2 mt-0.5">
+                                  <span className="line-through text-red-500">{d.old || "—"}</span>
+                                  <span className="text-muted-foreground">→</span>
+                                  <span className="text-green-600 font-medium">{d.new || "—"}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
-                      {isExpanded && (
-                        <div className="mt-2 pt-2 border-t space-y-1">
-                          {diffs.length === 0 ? (
-                            <p className="text-xs text-muted-foreground">Aucun changement détecté</p>
-                          ) : diffs.map(d => (
-                            <div key={d.field} className="text-xs grid grid-cols-3 gap-1">
-                              <span className="text-muted-foreground font-medium">{d.field}</span>
-                              <span className="line-through text-red-500">{d.old}</span>
-                              <span className="text-green-600">{d.new}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                });
-              })()}
+                    );
+                  })}
+
+                  {sortedVersions.length > 5 && (
+                    <Button
+                      variant="ghost" size="sm" className="w-full text-muted-foreground"
+                      onClick={() => setShowAllVersions(v => !v)}
+                    >
+                      {showAllVersions
+                        ? "Masquer les versions anciennes"
+                        : `Voir ${sortedVersions.length - 5} version(s) plus ancienne(s)`}
+                    </Button>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
         )}
