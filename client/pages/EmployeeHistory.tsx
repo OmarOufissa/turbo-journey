@@ -1,352 +1,287 @@
-/**
- * PHASE 2: EMPLOYEE HISTORY PAGE
- * 
- * View complete timeline of employee state changes:
- * - Vertical timeline of all mutations
- * - Click to see before/after for each change
- * - Filter by date range and action type
- * - Export history as JSON
- * - Link from employee detail page
- */
-
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { format, parseISO } from "date-fns";
-import { ChevronDown, ChevronUp, Download, ArrowLeft } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-interface HistoryEvent {
-  index: number;
-  id: number;
-  action: string;
-  entityType: string;
-  timestamp: string;
-  changeSummary: string;
-  userId: number | null;
-  canRevert: boolean;
-}
-
-interface EmployeeHistoryResponse {
-  employeeId: number;
-  matricule: string;
-  totalEvents: number;
-  timeline: HistoryEvent[];
-}
-
-interface HistoryFilter {
-  action?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
-const ACTION_COLORS: Record<string, string> = {
-  CREATE_EMPLOYEE: "bg-green-100 text-green-800",
-  UPDATE_EMPLOYEE: "bg-blue-100 text-blue-800",
-  DELETE_EMPLOYEE: "bg-red-100 text-red-800",
-  CREATE_HABILITATION: "bg-green-100 text-green-800",
-  UPDATE_HABILITATION: "bg-blue-100 text-blue-800",
-  DELETE_HABILITATION: "bg-red-100 text-red-800",
-  RENEW_HABILITATION: "bg-purple-100 text-purple-800",
-  UPLOAD_PDF: "bg-yellow-100 text-yellow-800",
-  DELETE_PDF: "bg-orange-100 text-orange-800",
-  REVERT_EMPLOYEE: "bg-indigo-100 text-indigo-800",
-  REVERT_HABILITATION: "bg-indigo-100 text-indigo-800",
-};
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Download, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Employee, EmployeeVersion } from "@/types/employee";
+import { getEmployee } from "@/api/employees";
+import { getExpirationStatus, EXPIRATION_COLOR_CONFIG } from "@/types/habilitation";
+import { cn } from "@/lib/utils";
 
 export default function EmployeeHistory() {
   const { employeeId } = useParams<{ employeeId: string }>();
-  const navigate = useNavigate();
   const { toast } = useToast();
-
-  const [history, setHistory] = useState<HistoryEvent[]>([]);
-  const [filteredHistory, setFilteredHistory] = useState<HistoryEvent[]>([]);
+  const [employee, setEmployee] = useState<Employee | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [filters, setFilters] = useState<HistoryFilter>({});
-  const [matricule, setMatricule] = useState<string>("");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
 
-  // Fetch employee history
   useEffect(() => {
-    if (!employeeId) {
-      navigate("/employees");
-      return;
-    }
-    fetchEmployeeHistory();
+    if (!employeeId) return;
+    setLoading(true);
+    getEmployee(employeeId)
+      .then(res => { if (res.success) setEmployee(res.data); })
+      .catch(() => toast({ title: "Erreur", description: "Impossible de charger l'historique", variant: "destructive" }))
+      .finally(() => setLoading(false));
   }, [employeeId]);
 
-  // Apply filters
-  useEffect(() => {
-    let filtered = [...history];
-
-    if (filters.action) {
-      filtered = filtered.filter((event) =>
-        event.action.toLowerCase().includes(filters.action!.toLowerCase())
-      );
-    }
-
-    if (filters.startDate) {
-      const startDate = new Date(filters.startDate);
-      filtered = filtered.filter((event) => new Date(event.timestamp) >= startDate);
-    }
-
-    if (filters.endDate) {
-      const endDate = new Date(filters.endDate);
-      endDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((event) => new Date(event.timestamp) <= endDate);
-    }
-
-    setFilteredHistory(filtered);
-  }, [history, filters]);
-
-  const fetchEmployeeHistory = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/employees/${employeeId}/history/timeline`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch employee history");
-      }
-
-      const data: EmployeeHistoryResponse = await response.json();
-      setHistory(data.timeline);
-      setMatricule(data.matricule);
-    } catch (error) {
-      console.error("Error fetching history:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load employee history",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  function getDiff(current: EmployeeVersion, previous: EmployeeVersion) {
+    const diffs: { field: string; old: string; new: string }[] = [];
+    const check = (label: string, key: keyof EmployeeVersion) => {
+      const o = String(previous[key] ?? "");
+      const n = String(current[key] ?? "");
+      if (o !== n) diffs.push({ field: label, old: o, new: n });
+    };
+    check("Fonction", "fonction");
+    check("N° titre", "nDeTitre");
+    check("Division", "division");
+    check("Service", "service");
+    check("Équipe", "equipe");
+    check("Validation", "dateValidation");
+    check("Expiration", "dateExpiration");
+    const oldST = (previous.stCodes ?? []).join(",");
+    const newST = (current.stCodes ?? []).join(",");
+    if (oldST !== newST) diffs.push({ field: "ST codes", old: oldST || "XXX", new: newST || "XXX" });
+    const oldHT = (previous.htCodes ?? []).join(",");
+    const newHT = (current.htCodes ?? []).join(",");
+    if (oldHT !== newHT) diffs.push({ field: "HT codes", old: oldHT || "XXX", new: newHT || "XXX" });
+    return diffs;
+  }
 
   const exportHistory = () => {
-    try {
-      const exportData = {
-        employeeId,
-        matricule,
-        exportedAt: new Date().toISOString(),
-        events: filteredHistory,
-      };
-
-      const jsonString = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([jsonString], { type: "application/json" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `employee-${matricule}-history-${format(new Date(), "yyyy-MM-dd")}.json`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-
-      toast({
-        title: "Success",
-        description: "History exported as JSON",
-      });
-    } catch (error) {
-      console.error("Error exporting history:", error);
-      toast({
-        title: "Error",
-        description: "Failed to export history",
-        variant: "destructive",
-      });
-    }
+    if (!employee) return;
+    const data = {
+      matricule: employee.matricule,
+      nom: employee.nom,
+      prenom: employee.prenom,
+      exportedAt: new Date().toISOString(),
+      versions: employee.versions ?? [],
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `historique_${employee.matricule}_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center min-h-screen">
-          <LoadingSpinner />
+  if (loading) return (
+    <Layout>
+      <div className="p-6 space-y-4 max-w-3xl mx-auto">
+        <Skeleton className="h-8 w-64" />
+        <div className="flex gap-4">
+          {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-16 flex-1" />)}
         </div>
-      </Layout>
-    );
-  }
+        {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32" />)}
+      </div>
+    </Layout>
+  );
+
+  if (!employee) return (
+    <Layout>
+      <div className="p-6">
+        <EmptyState title="Employé introuvable" description="Impossible de charger l'historique de cet employé." />
+      </div>
+    </Layout>
+  );
+
+  // Chronological order: V1 → V2 → ... → latest
+  const sortedVersions = [...(employee.versions ?? [])].sort((a, b) => a.versionNumber - b.versionNumber);
+
+  // Filter by creation date range
+  const filtered = sortedVersions.filter(v => {
+    if (filterFrom && v.createdAt.slice(0, 10) < filterFrom) return false;
+    if (filterTo && v.createdAt.slice(0, 10) > filterTo) return false;
+    return true;
+  });
 
   return (
     <Layout>
-      <div className="space-y-6 p-6">
+      <div className="p-6 space-y-6 max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/employees")}
-              title="Back to employees"
-            >
-              <ArrowLeft className="w-4 h-4" />
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to={`/employees/${employeeId}`}><ArrowLeft className="w-4 h-4" /></Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Employee History</h1>
-              <p className="text-gray-600 mt-2">
-                Matricule: <span className="font-semibold">{matricule}</span>
-              </p>
+              <h1 className="text-2xl font-bold">Historique — {employee.prenom} {employee.nom}</h1>
+              <p className="text-sm text-muted-foreground font-mono">{employee.matricule}</p>
             </div>
+            {employee.deleted && <Badge variant="destructive">Supprimé</Badge>}
           </div>
-          <Button onClick={exportHistory} variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Export
+          <Button variant="outline" size="sm" onClick={exportHistory}>
+            <Download className="w-4 h-4 mr-1" />Exporter JSON
           </Button>
         </div>
 
-        {/* Filters */}
-        <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="filter-action">Action Type</Label>
-              <Input
-                id="filter-action"
-                placeholder="Filter by action..."
-                value={filters.action || ""}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    action: e.target.value || undefined,
-                  })
-                }
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="filter-start-date">Start Date</Label>
-              <Input
-                id="filter-start-date"
-                type="date"
-                value={filters.startDate || ""}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    startDate: e.target.value || undefined,
-                  })
-                }
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="filter-end-date">End Date</Label>
-              <Input
-                id="filter-end-date"
-                type="date"
-                value={filters.endDate || ""}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    endDate: e.target.value || undefined,
-                  })
-                }
-              />
-            </div>
-          </div>
-
-          {(filters.action || filters.startDate || filters.endDate) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setFilters({})}
-              className="mt-4"
-            >
-              Clear Filters
-            </Button>
-          )}
-        </Card>
-
-        {/* Statistics */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="p-4">
-            <div className="text-sm text-gray-600">Total Events</div>
-            <div className="text-2xl font-bold">{history.length}</div>
+        {/* Summary */}
+        <div className="grid grid-cols-3 gap-4">
+          <Card className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Versions totales</p>
+            <p className="text-3xl font-bold">{sortedVersions.length}</p>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-gray-600">Filtered Events</div>
-            <div className="text-2xl font-bold">{filteredHistory.length}</div>
+          <Card className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Version actuelle</p>
+            <p className="text-3xl font-bold">V{employee.currentVersion?.versionNumber ?? "—"}</p>
+          </Card>
+          <Card className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Créé le</p>
+            <p className="text-sm font-semibold mt-2">{new Date(employee.createdAt).toLocaleDateString("fr-FR")}</p>
           </Card>
         </div>
 
+        {/* Date filters */}
+        <div className="flex gap-3 items-end flex-wrap">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">De</p>
+            <Input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)} className="h-8 text-sm w-36" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">À</p>
+            <Input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)} className="h-8 text-sm w-36" />
+          </div>
+          {(filterFrom || filterTo) && (
+            <Button variant="ghost" size="sm" onClick={() => { setFilterFrom(""); setFilterTo(""); }}>
+              Réinitialiser
+            </Button>
+          )}
+          <span className="text-xs text-muted-foreground ml-auto self-center">
+            {filtered.length} / {sortedVersions.length} version(s)
+          </span>
+        </div>
+
         {/* Timeline */}
-        {filteredHistory.length === 0 ? (
-          <EmptyState
-            title="No history"
-            description="No events match the selected filters"
-          />
+        {filtered.length === 0 ? (
+          <EmptyState title="Aucune version" description="Aucune version ne correspond aux filtres sélectionnés." />
         ) : (
-          <div className="space-y-0">
-            {filteredHistory.map((event) => (
-              <div
-                key={event.id}
-                className="border-l-4 border-gray-300 hover:border-blue-500 transition-colors"
-              >
-                <div
-                  className="p-4 bg-white hover:bg-gray-50 cursor-pointer transition-colors border-b"
-                  onClick={() =>
-                    setExpandedId(expandedId === event.id ? null : event.id)
-                  }
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4 flex-1">
-                      {/* Timeline dot */}
-                      <div className="mt-1.5 flex-shrink-0">
-                        <div className="w-3 h-3 rounded-full bg-blue-500 border-4 border-white relative -left-5.5" />
-                      </div>
+          <div className="relative space-y-0">
+            {/* Vertical connector line */}
+            <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-border" aria-hidden />
 
-                      {/* Event details */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge
-                            className={ACTION_COLORS[event.action] || "bg-gray-100 text-gray-800"}
-                          >
-                            {event.action}
-                          </Badge>
-                          <span className="text-xs text-gray-500">
-                            {event.entityType}
-                          </span>
-                          <span className="text-xs text-gray-400">
-                            {format(parseISO(event.timestamp), "PPp")}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                          {event.changeSummary}
-                        </p>
-                      </div>
-                    </div>
+            {filtered.map((v, idx) => {
+              const isCurrent = v.id === employee.currentVersion?.id;
+              const isExpanded = expandedId === v.id;
+              const prevVersion = idx > 0 ? filtered[idx - 1] : undefined;
+              const diffs = isExpanded && prevVersion ? getDiff(v, prevVersion) : [];
+              const status = getExpirationStatus(v.dateExpiration);
+              const config = EXPIRATION_COLOR_CONFIG[status];
 
-                    {/* Expand toggle */}
-                    <div className="ml-2">
-                      {expandedId === event.id ? (
-                        <ChevronUp className="w-5 h-5 text-gray-400" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-400" />
-                      )}
-                    </div>
+              return (
+                <div key={v.id} className="relative flex gap-4 pb-4">
+                  {/* Timeline node */}
+                  <div className={cn(
+                    "relative z-10 flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold",
+                    isCurrent
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : "bg-background border-border text-muted-foreground"
+                  )}>
+                    {v.versionNumber}
                   </div>
 
-                  {/* Expanded details */}
-                  {expandedId === event.id && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded border border-gray-200 text-sm font-mono">
-                      <div className="whitespace-pre-wrap break-words overflow-x-auto">
-                        {event.changeSummary}
+                  {/* Version card */}
+                  <Card className={cn("flex-1", isCurrent && "border-primary")}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center justify-between flex-wrap gap-1">
+                        <div className="flex items-center gap-2">
+                          <span>Version {v.versionNumber}</span>
+                          {isCurrent && <Badge variant="default" className="text-xs">Actuelle</Badge>}
+                          <Badge className={cn("text-xs", config.textColor)}>{config.name}</Badge>
+                        </div>
+                        <span className="text-xs font-normal text-muted-foreground">
+                          Créée le {new Date(v.createdAt).toLocaleDateString("fr-FR")}
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-xs space-y-3">
+                      {/* Version data grid */}
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                        <span className="text-muted-foreground">N° titre</span>
+                        <span className="font-mono">{v.nDeTitre}</span>
+
+                        <span className="text-muted-foreground">Fonction</span>
+                        <span>{v.fonction}</span>
+
+                        <span className="text-muted-foreground">Division</span>
+                        <span>{v.division}</span>
+
+                        {v.service && <>
+                          <span className="text-muted-foreground">Service</span>
+                          <span>{v.service}</span>
+                        </>}
+
+                        {v.equipe && <>
+                          <span className="text-muted-foreground">Équipe</span>
+                          <span>{v.equipe}</span>
+                        </>}
+
+                        <span className="text-muted-foreground">ST codes</span>
+                        <span className="font-mono">{v.stCodes.length > 0 ? v.stCodes.join(", ") : "XXX"}</span>
+
+                        <span className="text-muted-foreground">HT codes</span>
+                        <span className="font-mono">{v.htCodes.length > 0 ? v.htCodes.join(", ") : "XXX"}</span>
+
+                        <span className="text-muted-foreground">Validation</span>
+                        <span>{new Date(v.dateValidation).toLocaleDateString("fr-FR")}</span>
+
+                        <span className="text-muted-foreground">Expiration</span>
+                        <span className={cn("font-medium", config.textColor)}>
+                          {new Date(v.dateExpiration).toLocaleDateString("fr-FR")}
+                        </span>
+
+                        <span className="text-muted-foreground">PDF</span>
+                        <span className={v.pdfPath ? "text-green-600" : "text-muted-foreground"}>
+                          {v.pdfPath
+                            ? <span className="flex items-center gap-1"><FileText className="w-3 h-3" />{v.pdfPath}</span>
+                            : "—"}
+                        </span>
                       </div>
-                    </div>
-                  )}
+
+                      {/* Diff toggle / initial label */}
+                      {idx === 0 ? (
+                        <p className="text-muted-foreground italic">Version initiale</p>
+                      ) : prevVersion && (
+                        <Button
+                          variant="ghost" size="sm" className="h-6 text-xs px-1"
+                          onClick={() => setExpandedId(isExpanded ? null : v.id)}
+                        >
+                          {isExpanded
+                            ? <><ChevronUp className="w-3 h-3 mr-1" />Masquer les changements</>
+                            : <><ChevronDown className="w-3 h-3 mr-1" />Voir les changements vs V{prevVersion.versionNumber}</>
+                          }
+                        </Button>
+                      )}
+
+                      {/* Diff panel */}
+                      {isExpanded && (
+                        <div className="pt-2 border-t space-y-1.5">
+                          {diffs.length === 0 ? (
+                            <p className="text-muted-foreground">Aucun changement détecté</p>
+                          ) : diffs.map(d => (
+                            <div key={d.field}>
+                              <span className="font-medium text-yellow-700 dark:text-yellow-400">{d.field}</span>
+                              <div className="flex items-center gap-1.5 ml-2 mt-0.5">
+                                <span className="line-through text-red-500">{d.old || "—"}</span>
+                                <span className="text-muted-foreground">→</span>
+                                <span className="text-green-600 font-medium">{d.new || "—"}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

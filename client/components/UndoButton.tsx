@@ -50,7 +50,11 @@ export function UndoToast() {
       setVisible(!!a);
     };
     window.addEventListener("lastActionChanged", update);
-    return () => window.removeEventListener("lastActionChanged", update);
+    window.addEventListener("beforeunload", clearLastAction);
+    return () => {
+      window.removeEventListener("lastActionChanged", update);
+      window.removeEventListener("beforeunload", clearLastAction);
+    };
   }, []);
 
   useEffect(() => {

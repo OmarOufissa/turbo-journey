@@ -38,9 +38,18 @@ export default function Calendar() {
     async function load() {
       setLoading(true);
       try {
-        // Fetch up to 500 to cover full calendar range
-        const res = await getEmployees({ limit: 500 });
-        if (res.success) setEmployees(res.data.employees.filter(e => e.currentVersion));
+        const all: Employee[] = [];
+        let page = 1;
+        let total = Infinity;
+        while (all.length < total) {
+          const res = await getEmployees({ limit: 100, page });
+          if (!res.success) break;
+          all.push(...res.data.employees);
+          total = res.data.total;
+          if (res.data.employees.length < 100) break;
+          page++;
+        }
+        setEmployees(all.filter(e => e.currentVersion));
       } finally {
         setLoading(false);
       }
