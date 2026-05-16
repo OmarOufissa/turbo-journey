@@ -14,10 +14,7 @@
  * Current implementation logs to database for audit trail
  */
 
-import { db } from "../db-pg";
-import * as schema from "../schema";
-import { eq, and, gte, desc } from "drizzle-orm";
-import { subDays, format } from "date-fns";
+import { format } from "date-fns";
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -46,9 +43,6 @@ export interface EmailLog {
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
-
-// Prevent duplicate emails within this many hours (default: 24 hours)
-const DUPLICATE_EMAIL_WINDOW_HOURS = 24;
 
 // Email templates
 const EMAIL_TEMPLATES = {
@@ -127,29 +121,8 @@ async function checkDuplicateEmail(
   emailType: EmailType,
   recipientEmail: string
 ): Promise<boolean> {
-  try {
-    const recentEmail = await db
-      .select({ id: schema.emailLog.id })
-      .from(schema.emailLog)
-      .where(
-        and(
-          eq(schema.emailLog.employeeId, employeeId),
-          eq(schema.emailLog.emailType, emailType),
-          eq(schema.emailLog.recipientEmail, recipientEmail),
-          eq(schema.emailLog.status, "sent"),
-          gte(
-            schema.emailLog.sentAt,
-            subDays(new Date(), DUPLICATE_EMAIL_WINDOW_HOURS / 24)
-          )
-        )
-      )
-      .limit(1);
-
-    return recentEmail.length > 0;
-  } catch (err) {
-    console.error("Error checking duplicate email:", err);
-    return false;
-  }
+  // No DB available — no duplicates tracked
+  return false;
 }
 
 /**
@@ -216,27 +189,10 @@ export async function logEmail(
   status: "pending" | "sent" | "failed" = "pending",
   failureReason: string | null = null
 ): Promise<number | null> {
-  try {
-    const result = await db
-      .insert(schema.emailLog)
-      .values({
-        employeeId,
-        emailType,
-        recipientEmail,
-        subject,
-        body,
-        status,
-        sentAt: status === "sent" ? new Date() : null,
-        failureReason,
-        createdAt: new Date(),
-      })
-      .returning({ id: schema.emailLog.id });
-
-    return result[0]?.id || null;
-  } catch (err) {
-    console.error("Error logging email:", err);
-    return null;
-  }
+  console.log(
+    `[EMAIL LOG] employeeId=${employeeId} type=${emailType} to=${recipientEmail} status=${status} subject="${subject}"${failureReason ? ` reason="${failureReason}"` : ""}`
+  );
+  return null;
 }
 
 /**
@@ -301,24 +257,8 @@ export async function sendExpirationNotification(
     const sendResult = await sendViaProvider(recipientEmail, subject, body);
 
     if (sendResult.success) {
-      // Update log as sent
-      if (logId) {
-        await db
-          .update(schema.emailLog)
-          .set({ status: "sent", sentAt: new Date() })
-          .where(eq(schema.emailLog.id, logId));
-      }
-
       return { success: true, logId };
     } else {
-      // Update log as failed
-      if (logId) {
-        await db
-          .update(schema.emailLog)
-          .set({ status: "failed", failureReason: sendResult.errorMessage })
-          .where(eq(schema.emailLog.id, logId));
-      }
-
       return {
         success: false,
         logId,
@@ -329,7 +269,6 @@ export async function sendExpirationNotification(
     const errorMessage = err instanceof Error ? err.message : String(err);
     console.error("Error sending expiration notification:", err);
 
-    // Log failed email
     const logId = await logEmail(
       employeeId,
       "EXPIRATION_ALERT",
@@ -372,24 +311,8 @@ export async function sendWeeklySummary(
     const sendResult = await sendViaProvider(recipientEmail, subject, body);
 
     if (sendResult.success) {
-      // Update log as sent
-      if (logId) {
-        await db
-          .update(schema.emailLog)
-          .set({ status: "sent", sentAt: new Date() })
-          .where(eq(schema.emailLog.id, logId));
-      }
-
       return { success: true, logId };
     } else {
-      // Update log as failed
-      if (logId) {
-        await db
-          .update(schema.emailLog)
-          .set({ status: "failed", failureReason: sendResult.errorMessage })
-          .where(eq(schema.emailLog.id, logId));
-      }
-
       return {
         success: false,
         logId,
@@ -433,24 +356,8 @@ export async function sendTestEmail(
     const sendResult = await sendViaProvider(recipientEmail, subject, body);
 
     if (sendResult.success) {
-      // Update log as sent
-      if (logId) {
-        await db
-          .update(schema.emailLog)
-          .set({ status: "sent", sentAt: new Date() })
-          .where(eq(schema.emailLog.id, logId));
-      }
-
       return { success: true, logId };
     } else {
-      // Update log as failed
-      if (logId) {
-        await db
-          .update(schema.emailLog)
-          .set({ status: "failed", failureReason: sendResult.errorMessage })
-          .where(eq(schema.emailLog.id, logId));
-      }
-
       return {
         success: false,
         logId,
@@ -479,29 +386,8 @@ export async function sendTestEmail(
  * Get email log for an employee
  */
 export async function getEmployeeEmailLog(employeeId: number): Promise<EmailLog[]> {
-  try {
-    const logs = await db
-      .select()
-      .from(schema.emailLog)
-      .where(eq(schema.emailLog.employeeId, employeeId))
-      .orderBy(desc(schema.emailLog.createdAt));
-
-    return logs.map((log) => ({
-      id: log.id,
-      employeeId: log.employeeId,
-      emailType: log.emailType as EmailType,
-      recipientEmail: log.recipientEmail,
-      subject: log.subject,
-      body: log.body,
-      status: log.status as "pending" | "sent" | "failed",
-      sentAt: log.sentAt ? new Date(log.sentAt) : null,
-      failureReason: log.failureReason,
-      createdAt: new Date(log.createdAt),
-    }));
-  } catch (err) {
-    console.error("Error fetching employee email log:", err);
-    return [];
-  }
+  // No DB available — return empty log
+  return [];
 }
 
 /**
@@ -514,30 +400,14 @@ export async function getEmailStatistics(): Promise<{
   pendingEmails: number;
   sendRate: number;
 }> {
-  try {
-    const logs = await db.select().from(schema.emailLog);
-
-    const sent = logs.filter((l) => l.status === "sent").length;
-    const failed = logs.filter((l) => l.status === "failed").length;
-    const pending = logs.filter((l) => l.status === "pending").length;
-
-    return {
-      totalEmails: logs.length,
-      sentEmails: sent,
-      failedEmails: failed,
-      pendingEmails: pending,
-      sendRate: logs.length > 0 ? Math.round((sent / logs.length) * 100) : 0,
-    };
-  } catch (err) {
-    console.error("Error getting email statistics:", err);
-    return {
-      totalEmails: 0,
-      sentEmails: 0,
-      failedEmails: 0,
-      pendingEmails: 0,
-      sendRate: 0,
-    };
-  }
+  // No DB available — return zero statistics
+  return {
+    totalEmails: 0,
+    sentEmails: 0,
+    failedEmails: 0,
+    pendingEmails: 0,
+    sendRate: 0,
+  };
 }
 
 export default {

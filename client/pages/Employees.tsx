@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Trash2, Save, BookmarkCheck, X, Download } from "lucide-react";
+import { Plus, Trash2, Save, BookmarkCheck, X, Download, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -63,13 +63,28 @@ export default function Employees() {
   const [colorCodingEnabled, setColorCodingEnabled] = useState(() => {
     return localStorage.getItem(COLOR_TOGGLE_KEY) !== "false";
   });
+  const [sort, setSort] = useState("expiration");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const token = localStorage.getItem("token");
+
+  const handleSort = (col: string) => {
+    if (sort === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSort(col); setSortDir("asc"); }
+    setPage(1);
+  };
+
+  const SortIcon = ({ col }: { col: string }) => {
+    if (sort !== col) return <ChevronsUpDown className="w-3 h-3 ml-1 inline text-muted-foreground" />;
+    return sortDir === "asc"
+      ? <ChevronUp className="w-3 h-3 ml-1 inline" />
+      : <ChevronDown className="w-3 h-3 ml-1 inline" />;
+  };
 
   const fetchEmployees = useCallback(async () => {
     setIsLoading(true);
     try {
-      const params: Record<string, any> = { page, limit: 20 };
+      const params: Record<string, any> = { page, limit: 20, sort, sortDir };
       if (searchTerm) params.search = searchTerm;
       if (hasPdfFilter !== "all") params.hasPdf = hasPdfFilter;
       const range = getExpirationRange(expirationFilter);
@@ -86,7 +101,7 @@ export default function Employees() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, searchTerm, expirationFilter, hasPdfFilter, toast]);
+  }, [page, searchTerm, expirationFilter, hasPdfFilter, sort, sortDir, toast]);
 
   useEffect(() => { fetchEmployees(); }, [fetchEmployees]);
 
@@ -232,12 +247,18 @@ export default function Employees() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Matricule</TableHead>
-                  <TableHead>Nom</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("matricule")}>
+                    Matricule<SortIcon col="matricule" />
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("nom")}>
+                    Nom<SortIcon col="nom" />
+                  </TableHead>
                   <TableHead>Fonction</TableHead>
                   <TableHead>Division / Service</TableHead>
                   <TableHead>ST / HT</TableHead>
-                  <TableHead>Expiration</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("expiration")}>
+                    Expiration<SortIcon col="expiration" />
+                  </TableHead>
                   <TableHead>PDF</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>

@@ -28,6 +28,7 @@ export default function EditEmployee() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [matricule, setMatricule] = useState("");
+  const [currentVersionNumber, setCurrentVersionNumber] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     nom: "",
@@ -51,6 +52,7 @@ export default function EditEmployee() {
         const emp = res.data;
         const ver = emp.currentVersion;
         setMatricule(emp.matricule);
+        setCurrentVersionNumber(ver?.versionNumber ?? null);
         setForm({
           nom: emp.nom,
           prenom: emp.prenom,
@@ -144,7 +146,11 @@ export default function EditEmployee() {
         </div>
 
         <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded">
-          Cette modification créera une nouvelle version de l'habilitation. L'historique sera conservé.
+          Cette modification créera la{" "}
+          <span className="font-semibold text-foreground">
+            version {currentVersionNumber !== null ? currentVersionNumber + 1 : "suivante"}
+          </span>{" "}
+          de l'habilitation. L'historique sera conservé.
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

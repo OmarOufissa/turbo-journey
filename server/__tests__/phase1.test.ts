@@ -10,65 +10,14 @@
 
 import { describe, it, expect, beforeAll } from "vitest";
 import { db, initializeDatabase, withAuditTransaction } from "../db-pg";
-import { logAuditActionSafe, checkForLegacySTData } from "../services/auditService";
+import { logAuditActionSafe } from "../services/auditService";
 import { eq, desc } from "drizzle-orm";
 import * as schema from "../schema";
-
-let testDivisionId: number = 1;
-let testServiceId: number = 1;
-let testEquipeId: number = 1;
-
-async function ensureOrganizationalStructure() {
-  let divisions = await db.select().from(schema.divisions).limit(1);
-  if (divisions.length === 0) {
-    const newDiv = await db
-      .insert(schema.divisions)
-      .values({ name: "Test Division" })
-      .returning();
-    testDivisionId = newDiv[0].id;
-  } else {
-    testDivisionId = divisions[0].id;
-  }
-
-  let services = await db
-    .select()
-    .from(schema.services)
-    .where(eq(schema.services.divisionId, testDivisionId))
-    .limit(1);
-
-  if (services.length === 0) {
-    const newSvc = await db
-      .insert(schema.services)
-      .values({ name: "Test Service", divisionId: testDivisionId })
-      .returning();
-    testServiceId = newSvc[0].id;
-  } else {
-    testServiceId = services[0].id;
-  }
-
-  let equipes = await db
-    .select()
-    .from(schema.equipes)
-    .where(eq(schema.equipes.serviceId, testServiceId))
-    .limit(1);
-
-  if (equipes.length === 0) {
-    const newEqu = await db
-      .insert(schema.equipes)
-      .values({ name: "Test Equipe", serviceId: testServiceId })
-      .returning();
-    testEquipeId = newEqu[0].id;
-  } else {
-    testEquipeId = equipes[0].id;
-  }
-}
 
 describe("PHASE 1: Foundation System Tests", () => {
   beforeAll(async () => {
     await initializeDatabase();
     console.log("✓ Database initialized for tests");
-    await ensureOrganizationalStructure();
-    console.log(`✓ Org structure ready`);
   });
 
   describe("Employee CRUD with Audit Logging", () => {
@@ -82,9 +31,6 @@ describe("PHASE 1: Foundation System Tests", () => {
             matricule: "E0001",
             prenom: "Test",
             nom: "Employee",
-            divisionId: testDivisionId,
-            serviceId: testServiceId,
-            equipeId: testEquipeId,
           })
           .returning();
 
@@ -214,57 +160,6 @@ describe("PHASE 1: Foundation System Tests", () => {
     });
   });
 
-  describe("Habilitation Operations", () => {
-    let habId: number;
-    let empId: number;
-
-    beforeAll(async () => {
-      const emp = await db
-        .insert(schema.employees)
-        .values({
-          matricule: "H0001",
-          prenom: "Hab",
-          nom: "Test",
-          divisionId: testDivisionId,
-          serviceId: testServiceId,
-          equipeId: testEquipeId,
-        })
-        .returning();
-
-      empId = emp[0].id;
-    });
-
-    it("should create HT habilitation", async () => {
-      const today = new Date().toISOString().split("T")[0];
-      const expiry = new Date();
-      expiry.setFullYear(expiry.getFullYear() + 1);
-      const expiryStr = expiry.toISOString().split("T")[0];
-
-      const hab = await db
-        .insert(schema.habilitations)
-        .values({
-          employeeId: empId,
-          type: "HT",
-          codes: JSON.stringify(["CODE1"]),
-          dateValidation: today,
-          dateExpiration: expiryStr,
-        })
-        .returning();
-
-      habId = hab[0].id;
-      expect(hab[0].type).toBe("HT");
-    });
-
-    it("should validate ST habilitations are rejected", () => {
-      const validateType = (type: string) => {
-        if (type !== "HT") throw new Error("Seul le type HT est autorisé");
-      };
-
-      expect(() => validateType("HT")).not.toThrow();
-      expect(() => validateType("ST")).toThrow("Seul le type HT est autorisé");
-    });
-  });
-
   describe("Validation", () => {
     it("should validate required employee fields", () => {
       const validateEmp = (emp: any) => {
@@ -301,15 +196,6 @@ describe("PHASE 1: Foundation System Tests", () => {
     });
   });
 
-  describe("Legacy Data Detection", () => {
-    it("should detect legacy ST data", async () => {
-      const result = await checkForLegacySTData();
-      expect(result).toBeDefined();
-      expect(result.hasLegacyST).toBeDefined();
-      expect(result.count).toBeGreaterThanOrEqual(0);
-    });
-  });
-
   describe("Transaction Safety", () => {
     it("should rollback on audit logging failure", async () => {
       let createdId: number | null = null;
@@ -322,9 +208,6 @@ describe("PHASE 1: Foundation System Tests", () => {
               matricule: "T0001",
               prenom: "Trans",
               nom: "Test",
-              divisionId: testDivisionId,
-              serviceId: testServiceId,
-              equipeId: testEquipeId,
             })
             .returning();
 

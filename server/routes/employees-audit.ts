@@ -167,7 +167,11 @@ export const getEmployees: RequestHandler = async (req, res) => {
 
     const whereClause = conditions.length === 1 ? conditions[0] : and(...conditions);
 
-    const sortField = req.query.sort === "expiration" ? schema.employeeVersions.dateExpiration : schema.employees.matricule;
+    const sortField = req.query.sort === "expiration"
+      ? schema.employeeVersions.dateExpiration
+      : req.query.sort === "nom"
+        ? schema.employees.nom
+        : schema.employees.matricule;
     const sortDir = req.query.sortDir === "desc" ? desc(sortField) : asc(sortField);
 
     // Full JOIN query: employees + versions + org names in one shot (no N+1)
