@@ -57,45 +57,44 @@ function validate(snapshot: VersionSnapshot): void {
 
 // ─── Coordinate constants (PDF points, y=0 at bottom) ────────────────────────
 
-// Page 1 main body fields
 const P1 = {
-  nDeTitre:  { x: 375.5,  y: 741.82 },
-  nomPrenom: { x: 134.45, y: 694.51 },
-  matricule: { x: 382.94, y: 694.51 },
-  fonction:  { x: 134.45, y: 674.59 },
-  entite:    { x: 134.45, y: 654.67 },
-  // Footer date fields
+  nDeTitre:       { x: 375.5,  y: 741.82 },
+  nomPrenom:      { x: 134.45, y: 694.51 },
+  matricule:      { x: 382.94, y: 694.51 },
+  fonction:       { x: 134.45, y: 674.59 },
+  entite:         { x: 134.45, y: 654.67 },
   dateDelivrance: { x: 128.21, y: 254.23 },
   valableJusquau: { x: 129.17, y: 243.19 },
-  // Footer repeated nom+prénom (has sample "BRAHIMI ALI" to clear)
-  footerNom:    { x: 357.74, y: 224.23 },
-  footerFonction: { x: 357.74, y: 209.81 },
 };
 
-// Page 2 — same main body positions, slightly shifted footer
 const P2 = {
   ...P1,
   dateDelivrance: { x: 128.21, y: 261.43 },
   valableJusquau: { x: 129.17, y: 250.15 },
-  footerNom:    { x: 357.74, y: 231.19 },
-  footerFonction: { x: 357.74, y: 216.79 },
 };
 
 // Table — 6 rows in official order
-// Symbole column: x=120.53–198.07, split ST(left)/HT(right) at midpoint 159.3
-const ST_CENTER = 140; // center of ST sub-column
-const HT_CENTER = 179; // center of HT sub-column
-const SZ_SYM  = 10;   // symbol font size (bigger + centered)
-const COL_DOM = 200;   // left-align in Domaine column (starts 198.55)
-const COL_OUV = 271;   // left-align in Ouvrages column (starts 269.38)
-const COL_IND = 413;   // left-align in Indications column (starts 411.29)
+// Symbol column spans x=120.53 to 198.07; center at 159
+const SYMBOL_CENTER = 159;
+const SYMBOL_LEFT   = 121;
+const SYMBOL_WIDTH  = 77;
+const SZ_SYM = 10;
+
+// Text column left-edge positions
+const COL_DOM = 200;  // Domaine de tension  (width ≈ 68pt to 268)
+const COL_OUV = 271;  // Ouvrages Concernés  (width ≈ 140pt to 411)
+const COL_IND = 413;  // Indications         (width ≈ 176pt to 589)
+
+const DOM_W = 68;
+const OUV_W = 140;
+const IND_W = 176;
 
 interface TableRow {
   stKey: string | null;
   htKey: string | null;
   rowKey: keyof HabRows;
-  ySym: number;   // y for Symbole text
-  yData: number;  // y for Domaine/Ouvrages/Indications text
+  ySym: number;
+  yData: number;
 }
 
 const TABLE_ROWS: TableRow[] = [
@@ -148,7 +147,38 @@ function drawTextScaled(
   page.drawText(text, { x, y, size: actualSize, font, color: rgb(0, 0, 0) });
 }
 
-// ─── Fill page 1 (the certificate with the table) ────────────────────────────
+function drawWrapped(
+  page: PDFPage,
+  text: string,
+  x: number, startY: number,
+  maxWidth: number, maxLines: number,
+  font: any, size: number,
+) {
+  if (!text) return;
+  const lineHeight = size * 1.35;
+  const words = text.split(' ');
+  let line = '';
+  let y = startY;
+  let linesDrawn = 0;
+
+  for (const word of words) {
+    const test = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(test, size) > maxWidth && line) {
+      if (linesDrawn >= maxLines) break;
+      drawText(page, line, x, y, font, size);
+      line = word;
+      y -= lineHeight;
+      linesDrawn++;
+    } else {
+      line = test;
+    }
+  }
+  if (line && linesDrawn < maxLines) {
+    drawText(page, line, x, y, font, size);
+  }
+}
+
+// ─── Fill page 1 (certificate with table) ────────────────────────────────────
 
 function fillPage1(
   page: PDFPage,
@@ -156,82 +186,77 @@ function fillPage1(
   fonts: { regular: any; bold: any },
 ) {
   const { regular, bold } = fonts;
-  const SZ = 9;
+  const SZ  = 9;
   const SZS = 8;
 
+  // Title N°
   drawText(page, snapshot.nDeTitre, P1.nDeTitre.x, P1.nDeTitre.y, bold, SZ);
 
-  const fullName = `${snapshot.prenom} ${snapshot.nom}`;
-  drawText(page, fullName, P1.nomPrenom.x, P1.nomPrenom.y, bold, SZ);
+  // Header fields
+  drawText(page, `${snapshot.prenom} ${snapshot.nom}`, P1.nomPrenom.x, P1.nomPrenom.y, bold, SZ);
   drawText(page, snapshot.matricule, P1.matricule.x, P1.matricule.y, bold, SZ);
-  drawText(page, snapshot.fonction, P1.fonction.x, P1.fonction.y, bold, SZ);
+  drawText(page, snapshot.fonction,  P1.fonction.x,  P1.fonction.y,  bold, SZ);
 
-  // Entité d'affectation: Division / Service / Equipe — skip any null/empty level
+  // Entité d'affectation: clear "/ /" placeholders and write full hierarchy
   clearRect(page, P1.entite.x, P1.entite.y - 2, 415, 12);
   const entiteParts = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean) as string[];
-  const entiteStr = entiteParts.join(' / ');
-  drawTextScaled(page, entiteStr, P1.entite.x, P1.entite.y, 410, bold, SZ);
+  drawTextScaled(page, entiteParts.join(' / '), P1.entite.x, P1.entite.y, 410, bold, SZ);
 
+  // Dates
   drawText(page, formatDateFrench(snapshot.dateValidation), P1.dateDelivrance.x, P1.dateDelivrance.y, regular, SZ);
-  drawText(page, formatDateFrench(snapshot.dateExpiration), P1.valableJusquau.x, P1.valableJusquau.y, regular, SZ);
+  drawText(page, formatDateFrench(snapshot.dateExpiration), P1.valableJusquau.x,  P1.valableJusquau.y,  regular, SZ);
 
-  // Footer: clear sample "BRAHIMI ALI" then write real name + fonction
-  clearRect(page, P1.footerNom.x, P1.footerNom.y - 2, 220, 12);
-  drawText(page, fullName, P1.footerNom.x, P1.footerNom.y, bold, SZ);
-  clearRect(page, P1.footerFonction.x, P1.footerFonction.y - 2, 220, 12);
-  drawText(page, snapshot.fonction, P1.footerFonction.x, P1.footerFonction.y, regular, SZ);
+  // Table rows — fill every row: active rows get codes + text, inactive rows get XXX
+  const allCodes = [...(snapshot.stCodes ?? []), ...(snapshot.htCodes ?? [])];
 
-  // Table: for each active row draw centered symboles + domaine/ouvrage/indication
   for (const row of TABLE_ROWS) {
-    const allCodes = [...(snapshot.stCodes ?? []), ...(snapshot.htCodes ?? [])];
     const hasST = row.stKey != null && allCodes.includes(row.stKey);
     const hasHT = row.htKey != null && allCodes.includes(row.htKey);
-    if (!hasST && !hasHT) continue;
 
-    // ST sub-column: show code if active, XXX if this row has an ST slot but no ST code
-    if (row.stKey != null) {
-      drawCentered(page, hasST ? row.stKey : 'XXX', ST_CENTER, row.ySym, bold, SZ_SYM);
-    }
-    // HT sub-column: show code if active, XXX if this row has an HT slot but no HT code
-    if (row.htKey != null) {
-      drawCentered(page, hasHT ? row.htKey : 'XXX', HT_CENTER, row.ySym, bold, SZ_SYM);
-    }
+    if (hasST || hasHT) {
+      // Build combined symbol text: "H2V – B2V", "BR", "HC – BC", etc.
+      const symbolText = hasST && hasHT
+        ? `${row.stKey} – ${row.htKey}`
+        : hasST ? row.stKey! : row.htKey!;
 
-    // Domaine / Ouvrage / Indication — always fill for active rows, XXX if missing
-    const rowData = snapshot.habRows?.[row.rowKey];
-    drawText(page, rowData?.domaine    || 'XXX', COL_DOM, row.yData, regular, SZS);
-    drawText(page, rowData?.ouvrage    || 'XXX', COL_OUV, row.yData, regular, SZS);
-    drawText(page, rowData?.indication || 'XXX', COL_IND, row.yData, regular, SZS);
+      clearRect(page, SYMBOL_LEFT, row.ySym - 4, SYMBOL_WIDTH, 14);
+      drawCentered(page, symbolText, SYMBOL_CENTER, row.ySym, bold, SZ_SYM);
+
+      // Domaine / Ouvrages / Indications — use habRows data if available, else XXX
+      const rowData = snapshot.habRows?.[row.rowKey];
+      drawWrapped(page, rowData?.domaine    || 'XXX', COL_DOM, row.yData, DOM_W, 3, regular, SZS);
+      drawWrapped(page, rowData?.ouvrage    || 'XXX', COL_OUV, row.yData, OUV_W, 3, regular, SZS);
+      drawWrapped(page, rowData?.indication || 'XXX', COL_IND, row.yData, IND_W, 3, regular, SZS);
+    } else {
+      // Inactive row — fill all columns with XXX
+      clearRect(page, SYMBOL_LEFT, row.ySym - 4, SYMBOL_WIDTH, 14);
+      drawCentered(page, 'XXX', SYMBOL_CENTER, row.ySym, regular, SZS);
+      drawText(page, 'XXX', COL_DOM, row.yData, regular, SZS);
+      drawText(page, 'XXX', COL_OUV, row.yData, regular, SZS);
+      drawText(page, 'XXX', COL_IND, row.yData, regular, SZS);
+    }
   }
 }
 
-// ─── Fill page 2 (AVIS / back page — only title + footer) ────────────────────
-// Page 2 body contains the legal AVIS text; only the n° de titre (top) and
-// the footer date/signature area need to be filled.
+// ─── Fill page 2 (AVIS / back page) ──────────────────────────────────────────
 
 function fillPage2(
   page: PDFPage,
   snapshot: VersionSnapshot,
   fonts: { regular: any; bold: any },
 ) {
-  const { regular, bold } = fonts;
+  const { regular } = fonts;
   const SZ = 9;
-  const fullName = `${snapshot.prenom} ${snapshot.nom}`;
 
-  // N° de titre in the title area (top right)
-  drawText(page, snapshot.nDeTitre, P2.nDeTitre.x, P2.nDeTitre.y, bold, SZ);
+  // N° de titre
+  drawText(page, snapshot.nDeTitre, P2.nDeTitre.x, P2.nDeTitre.y, fonts.bold, SZ);
 
-  // "Autorisations (ou restrictions) spéciales :" label sits at y=251.83 (x=22–180)
-  // which overlaps "Valable jusqu'au" fill at y=250.15. Clear the whole band.
+  // Dates — clear the "Autorisations" label band that overlaps valableJusquau
   clearRect(page, 0, P2.valableJusquau.y - 4, 340, 14);
   drawText(page, formatDateFrench(snapshot.dateValidation), P2.dateDelivrance.x, P2.dateDelivrance.y, regular, SZ);
   drawText(page, formatDateFrench(snapshot.dateExpiration), P2.valableJusquau.x,  P2.valableJusquau.y,  regular, SZ);
 
-  // Footer signature area — clear sample data and write actual values
-  clearRect(page, P2.footerNom.x,     P2.footerNom.y - 2,     220, 12);
-  drawText(page, fullName,             P2.footerNom.x,     P2.footerNom.y,     bold,    SZ);
-  clearRect(page, P2.footerFonction.x, P2.footerFonction.y - 2, 220, 12);
-  drawText(page, snapshot.fonction,    P2.footerFonction.x, P2.footerFonction.y, regular, SZ);
+  // Footer (BRAHIMI ALI) is pre-printed in the template — do NOT overwrite
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -245,20 +270,17 @@ export async function generateHabilitationPdf(
   const templateBytes = fs.readFileSync(TEMPLATE_PATH);
   const pdfDoc = await PDFDocument.load(templateBytes);
 
-  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helvetica     = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const fonts = { regular: helvetica, bold: helveticaBold };
 
   const pages = pdfDoc.getPages();
-
-  // Fill page 1 (front)
   if (pages[0]) fillPage1(pages[0], snapshot, fonts);
-  // Fill page 2 (AVIS page — only title + footer)
   if (pages[1]) fillPage2(pages[1], snapshot, fonts);
 
   const pdfBytes = await pdfDoc.save();
-  const filename = `hab${snapshot.matricule}_v${versionNumber}.pdf`;
-  const fullPath = path.join(UPLOAD_DIR, filename);
+  const filename  = `hab${snapshot.matricule}_v${versionNumber}.pdf`;
+  const fullPath  = path.join(UPLOAD_DIR, filename);
   fs.writeFileSync(fullPath, pdfBytes);
 
   const stats = fs.statSync(fullPath);
