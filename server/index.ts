@@ -101,17 +101,17 @@ export function createServer() {
 
   app.post("/api/auth/login", async (req, res) => {
     const { handleLogin } = await import("./routes/auth");
-    handleLogin(req, res);
+    handleLogin(req, res, () => {});
   });
 
   app.post("/api/auth/logout", async (req, res) => {
     const { handleLogout } = await import("./routes/auth");
-    handleLogout(req, res);
+    handleLogout(req, res, () => {});
   });
 
   app.post("/api/auth/refresh", async (req, res) => {
     const { handleRefresh } = await import("./routes/auth");
-    handleRefresh(req, res);
+    handleRefresh(req, res, () => {});
   });
 
   // ============================================================================
@@ -120,24 +120,24 @@ export function createServer() {
 
   app.get("/api/stats", async (req, res) => {
     const { authMiddleware, getStats } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => getStats(req, res));
+    authMiddleware(req, res, () => getStats(req, res, () => {}));
   });
 
   app.get("/api/reports/expiration/pdf", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { downloadExpirationReportPdf } = await import("./routes/reports");
-    authMiddleware(req, res, () => downloadExpirationReportPdf(req, res));
+    authMiddleware(req, res, () => downloadExpirationReportPdf(req, res, () => {}));
   });
 
   app.get("/api/reports/expiration", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { getExpirationReport } = await import("./routes/reports");
-    authMiddleware(req, res, () => getExpirationReport(req, res));
+    authMiddleware(req, res, () => getExpirationReport(req, res, () => {}));
   });
 
   app.get("/api/employees/export", async (req, res) => {
     const { authMiddleware, exportEmployees } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => exportEmployees(req, res));
+    authMiddleware(req, res, () => exportEmployees(req, res, () => {}));
   });
 
   app.post("/api/employees/bulk-generate-pdf", async (req, res) => {
@@ -226,42 +226,42 @@ export function createServer() {
 
   app.get("/api/employees", async (req, res) => {
     const { authMiddleware, getEmployees } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => getEmployees(req, res));
+    authMiddleware(req, res, () => getEmployees(req, res, () => {}));
   });
 
   app.post("/api/employees", async (req, res) => {
     const { authMiddleware, createEmployee } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => createEmployee(req, res));
+    authMiddleware(req, res, () => createEmployee(req, res, () => {}));
   });
 
   app.get("/api/employees/:id", async (req, res) => {
     const { authMiddleware, getEmployee } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => getEmployee(req, res));
+    authMiddleware(req, res, () => getEmployee(req, res, () => {}));
   });
 
   app.put("/api/employees/:id", async (req, res) => {
     const { authMiddleware, updateEmployee } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => updateEmployee(req, res));
+    authMiddleware(req, res, () => updateEmployee(req, res, () => {}));
   });
 
   app.delete("/api/employees/:id", async (req, res) => {
     const { authMiddleware, deleteEmployee } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => deleteEmployee(req, res));
+    authMiddleware(req, res, () => deleteEmployee(req, res, () => {}));
   });
 
   app.post("/api/employees/:id/restore", async (req, res) => {
     const { authMiddleware, restoreEmployee } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => restoreEmployee(req, res));
+    authMiddleware(req, res, () => restoreEmployee(req, res, () => {}));
   });
 
   app.delete("/api/employees/:id/permanent", async (req, res) => {
     const { authMiddleware, permanentDeleteEmployee } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => permanentDeleteEmployee(req, res));
+    authMiddleware(req, res, () => permanentDeleteEmployee(req, res, () => {}));
   });
 
   app.post("/api/employees/:id/revert/:versionId", async (req, res) => {
     const { authMiddleware, revertToVersion } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => revertToVersion(req, res));
+    authMiddleware(req, res, () => revertToVersion(req, res, () => {}));
   });
 
   // ============================================================================
@@ -270,17 +270,17 @@ export function createServer() {
 
   app.get("/api/divisions", async (req, res) => {
     const { getDivisions } = await import("./routes/employees-audit");
-    getDivisions(req, res);
+    getDivisions(req, res, () => {});
   });
 
   app.get("/api/divisions/:divisionId/services", async (req, res) => {
     const { getServicesByDivision } = await import("./routes/employees-audit");
-    getServicesByDivision(req, res);
+    getServicesByDivision(req, res, () => {});
   });
 
   app.get("/api/services/:serviceId/equipes", async (req, res) => {
     const { getEquipesByService } = await import("./routes/employees-audit");
-    getEquipesByService(req, res);
+    getEquipesByService(req, res, () => {});
   });
 
   app.get("/api/services", async (req, res) => {
@@ -455,25 +455,25 @@ export function createServer() {
   app.post("/api/renewals", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { createPendingRenewal } = await import("./routes/renewals");
-    authMiddleware(req, res, () => createPendingRenewal(req, res));
+    authMiddleware(req, res, () => createPendingRenewal(req, res, () => {}));
   });
 
   app.get("/api/renewals", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { listPendingRenewals } = await import("./routes/renewals");
-    authMiddleware(req, res, () => listPendingRenewals(req, res));
+    authMiddleware(req, res, () => listPendingRenewals(req, res, () => {}));
   });
 
   app.post("/api/renewals/:id/activate", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { activatePendingRenewal } = await import("./routes/renewals");
-    authMiddleware(req, res, () => activatePendingRenewal(req, res));
+    authMiddleware(req, res, () => activatePendingRenewal(req, res, () => {}));
   });
 
   app.delete("/api/renewals/:id", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { deletePendingRenewal } = await import("./routes/renewals");
-    authMiddleware(req, res, () => deletePendingRenewal(req, res));
+    authMiddleware(req, res, () => deletePendingRenewal(req, res, () => {}));
   });
 
   // ============================================================================
@@ -483,31 +483,31 @@ export function createServer() {
   app.get("/api/audit-logs", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { getAuditLogs_Handler } = await import("./routes/auditLog");
-    authMiddleware(req, res, () => getAuditLogs_Handler(req, res));
+    authMiddleware(req, res, () => getAuditLogs_Handler(req, res, () => {}));
   });
 
   app.get("/api/audit-logs/export", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { exportAuditLogs_Handler } = await import("./routes/auditLog");
-    authMiddleware(req, res, () => exportAuditLogs_Handler(req, res));
+    authMiddleware(req, res, () => exportAuditLogs_Handler(req, res, () => {}));
   });
 
   app.get("/api/audit-logs/employee/:employeeId", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { getEmployeeAuditHistory_Handler } = await import("./routes/auditLog");
-    authMiddleware(req, res, () => getEmployeeAuditHistory_Handler(req, res));
+    authMiddleware(req, res, () => getEmployeeAuditHistory_Handler(req, res, () => {}));
   });
 
   app.get("/api/audit-logs/:id", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { getAuditLogEntry_Handler } = await import("./routes/auditLog");
-    authMiddleware(req, res, () => getAuditLogEntry_Handler(req, res));
+    authMiddleware(req, res, () => getAuditLogEntry_Handler(req, res, () => {}));
   });
 
   app.post("/api/audit-logs/:id/revert", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     const { revertAuditLog_Handler } = await import("./routes/auditLog");
-    authMiddleware(req, res, () => revertAuditLog_Handler(req, res));
+    authMiddleware(req, res, () => revertAuditLog_Handler(req, res, () => {}));
   });
 
   // ============================================================================
@@ -568,7 +568,7 @@ export function createServer() {
 
   app.delete("/api/employees/:employeeId/pdf", async (req, res) => {
     const { authMiddleware, deletePdf } = await import("./routes/employees-audit");
-    authMiddleware(req, res, () => deletePdf(req, res));
+    authMiddleware(req, res, () => deletePdf(req, res, () => {}));
   });
 
   app.post("/api/employees/:employeeId/generate-pdf", async (req, res) => {

@@ -185,7 +185,7 @@ export async function serviceExists(
       query.where(
         and(
           eq(schema.services.id, serviceId),
-          eq(schema.services.division_id, divisionId)
+          eq(schema.services.divisionId, divisionId)
         )
       );
     } else {
@@ -217,7 +217,7 @@ export async function equipeExists(
       query.where(
         and(
           eq(schema.equipes.id, equipeId),
-          eq(schema.equipes.service_id, serviceId)
+          eq(schema.equipes.serviceId, serviceId)
         )
       );
     } else {
@@ -330,8 +330,8 @@ export async function getLatestVersionBeforeDeletion(
     const result = await db
       .select()
       .from(schema.employeeVersions)
-      .where(eq(schema.employeeVersions.employee_id, employeeId))
-      .orderBy(schema.employeeVersions.version)
+      .where(eq(schema.employeeVersions.employeeId, employeeId))
+      .orderBy(schema.employeeVersions.versionNumber)
       .limit(1);
 
     return result[0] || null;
@@ -463,7 +463,6 @@ export default {
   serviceExists,
   equipeExists,
   employeeExists,
-  habilitationExists,
   validateOrgHierarchy,
   canRestoreFromTrash,
   getLatestVersionBeforeDeletion,

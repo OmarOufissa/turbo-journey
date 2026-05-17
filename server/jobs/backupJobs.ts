@@ -77,8 +77,6 @@ export async function dailyBackupJob(): Promise<{
       await logAuditActionSafe(
         null,
         "EXPORT_EMPLOYEES",
-        "system",
-        null,
         null,
         null,
         {
@@ -112,8 +110,6 @@ export async function dailyBackupJob(): Promise<{
       await logAuditActionSafe(
         null,
         "EXPORT_EMPLOYEES",
-        "system",
-        null,
         null,
         null,
         {
@@ -163,11 +159,9 @@ export async function cloudBackupJob(): Promise<{
         await logAuditActionSafe(
           null,
           "EXPORT_EMPLOYEES",
-          "system",
-          null,
-          null,
-          null,
-          {
+        null,
+        null,
+        {
             action: "Cloud backup job ran but AWS S3 not configured",
             note: "Configure AWS credentials to enable cloud uploads",
           }
@@ -194,11 +188,9 @@ export async function cloudBackupJob(): Promise<{
         await logAuditActionSafe(
           null,
           "EXPORT_EMPLOYEES",
-          "system",
-          null,
-          null,
-          null,
-          {
+        null,
+        null,
+        {
             action: "Cloud backup job FAILED",
             error: errorMsg,
           }
@@ -237,11 +229,9 @@ export async function cloudBackupJob(): Promise<{
         await logAuditActionSafe(
           null,
           "EXPORT_EMPLOYEES",
-          "system",
-          null,
-          null,
-          null,
-          {
+        null,
+        null,
+        {
             action: "Cloud backup job FAILED",
             backupId: latestBackup.backupId,
             errors: uploadResult.errors,
@@ -279,8 +269,6 @@ export async function cloudBackupJob(): Promise<{
       await logAuditActionSafe(
         null,
         "EXPORT_EMPLOYEES",
-        "system",
-        null,
         null,
         null,
         {
@@ -313,8 +301,6 @@ export async function cloudBackupJob(): Promise<{
       await logAuditActionSafe(
         null,
         "EXPORT_EMPLOYEES",
-        "system",
-        null,
         null,
         null,
         {
@@ -405,6 +391,8 @@ export async function initializeBackupJobs(): Promise<{
     // Try to import cron
     let cron: any;
     try {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore optional dependency
       cron = await import("node-cron");
     } catch (importErr) {
       console.warn(

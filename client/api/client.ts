@@ -15,11 +15,10 @@ export async function apiClient<T>(
 ): Promise<T> {
   const token = localStorage.getItem("token");
   
-  const headers: HeadersInit = {
-    ...options.headers,
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string>),
   };
 
-  // Add Authorization header if token exists
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }

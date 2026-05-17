@@ -173,9 +173,9 @@ export async function initializeDatabase() {
 }
 
 export async function withAuditTransaction<T>(
-  callback: (txDb: typeof db) => Promise<T>
+  callback: (txDb: any) => Promise<T>
 ): Promise<T> {
-  return db.transaction(callback);
+  return db.transaction(callback as any);
 }
 
 export function validateDataIntegrity(

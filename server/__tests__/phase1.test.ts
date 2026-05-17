@@ -40,9 +40,7 @@ describe("PHASE 1: Foundation System Tests", () => {
         await logAuditActionSafe(
           1,
           "CREATE_EMPLOYEE",
-          "employee",
           emp.id,
-          emp.matricule,
           null,
           {
             matricule: emp.matricule,
@@ -86,9 +84,7 @@ describe("PHASE 1: Foundation System Tests", () => {
         await logAuditActionSafe(
           1,
           "UPDATE_EMPLOYEE",
-          "employee",
           employeeId,
-          emp.matricule,
           {
             nom: emp.nom,
           },
@@ -129,9 +125,7 @@ describe("PHASE 1: Foundation System Tests", () => {
         await logAuditActionSafe(
           1,
           "DELETE_EMPLOYEE",
-          "employee",
           employeeId,
-          emp.matricule,
           {
             matricule: emp.matricule,
             nom: emp.nom,
@@ -238,8 +232,8 @@ describe("PHASE 1: Foundation System Tests", () => {
         .limit(10);
 
       for (let i = 1; i < logs.length; i++) {
-        expect(logs[i].createdAt.getTime()).toBeGreaterThanOrEqual(
-          logs[i - 1].createdAt.getTime()
+        expect(new Date(logs[i].createdAt).getTime()).toBeGreaterThanOrEqual(
+          new Date(logs[i - 1].createdAt).getTime()
         );
       }
     });

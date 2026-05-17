@@ -2,7 +2,7 @@ import { dbRun, dbGet, getDatabase } from "./db";
 import { format } from "date-fns";
 import { loadExcelRows, ExcelRow } from "./excel-loader";
 import {
-  ORGANIZATIONAL_STRUCTURE,
+  ORGANIZATIONAL_STRUCTURE as ORG_STRUCTURE,
   fixCasing,
   findMatchingDivision,
   findMatchingService,
@@ -30,7 +30,7 @@ interface EmployeeData {
   dateExpiration?: string;
 }
 
-const ORGANIZATIONAL_STRUCTURE: DivisionStructure[] = ORGANIZATIONAL_STRUCTURE;
+const ORGANIZATIONAL_STRUCTURE: DivisionStructure[] = ORG_STRUCTURE;
 
 const MATRICULE_KEYS = ["matricule", "MATRICULE"];
 const NOM_KEYS = ["nom", "Nom", "NOM"];

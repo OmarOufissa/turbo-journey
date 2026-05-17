@@ -9,7 +9,7 @@ import { ensureRequiredDirectories, getMissingDirectories, getUnwritableDirector
 import { logger } from "./logger";
 import { db } from "../db-pg";
 import * as schema from "../schema";
-import { sql, isNull, not } from "drizzle-orm";
+import { isNull, not } from "drizzle-orm";
 
 export interface HealthCheckResult {
   name: string;
@@ -65,7 +65,7 @@ async function checkDirectories(): Promise<HealthCheckResult> {
 
 async function checkDatabase(): Promise<HealthCheckResult> {
   try {
-    await db.execute(sql`SELECT 1`);
+    await db.$client.execute("SELECT 1");
     return { name: "database", status: "ok", message: "Connexion base de données opérationnelle" };
   } catch (err) {
     return {
@@ -111,12 +111,9 @@ async function checkJwtConfig(): Promise<HealthCheckResult> {
 
 async function checkOrphanedVersions(): Promise<HealthCheckResult> {
   try {
-    const orphaned = await db.execute(sql`
-      SELECT e.id, e.matricule
-      FROM employees e
-      LEFT JOIN employee_versions ev ON e.current_version_id = ev.id
-      WHERE e.current_version_id IS NOT NULL AND ev.id IS NULL AND e.deleted = false
-    `);
+    const orphaned = await db.$client.execute(
+      "SELECT e.id, e.matricule FROM employees e LEFT JOIN employee_versions ev ON e.current_version_id = ev.id WHERE e.current_version_id IS NOT NULL AND ev.id IS NULL AND e.deleted = false"
+    );
 
     const rows: Array<{ id: number; matricule: string }> = Array.isArray(orphaned)
       ? (orphaned as any[])
@@ -127,13 +124,10 @@ async function checkOrphanedVersions(): Promise<HealthCheckResult> {
     }
 
     for (const row of rows) {
-      await db.execute(sql`
-        UPDATE employees SET current_version_id = (
-          SELECT id FROM employee_versions
-          WHERE employee_id = ${row.id}
-          ORDER BY version_number DESC LIMIT 1
-        ) WHERE id = ${row.id}
-      `);
+      await db.$client.execute({
+        sql: "UPDATE employees SET current_version_id = (SELECT id FROM employee_versions WHERE employee_id = ? ORDER BY version_number DESC LIMIT 1) WHERE id = ?",
+        args: [row.id, row.id],
+      });
     }
 
     return {
@@ -163,7 +157,7 @@ async function checkOrphanedPdfs(): Promise<HealthCheckResult> {
         const filePath = path.join(PDFS_DIR, path.basename(ver.pdfPath));
         if (!fs.existsSync(filePath)) {
           missingCount++;
-          await db.execute(sql`UPDATE employee_versions SET pdf_path = NULL WHERE id = ${ver.id}`);
+          await db.$client.execute({ sql: "UPDATE employee_versions SET pdf_path = NULL WHERE id = ?", args: [ver.id] });
         }
       }
     }
@@ -188,12 +182,9 @@ async function checkOrphanedPdfs(): Promise<HealthCheckResult> {
 
 async function checkDuplicateVersionNumbers(): Promise<HealthCheckResult> {
   try {
-    const dupes = await db.execute(sql`
-      SELECT employee_id, version_number, count(*) as cnt
-      FROM employee_versions
-      GROUP BY employee_id, version_number
-      HAVING count(*) > 1
-    `);
+    const dupes = await db.$client.execute(
+      "SELECT employee_id, version_number, count(*) as cnt FROM employee_versions GROUP BY employee_id, version_number HAVING count(*) > 1"
+    );
     const rows: any[] = Array.isArray(dupes) ? dupes : ((dupes as any).rows ?? []);
     if (rows.length === 0) {
       return { name: "duplicate_versions", status: "ok", message: "Aucun doublon de numéro de version détecté" };
@@ -210,14 +201,9 @@ async function checkDuplicateVersionNumbers(): Promise<HealthCheckResult> {
 
 async function checkBrokenOrgReferences(): Promise<HealthCheckResult> {
   try {
-    const broken = await db.execute(sql`
-      SELECT ev.id
-      FROM employee_versions ev
-      LEFT JOIN divisions d ON ev.division_id = d.id
-      LEFT JOIN services s ON ev.service_id = s.id
-      WHERE d.id IS NULL OR s.id IS NULL
-      LIMIT 100
-    `);
+    const broken = await db.$client.execute(
+      "SELECT ev.id FROM employee_versions ev LEFT JOIN divisions d ON ev.division_id = d.id LEFT JOIN services s ON ev.service_id = s.id WHERE d.id IS NULL OR s.id IS NULL LIMIT 100"
+    );
     const rows: any[] = Array.isArray(broken) ? broken : ((broken as any).rows ?? []);
     if (rows.length === 0) {
       return { name: "org_references", status: "ok", message: "Toutes les références organisationnelles sont valides" };

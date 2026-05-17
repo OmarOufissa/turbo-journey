@@ -240,7 +240,7 @@ export default function Employees() {
           <EmptyState
             title="Aucun employé"
             description="Ajoutez votre premier employé ou modifiez les filtres"
-            action={<Link to="/employees/add"><Button>Ajouter un employé</Button></Link>}
+            action={{ label: "Ajouter un employé", onClick: () => navigate("/employees/add") }}
           />
         ) : (
           <>

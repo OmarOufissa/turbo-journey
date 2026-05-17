@@ -13,7 +13,7 @@ const habRowDataSchema = z.object({
   indication: z.string().default(''),
 });
 
-const versionFields = z.object({
+const versionFieldsBase = z.object({
   stCodes: z.array(z.string()).default([]),
   htCodes: z.array(z.string()).default([]),
   nDeTitre: z.string().min(1, "N° de titre requis"),
@@ -24,23 +24,28 @@ const versionFields = z.object({
   habRows: z.record(z.string(), habRowDataSchema).nullable().optional(),
   dateValidation: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
   dateExpiration: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
-}).refine((d) => (d.stCodes.length > 0 || d.htCodes.length > 0), {
-  message: "Au moins un code ST ou HT requis",
-}).refine((d) => d.dateExpiration > d.dateValidation, {
-  message: "Date d'expiration doit être après date de validation",
 });
 
-const createEmployeeSchema = versionFields.extend({
-  matricule: z.string().regex(/^\d{5}$/, "Matricule doit être 5 chiffres"),
-  nom: z.string().min(1, "Nom requis"),
-  prenom: z.string().min(1, "Prénom requis"),
-});
+const addVersionRefinements = <T extends z.ZodTypeAny>(schema: T) =>
+  schema
+    .refine((d: any) => (d.stCodes.length > 0 || d.htCodes.length > 0), { message: "Au moins un code ST ou HT requis" })
+    .refine((d: any) => d.dateExpiration > d.dateValidation, { message: "Date d'expiration doit être après date de validation" });
 
-const updateEmployeeSchema = versionFields.extend({
-  nom: z.string().min(1).optional(),
-  prenom: z.string().min(1).optional(),
-  expectedUpdatedAt: z.string().optional(),
-});
+const createEmployeeSchema = addVersionRefinements(
+  versionFieldsBase.extend({
+    matricule: z.string().regex(/^\d{5}$/, "Matricule doit être 5 chiffres"),
+    nom: z.string().min(1, "Nom requis"),
+    prenom: z.string().min(1, "Prénom requis"),
+  })
+);
+
+const updateEmployeeSchema = addVersionRefinements(
+  versionFieldsBase.extend({
+    nom: z.string().min(1).optional(),
+    prenom: z.string().min(1).optional(),
+    expectedUpdatedAt: z.string().optional(),
+  })
+);
 
 // ============================================================================
 // AUTH MIDDLEWARE

@@ -14,7 +14,7 @@ export function useEmployees() {
     refetch,
   } = useQuery<Employee[]>({
     queryKey: ["employees"],
-    queryFn: getEmployees,
+    queryFn: () => getEmployees() as unknown as Promise<Employee[]>,
   });
 
   const deleteEmployeeMutation = useMutation({

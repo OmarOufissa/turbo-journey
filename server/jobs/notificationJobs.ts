@@ -102,6 +102,8 @@ export async function weeklySummaryJob(): Promise<{ success: boolean; errors: st
 export async function initializeNotificationJobs(): Promise<{ initialized: boolean; jobsCount: number }> {
   let cron: any;
   try {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore optional dependency
     cron = await import("node-cron");
   } catch {
     console.warn("[JOB] node-cron not installed — scheduled jobs disabled");
