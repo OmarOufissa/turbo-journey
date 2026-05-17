@@ -55,7 +55,7 @@ function validate(snapshot: VersionSnapshot): void {
     throw new PdfValidationError('date_expiration must be after date_validation');
 }
 
-// ─── Coordinate constants (PDF points, y=0 at bottom) ────────────────────────
+// ─── Header field coordinates ─────────────────────────────────────────────────
 
 const P1 = {
   nDeTitre:       { x: 375.5,  y: 741.82 },
@@ -67,50 +67,62 @@ const P1 = {
   valableJusquau: { x: 129.17, y: 243.19 },
 };
 
+// Page 2 has a different header layout — coordinates from stream 9
 const P2 = {
   ...P1,
+  nDeTitre:       { x: 372.38, y: 724.3  },
   dateDelivrance: { x: 128.21, y: 261.43 },
   valableJusquau: { x: 129.17, y: 250.15 },
 };
 
-// Table — 6 rows in official order
-// Symbol column spans x=120.53 to 198.07; center at 159
-const SYMBOL_CENTER = 159;
-const SYMBOL_LEFT   = 121;
-const SYMBOL_WIDTH  = 77;
-const SZ_SYM = 10;
+// ─── Table geometry ───────────────────────────────────────────────────────────
+// Column boundaries (x) and where the data rows start (y = dataTop)
 
-// Text column left-edge positions
-const COL_DOM = 200;  // Domaine de tension  (width ≈ 68pt to 268)
-const COL_OUV = 271;  // Ouvrages Concernés  (width ≈ 140pt to 411)
-const COL_IND = 413;  // Indications         (width ≈ 176pt to 589)
+const T = {
+  left:    28.08,   // matches template's left outer border
+  right:   566.86,  // matches template's right outer border
+  dataTop: 577.37,  // exact bottom edge of column-header row (from template stream)
+  cSym:    120,
+  cDom:    198,
+  cOuv:    269,
+  cInd:    411,
+} as const;
 
-const DOM_W = 68;
-const OUV_W = 140;
-const IND_W = 176;
+const CELL_PAD  = 3;           // padding inside cells (pt)
+const SZ_CELL   = 7.5;         // font size for table data
+const SZ_SYM    = 9;           // font size for active symbol codes
+const CELL_LH   = SZ_CELL * 1.3; // line height
+const MIN_ROW_H = 20;          // minimum row height (pt)
+
+// Personnel column labels — use \n for forced line breaks
+const PERSONNEL_LABELS = [
+  'Non Électricien\nHabilité',
+  'Électricien\nExécutant',
+  'Chargé des\nInterventions',
+  'Chargé de\nTravaux',
+  'Chargé de\nConsignation',
+  'Habilités\nSpéciaux',
+];
 
 interface TableRow {
   stKey: string | null;
   htKey: string | null;
   rowKey: keyof HabRows;
-  ySym: number;
-  yData: number;
 }
 
 const TABLE_ROWS: TableRow[] = [
-  { stKey: 'H0V', htKey: 'B0V', rowKey: 'H0V_B0V', ySym: 560.57, yData: 560.57 },
-  { stKey: 'H1V', htKey: 'B1V', rowKey: 'H1V_B1V', ySym: 533.18, yData: 533.66 },
-  { stKey: null,  htKey: 'BR',  rowKey: 'BR',       ySym: 508.22, yData: 508.70 },
-  { stKey: 'H2V', htKey: 'B2V', rowKey: 'H2V_B2V', ySym: 485.66, yData: 485.66 },
-  { stKey: 'HC',  htKey: 'BC',  rowKey: 'HC_BC',   ySym: 462.60, yData: 462.84 },
-  { stKey: null,  htKey: 'SF6', rowKey: 'SF6',      ySym: 436.44, yData: 436.44 },
+  { stKey: 'H0V', htKey: 'B0V', rowKey: 'H0V_B0V' },
+  { stKey: 'H1V', htKey: 'B1V', rowKey: 'H1V_B1V' },
+  { stKey: null,  htKey: 'BR',  rowKey: 'BR'       },
+  { stKey: 'H2V', htKey: 'B2V', rowKey: 'H2V_B2V'  },
+  { stKey: 'HC',  htKey: 'BC',  rowKey: 'HC_BC'    },
+  { stKey: null,  htKey: 'SF6', rowKey: 'SF6'       },
 ];
 
 // ─── Draw helpers ─────────────────────────────────────────────────────────────
 
 function drawText(
-  page: PDFPage,
-  text: string,
+  page: PDFPage, text: string,
   x: number, y: number,
   font: any, size: number,
   color = rgb(0, 0, 0),
@@ -124,8 +136,7 @@ function clearRect(page: PDFPage, x: number, y: number, w: number, h: number) {
 }
 
 function drawCentered(
-  page: PDFPage,
-  text: string,
+  page: PDFPage, text: string,
   centerX: number, y: number,
   font: any, size: number,
   color = rgb(0, 0, 0),
@@ -135,46 +146,152 @@ function drawCentered(
 }
 
 function drawTextScaled(
-  page: PDFPage,
-  text: string,
-  x: number, y: number,
-  maxWidth: number,
+  page: PDFPage, text: string,
+  x: number, y: number, maxWidth: number,
   font: any, size: number,
 ) {
   if (!text) return;
   const w = font.widthOfTextAtSize(text, size);
-  const actualSize = w > maxWidth ? size * (maxWidth / w) : size;
-  page.drawText(text, { x, y, size: actualSize, font, color: rgb(0, 0, 0) });
+  const sz = w > maxWidth ? size * (maxWidth / w) : size;
+  page.drawText(text, { x, y, size: sz, font, color: rgb(0, 0, 0) });
 }
 
-function drawWrapped(
-  page: PDFPage,
-  text: string,
-  x: number, startY: number,
-  maxWidth: number, maxLines: number,
+function drawLine(page: PDFPage, x1: number, y1: number, x2: number, y2: number) {
+  page.drawLine({ start: { x: x1, y: y1 }, end: { x: x2, y: y2 }, thickness: 0.5, color: rgb(0, 0, 0) });
+}
+
+// Count how many lines text needs when wrapped to maxWidth
+function countLines(text: string, maxW: number, font: any, size: number): number {
+  if (!text) return 1;
+  let total = 0;
+  for (const para of text.split('\n')) {
+    const words = para.split(' ').filter(Boolean);
+    if (words.length === 0) { total++; continue; }
+    let line = '';
+    let lines = 1;
+    for (const w of words) {
+      const test = line ? `${line} ${w}` : w;
+      if (font.widthOfTextAtSize(test, size) > maxW && line) { lines++; line = w; }
+      else line = test;
+    }
+    total += lines;
+  }
+  return Math.max(1, total);
+}
+
+// Draw text wrapped within a cell, starting from the top of the cell
+function drawCellText(
+  page: PDFPage, text: string,
+  cellX: number, cellTopY: number, maxW: number,
   font: any, size: number,
 ) {
-  if (!text) return;
-  const lineHeight = size * 1.35;
-  const words = text.split(' ');
-  let line = '';
-  let y = startY;
-  let linesDrawn = 0;
-
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (font.widthOfTextAtSize(test, size) > maxWidth && line) {
-      if (linesDrawn >= maxLines) break;
-      drawText(page, line, x, y, font, size);
-      line = word;
-      y -= lineHeight;
-      linesDrawn++;
-    } else {
-      line = test;
+  const lh = size * 1.3;
+  let y = cellTopY - CELL_PAD - size;
+  for (const para of text.split('\n')) {
+    const words = para.split(' ').filter(Boolean);
+    if (words.length === 0) { y -= lh; continue; }
+    let line = '';
+    for (const w of words) {
+      const test = line ? `${line} ${w}` : w;
+      if (font.widthOfTextAtSize(test, size) > maxW && line) {
+        drawText(page, line, cellX + CELL_PAD, y, font, size);
+        line = w; y -= lh;
+      } else line = test;
     }
+    if (line) { drawText(page, line, cellX + CELL_PAD, y, font, size); y -= lh; }
   }
-  if (line && linesDrawn < maxLines) {
-    drawText(page, line, x, y, font, size);
+}
+
+// ─── Dynamic table drawing ────────────────────────────────────────────────────
+
+function drawDynamicTable(
+  page: PDFPage,
+  snapshot: VersionSnapshot,
+  fonts: { regular: any; bold: any },
+) {
+  const { regular, bold } = fonts;
+  const allCodes = [...(snapshot.stCodes ?? []), ...(snapshot.htCodes ?? [])];
+
+  // Inner text widths for each column (subtract padding on both sides)
+  const wPer = T.cSym - T.left - 2 * CELL_PAD;
+  const wSym = T.cDom - T.cSym - 2 * CELL_PAD;
+  const wDom = T.cOuv - T.cDom - 2 * CELL_PAD;
+  const wOuv = T.cInd - T.cOuv - 2 * CELL_PAD;
+  const wInd = T.right - T.cInd - 2 * CELL_PAD;
+
+  // Build row data + calculate heights
+  const rows = TABLE_ROWS.map((row, idx) => {
+    const hasST = row.stKey != null && allCodes.includes(row.stKey);
+    const hasHT = row.htKey != null && allCodes.includes(row.htKey);
+    const isActive = hasST || hasHT;
+
+    const symbolText = isActive
+      ? (hasST && hasHT ? `${row.stKey} – ${row.htKey}` : hasST ? row.stKey! : row.htKey!)
+      : 'XXX';
+
+    const rd = isActive ? snapshot.habRows?.[row.rowKey] : null;
+    const domaine    = rd?.domaine    || 'XXX';
+    const ouvrage    = rd?.ouvrage    || 'XXX';
+    const indication = rd?.indication || 'XXX';
+
+    const labelLines = countLines(PERSONNEL_LABELS[idx], wPer, regular, SZ_CELL);
+    const symLines   = countLines(symbolText, wSym, isActive ? bold : regular, isActive ? SZ_SYM : SZ_CELL);
+    const domLines   = countLines(domaine,    wDom, regular, SZ_CELL);
+    const ouvLines   = countLines(ouvrage,    wOuv, regular, SZ_CELL);
+    const indLines   = countLines(indication, wInd, regular, SZ_CELL);
+
+    const maxLines = Math.max(labelLines, symLines, domLines, ouvLines, indLines);
+    const height   = Math.max(MIN_ROW_H, maxLines * CELL_LH + 2 * CELL_PAD);
+
+    return { row, label: PERSONNEL_LABELS[idx], isActive, hasST, hasHT, symbolText, domaine, ouvrage, indication, height };
+  });
+
+  const totalH    = rows.reduce((s, r) => s + r.height, 0);
+  const tableBottom = T.dataTop - totalH;
+
+  // Cover old data rows — top edge stops exactly at T.dataTop so header text is untouched
+  clearRect(page, T.left, tableBottom - 2, T.right - T.left, T.dataTop - tableBottom + 2);
+
+  // Top border of data area
+  drawLine(page, T.left, T.dataTop, T.right, T.dataTop);
+
+  // Draw rows top to bottom
+  let curY: number = T.dataTop;
+  for (const ri of rows) {
+    const rowTop    = curY;
+    const rowBottom = curY - ri.height;
+
+    // Bottom border
+    drawLine(page, T.left, rowBottom, T.right, rowBottom);
+
+    // Personnel label (top-aligned, wrapped)
+    drawCellText(page, ri.label, T.left, rowTop, wPer, regular, SZ_CELL);
+
+    // Symbol: vertically centered in cell
+    const symFont = ri.isActive ? bold : regular;
+    const symSz   = ri.isActive ? SZ_SYM : SZ_CELL;
+    const symCX   = (T.cSym + T.cDom) / 2;
+    const symCY   = (rowTop + rowBottom) / 2 - symSz * 0.35;
+    drawCentered(page, ri.symbolText, symCX, symCY, symFont, symSz);
+
+    // Data columns — XXX centered for inactive rows, wrapped text for active rows
+    const midY = (rowTop + rowBottom) / 2 - SZ_CELL * 0.35;
+    if (!ri.isActive) {
+      drawCentered(page, 'XXX', (T.cDom + T.cOuv) / 2, midY, regular, SZ_CELL);
+      drawCentered(page, 'XXX', (T.cOuv + T.cInd) / 2, midY, regular, SZ_CELL);
+      drawCentered(page, 'XXX', (T.cInd + T.right) / 2, midY, regular, SZ_CELL);
+    } else {
+      drawCellText(page, ri.domaine,    T.cDom, rowTop, wDom, regular, SZ_CELL);
+      drawCellText(page, ri.ouvrage,    T.cOuv, rowTop, wOuv, regular, SZ_CELL);
+      drawCellText(page, ri.indication, T.cInd, rowTop, wInd, regular, SZ_CELL);
+    }
+
+    curY = rowBottom;
+  }
+
+  // Vertical column separators spanning full data height
+  for (const x of [T.left, T.cSym, T.cDom, T.cOuv, T.cInd, T.right]) {
+    drawLine(page, x, tableBottom, x, T.dataTop);
   }
 }
 
@@ -186,77 +303,44 @@ function fillPage1(
   fonts: { regular: any; bold: any },
 ) {
   const { regular, bold } = fonts;
-  const SZ  = 9;
-  const SZS = 8;
+  const SZ = 9;
 
-  // Title N°
   drawText(page, snapshot.nDeTitre, P1.nDeTitre.x, P1.nDeTitre.y, bold, SZ);
 
-  // Header fields
   drawText(page, `${snapshot.prenom} ${snapshot.nom}`, P1.nomPrenom.x, P1.nomPrenom.y, bold, SZ);
-  drawText(page, snapshot.matricule, P1.matricule.x, P1.matricule.y, bold, SZ);
-  drawText(page, snapshot.fonction,  P1.fonction.x,  P1.fonction.y,  bold, SZ);
+  drawText(page, snapshot.matricule, P1.matricule.x,   P1.matricule.y, bold, SZ);
+  drawText(page, snapshot.fonction,  P1.fonction.x,    P1.fonction.y,  bold, SZ);
 
-  // Entité d'affectation: clear "/ /" placeholders and write full hierarchy
+  // Entité: clear the "/ /" placeholders and write hierarchical string
   clearRect(page, P1.entite.x, P1.entite.y - 2, 415, 12);
   const entiteParts = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean) as string[];
   drawTextScaled(page, entiteParts.join(' / '), P1.entite.x, P1.entite.y, 410, bold, SZ);
 
-  // Dates
   drawText(page, formatDateFrench(snapshot.dateValidation), P1.dateDelivrance.x, P1.dateDelivrance.y, regular, SZ);
   drawText(page, formatDateFrench(snapshot.dateExpiration), P1.valableJusquau.x,  P1.valableJusquau.y,  regular, SZ);
 
-  // Table rows — fill every row: active rows get codes + text, inactive rows get XXX
-  const allCodes = [...(snapshot.stCodes ?? []), ...(snapshot.htCodes ?? [])];
-
-  for (const row of TABLE_ROWS) {
-    const hasST = row.stKey != null && allCodes.includes(row.stKey);
-    const hasHT = row.htKey != null && allCodes.includes(row.htKey);
-
-    if (hasST || hasHT) {
-      // Build combined symbol text: "H2V – B2V", "BR", "HC – BC", etc.
-      const symbolText = hasST && hasHT
-        ? `${row.stKey} – ${row.htKey}`
-        : hasST ? row.stKey! : row.htKey!;
-
-      clearRect(page, SYMBOL_LEFT, row.ySym - 4, SYMBOL_WIDTH, 14);
-      drawCentered(page, symbolText, SYMBOL_CENTER, row.ySym, bold, SZ_SYM);
-
-      // Domaine / Ouvrages / Indications — use habRows data if available, else XXX
-      const rowData = snapshot.habRows?.[row.rowKey];
-      drawWrapped(page, rowData?.domaine    || 'XXX', COL_DOM, row.yData, DOM_W, 3, regular, SZS);
-      drawWrapped(page, rowData?.ouvrage    || 'XXX', COL_OUV, row.yData, OUV_W, 3, regular, SZS);
-      drawWrapped(page, rowData?.indication || 'XXX', COL_IND, row.yData, IND_W, 3, regular, SZS);
-    } else {
-      // Inactive row — fill all columns with XXX
-      clearRect(page, SYMBOL_LEFT, row.ySym - 4, SYMBOL_WIDTH, 14);
-      drawCentered(page, 'XXX', SYMBOL_CENTER, row.ySym, regular, SZS);
-      drawText(page, 'XXX', COL_DOM, row.yData, regular, SZS);
-      drawText(page, 'XXX', COL_OUV, row.yData, regular, SZS);
-      drawText(page, 'XXX', COL_IND, row.yData, regular, SZS);
-    }
-  }
+  // Dynamic table — variable-height rows based on content
+  drawDynamicTable(page, snapshot, fonts);
 }
 
-// ─── Fill page 2 (AVIS / back page) ──────────────────────────────────────────
+// ─── Fill page 2 (AVIS page) ──────────────────────────────────────────────────
 
 function fillPage2(
   page: PDFPage,
   snapshot: VersionSnapshot,
   fonts: { regular: any; bold: any },
 ) {
-  const { regular } = fonts;
+  const { regular, bold } = fonts;
   const SZ = 9;
 
-  // N° de titre
-  drawText(page, snapshot.nDeTitre, P2.nDeTitre.x, P2.nDeTitre.y, fonts.bold, SZ);
+  drawText(page, snapshot.nDeTitre, P2.nDeTitre.x, P2.nDeTitre.y, bold, SZ);
 
-  // Dates — clear the "Autorisations" label band that overlaps valableJusquau
+  // Clear the "Autorisations" label band that overlaps valableJusquau
   clearRect(page, 0, P2.valableJusquau.y - 4, 340, 14);
   drawText(page, formatDateFrench(snapshot.dateValidation), P2.dateDelivrance.x, P2.dateDelivrance.y, regular, SZ);
   drawText(page, formatDateFrench(snapshot.dateExpiration), P2.valableJusquau.x,  P2.valableJusquau.y,  regular, SZ);
 
-  // Footer (BRAHIMI ALI) is pre-printed in the template — do NOT overwrite
+  // Footer (BRAHIMI ALI) is pre-printed — do NOT overwrite
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
