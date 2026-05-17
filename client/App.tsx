@@ -22,7 +22,7 @@ import Employees from "./pages/Employees";
 import AddEmployee from "./pages/AddEmployee";
 import EditEmployee from "./pages/EditEmployee";
 import EmployeeCard from "./pages/EmployeeCard";
-import PendingRenewals from "./pages/PendingRenewals";
+import Renewals from "./pages/Renewals";
 import Trash from "./pages/Trash";
 import Stats from "./pages/Stats";
 import Calendar from "./pages/Calendar";
@@ -142,7 +142,7 @@ function App() {
             path="/renewals"
             element={
               <ProtectedRoute>
-                <PendingRenewals />
+                <Renewals />
               </ProtectedRoute>
             }
           />
@@ -150,7 +150,7 @@ function App() {
             path="/pending-renewals"
             element={
               <ProtectedRoute>
-                <PendingRenewals />
+                <Renewals />
               </ProtectedRoute>
             }
           />

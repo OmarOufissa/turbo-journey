@@ -74,9 +74,9 @@ export function exportAnalyticsToExcel(data: any, filename: string = "analytics.
 
 export function exportRenewalsToExcel(renewals: any[], filename: string = "renewals.xlsx") {
   const data = renewals.map((r) => ({
-    Matricule: r.employee?.matricule ?? "",
-    Nom: r.employee?.nom ?? "",
-    Prénom: r.employee?.prenom ?? "",
+    Matricule: r.matricule ?? r.employee?.matricule ?? "",
+    Nom: r.nom ?? r.employee?.nom ?? "",
+    Prénom: r.prenom ?? r.employee?.prenom ?? "",
     "Codes ST": (r.snapshot?.stCodes ?? []).join(", "),
     "Codes HT": (r.snapshot?.htCodes ?? []).join(", "),
     "N° Titre": r.snapshot?.nDeTitre ?? "",

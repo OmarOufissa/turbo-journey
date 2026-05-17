@@ -538,7 +538,7 @@ export function createServer() {
     });
   });
 
-  app.post("/api/backups/verify", async (req, res) => {
+  app.post("/api/backups/:backupId/verify", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     authMiddleware(req, res, async () => {
       const { verifyBackup_Handler } = await import("./routes/backup");
@@ -559,6 +559,54 @@ export function createServer() {
     authMiddleware(req, res, async () => {
       const { cleanupBackups_Handler } = await import("./routes/backup");
       cleanupBackups_Handler(req, res, () => {});
+    });
+  });
+
+  app.get("/api/backups/cloud/status", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { getCloudBackupStatus_Handler } = await import("./routes/backup");
+      getCloudBackupStatus_Handler(req, res, () => {});
+    });
+  });
+
+  app.get("/api/backups/cloud/list", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { listCloudBackups_Handler } = await import("./routes/backup");
+      listCloudBackups_Handler(req, res, () => {});
+    });
+  });
+
+  app.post("/api/backups/cloud/upload/:backupId", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { uploadToCloud_Handler } = await import("./routes/backup");
+      uploadToCloud_Handler(req, res, () => {});
+    });
+  });
+
+  app.get("/api/backups/cloud/download/:backupId", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { downloadFromCloud_Handler } = await import("./routes/backup");
+      downloadFromCloud_Handler(req, res, () => {});
+    });
+  });
+
+  app.delete("/api/backups/cloud/:backupId", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { deleteCloudBackup_Handler } = await import("./routes/backup");
+      deleteCloudBackup_Handler(req, res, () => {});
+    });
+  });
+
+  app.post("/api/backups/cloud/cleanup", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { cleanupCloudBackups_Handler } = await import("./routes/backup");
+      cleanupCloudBackups_Handler(req, res, () => {});
     });
   });
 
