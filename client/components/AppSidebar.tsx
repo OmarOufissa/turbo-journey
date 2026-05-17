@@ -91,9 +91,22 @@ const navigationItems = [
   },
 ];
 
+function getUserEmail(): string {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return "admin@example.com";
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.email ?? "admin@example.com";
+  } catch {
+    return "admin@example.com";
+  }
+}
+
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const userEmail = getUserEmail();
+  const userInitial = userEmail[0]?.toUpperCase() ?? "A";
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -181,14 +194,14 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-muted transition-colors">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-semibold text-primary">A</span>
+                <span className="text-sm font-semibold text-primary">{userInitial}</span>
               </div>
               <div className="flex flex-col items-start flex-1 min-w-0">
                 <span className="text-sm font-medium truncate w-full">
                   Administrateur
                 </span>
                 <span className="text-xs text-muted-foreground truncate w-full">
-                  admin@example.com
+                  {userEmail}
                 </span>
               </div>
             </button>

@@ -99,7 +99,9 @@ export default function BackupRestore() {
 
   const checkCloudBackupStatus = async () => {
     try {
-      const response = await fetch("/api/backups/cloud/status");
+      const response = await fetch("/api/backups/cloud/status", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
 
       if (!response.ok) {
         return;
@@ -118,7 +120,9 @@ export default function BackupRestore() {
 
   const fetchCloudBackups = async () => {
     try {
-      const response = await fetch("/api/backups/cloud/list");
+      const response = await fetch("/api/backups/cloud/list", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch cloud backups");
@@ -142,6 +146,7 @@ export default function BackupRestore() {
       setUploading(backupId);
       const response = await fetch(`/api/backups/cloud/upload/${backupId}`, {
         method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
       if (!response.ok) {

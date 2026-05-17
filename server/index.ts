@@ -82,7 +82,7 @@ export function createServer() {
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   app.get("/api/ping", (_req, res) => {
-    res.json({ message: process.env.PING_MESSAGE ?? "ping" });
+    res.json({ message: process.env.PING_MESSAGE ?? "ping", version: "1.0.0" });
   });
 
   app.get("/api/health", async (req, res) => {
