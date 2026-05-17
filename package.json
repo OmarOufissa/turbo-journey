@@ -1,5 +1,8 @@
 {
-  "name": "fusion-starter",
+  "name": "gestion-habilitations",
+  "version": "1.0.0",
+  "description": "Gestion des Habilitations Électriques",
+  "author": "OmarOufissa",
   "private": true,
   "type": "module",
   "main": "dist/electron/main.cjs",
@@ -143,22 +146,7 @@
       "!node_modules/.cache/**/*",
       "!node_modules/**/*.map"
     ],
-    "extraResources": [
-      {
-        "from": "uploads",
-        "to": "uploads",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "logs",
-        "to": "logs",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
+    "extraResources": [],
     "directories": {
       "output": "dist-electron",
       "buildResources": "build-resources"
@@ -179,7 +167,6 @@
         }
       ],
       "icon": "build-resources/icon.ico",
-      "publisherName": "Company",
       "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
@@ -203,7 +190,7 @@
       "target": [
         "dmg"
       ],
-      "icon": "build-resources/icon.icns",
+      "icon": "build-resources/icon.png",
       "category": "public.app-category.business"
     },
     "publish": null
