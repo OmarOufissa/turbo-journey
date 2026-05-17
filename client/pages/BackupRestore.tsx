@@ -76,7 +76,9 @@ export default function BackupRestore() {
   const fetchBackups = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/backups/list");
+      const response = await fetch("/api/backups/list", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch backups");
@@ -178,6 +180,7 @@ export default function BackupRestore() {
       setCreating(true);
       const response = await fetch("/api/backups/create", {
         method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
       if (!response.ok) {
@@ -206,7 +209,9 @@ export default function BackupRestore() {
 
   const handleDownloadBackup = async (backupId: string) => {
     try {
-      const response = await fetch(`/api/backups/${backupId}`);
+      const response = await fetch(`/api/backups/${backupId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to download backup");
@@ -239,6 +244,7 @@ export default function BackupRestore() {
       setVerifying(backupId);
       const response = await fetch(`/api/backups/${backupId}/verify`, {
         method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
       if (!response.ok) {
