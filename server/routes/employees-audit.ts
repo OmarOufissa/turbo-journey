@@ -7,6 +7,12 @@ import { z } from "zod";
 const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "SF6"] as const;
 const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"] as const;
 
+const habRowDataSchema = z.object({
+  domaine: z.string().default(''),
+  ouvrage: z.string().default(''),
+  indication: z.string().default(''),
+});
+
 const versionFields = z.object({
   stCodes: z.array(z.string()).default([]),
   htCodes: z.array(z.string()).default([]),
@@ -15,6 +21,7 @@ const versionFields = z.object({
   divisionId: z.coerce.number().positive("Division requise"),
   serviceId: z.coerce.number().positive("Service requis"),
   equipeId: z.coerce.number().positive().nullable().optional(),
+  habRows: z.record(z.string(), habRowDataSchema).nullable().optional(),
   dateValidation: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
   dateExpiration: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
 }).refine((d) => (d.stCodes.length > 0 || d.htCodes.length > 0), {
@@ -72,6 +79,7 @@ async function buildVersionResponse(version: typeof schema.employeeVersions.$inf
     division: div?.name ?? "",
     service: svc?.name ?? "",
     equipe: equipe?.name ?? null,
+    habRows: version.habRows ?? null,
     dateValidation: version.dateValidation,
     dateExpiration: version.dateExpiration,
     pdfPath: version.pdfPath ?? null,
@@ -307,7 +315,7 @@ export const createEmployee: RequestHandler = async (req, res) => {
     if (!parsed.success) {
       return res.status(400).json({ success: false, data: null, error: parsed.error.errors[0]?.message ?? "Données invalides" });
     }
-    const { matricule, nom, prenom, stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration } = parsed.data;
+    const { matricule, nom, prenom, stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, habRows, dateValidation, dateExpiration } = parsed.data;
 
     const existing = await db.select({ id: schema.employees.id }).from(schema.employees).where(eq(schema.employees.matricule, matricule));
     if (existing.length > 0) {
@@ -327,6 +335,7 @@ export const createEmployee: RequestHandler = async (req, res) => {
         divisionId,
         serviceId,
         equipeId: equipeId ?? null,
+        habRows: habRows ?? null,
         dateValidation,
         dateExpiration,
       }).returning();
@@ -366,7 +375,7 @@ export const updateEmployee: RequestHandler = async (req, res) => {
     if (!parsed.success) {
       return res.status(400).json({ success: false, data: null, error: parsed.error.errors[0]?.message ?? "Données invalides" });
     }
-    const { stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, dateValidation, dateExpiration, nom, prenom, expectedUpdatedAt } = parsed.data;
+    const { stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, habRows, dateValidation, dateExpiration, nom, prenom, expectedUpdatedAt } = parsed.data;
 
     const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
@@ -404,6 +413,7 @@ export const updateEmployee: RequestHandler = async (req, res) => {
         divisionId,
         serviceId,
         equipeId: equipeId ?? null,
+        habRows: habRows ?? null,
         dateValidation,
         dateExpiration,
       }).returning();

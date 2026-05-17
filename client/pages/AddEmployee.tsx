@@ -4,6 +4,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,8 +14,24 @@ import { createEmployee } from "@/api/employees";
 import { setLastAction } from "@/components/UndoButton";
 import { ST_CODES, HT_CODES } from "@/types/habilitation";
 import { VALID_FONCTIONS } from "@/types/fonctions";
+import type { HabRows } from "@/types/employee";
 
 interface OrgItem { id: number; name: string; }
+
+const HAB_ROWS_META = [
+  { key: 'H0V_B0V' as const, label: 'Non Électricien Habilité',    stKey: 'H0V', htKey: 'B0V' },
+  { key: 'H1V_B1V' as const, label: 'Électricien Exécutant',        stKey: 'H1V', htKey: 'B1V' },
+  { key: 'BR'      as const, label: 'Chargé des Interventions',     stKey: null,  htKey: 'BR'  },
+  { key: 'H2V_B2V' as const, label: 'Chargé de Travaux',            stKey: 'H2V', htKey: 'B2V' },
+  { key: 'HC_BC'   as const, label: 'Chargé de Consignation',       stKey: 'HC',  htKey: 'BC'  },
+  { key: 'SF6'     as const, label: 'Habilités Spéciaux',           stKey: null,  htKey: 'SF6' },
+];
+
+function getActiveRows(stCodes: string[], htCodes: string[]) {
+  return HAB_ROWS_META.filter(r =>
+    (r.stKey && stCodes.includes(r.stKey)) || (r.htKey && htCodes.includes(r.htKey))
+  );
+}
 
 export default function AddEmployee() {
   const navigate = useNavigate();
@@ -38,6 +55,15 @@ export default function AddEmployee() {
     dateValidation: "",
     dateExpiration: "",
   });
+
+  const [habRows, setHabRows] = useState<HabRows>({});
+
+  const setHabField = (key: keyof HabRows, field: 'domaine' | 'ouvrage' | 'indication', value: string) => {
+    setHabRows(prev => ({
+      ...prev,
+      [key]: { domaine: '', ouvrage: '', indication: '', ...prev[key], [field]: value },
+    }));
+  };
 
   useEffect(() => {
     fetch("/api/divisions")
@@ -98,6 +124,7 @@ export default function AddEmployee() {
         divisionId: parseInt(form.divisionId),
         serviceId: parseInt(form.serviceId),
         equipeId: form.equipeId ? parseInt(form.equipeId) : null,
+        habRows: Object.keys(habRows).length > 0 ? habRows : null,
         dateValidation: form.dateValidation,
         dateExpiration: form.dateExpiration,
       });
@@ -112,6 +139,8 @@ export default function AddEmployee() {
       setIsLoading(false);
     }
   };
+
+  const activeRows = getActiveRows(form.stCodes, form.htCodes);
 
   return (
     <Layout>
@@ -197,10 +226,7 @@ export default function AddEmployee() {
                   <div className="grid grid-cols-2 gap-1">
                     {ST_CODES.map(code => (
                       <label key={code} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox
-                          checked={form.stCodes.includes(code)}
-                          onCheckedChange={() => toggleCode("st", code)}
-                        />
+                        <Checkbox checked={form.stCodes.includes(code)} onCheckedChange={() => toggleCode("st", code)} />
                         <span className="text-sm font-mono">{code}</span>
                       </label>
                     ))}
@@ -211,10 +237,7 @@ export default function AddEmployee() {
                   <div className="grid grid-cols-2 gap-1">
                     {HT_CODES.map(code => (
                       <label key={code} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox
-                          checked={form.htCodes.includes(code)}
-                          onCheckedChange={() => toggleCode("ht", code)}
-                        />
+                        <Checkbox checked={form.htCodes.includes(code)} onCheckedChange={() => toggleCode("ht", code)} />
                         <span className="text-sm font-mono">{code}</span>
                       </label>
                     ))}
@@ -233,6 +256,52 @@ export default function AddEmployee() {
               </div>
             </CardContent>
           </Card>
+
+          {activeRows.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Contenu du titre</CardTitle>
+                <CardDescription>Remplir pour chaque code actif (affiché dans le tableau PDF)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {activeRows.map(r => (
+                  <div key={r.key} className="space-y-3 border-b pb-4 last:border-b-0 last:pb-0">
+                    <p className="text-sm font-semibold text-foreground">
+                      {r.stKey && r.htKey ? `${r.stKey} / ${r.htKey}` : r.htKey ?? r.stKey} — {r.label}
+                    </p>
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Domaine de tension</Label>
+                        <Input
+                          value={habRows[r.key]?.domaine ?? ''}
+                          onChange={e => setHabField(r.key, 'domaine', e.target.value)}
+                          placeholder="ex: HT BT TBT"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Ouvrages Concernés</Label>
+                        <Textarea
+                          value={habRows[r.key]?.ouvrage ?? ''}
+                          onChange={e => setHabField(r.key, 'ouvrage', e.target.value)}
+                          placeholder="Décrire les ouvrages concernés"
+                          rows={2}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Indications Complémentaires</Label>
+                        <Textarea
+                          value={habRows[r.key]?.indication ?? ''}
+                          onChange={e => setHabField(r.key, 'indication', e.target.value)}
+                          placeholder="Indications complémentaires"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" asChild>

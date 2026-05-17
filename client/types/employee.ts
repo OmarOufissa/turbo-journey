@@ -1,3 +1,11 @@
+export interface HabRowData {
+  domaine: string;
+  ouvrage: string;
+  indication: string;
+}
+
+export type HabRows = Partial<Record<'H0V_B0V' | 'H1V_B1V' | 'H2V_B2V' | 'HC_BC' | 'BR' | 'SF6', HabRowData>>;
+
 export interface EmployeeVersion {
   id: number;
   versionNumber: number;
@@ -11,6 +19,7 @@ export interface EmployeeVersion {
   division: string;
   service: string;
   equipe?: string | null;
+  habRows?: HabRows | null;
   dateValidation: string;
   dateExpiration: string;
   pdfPath?: string | null;
@@ -46,11 +55,22 @@ export interface CreateEmployeeRequest {
   divisionId: number;
   serviceId: number;
   equipeId?: number | null;
+  habRows?: HabRows | null;
   dateValidation: string;
   dateExpiration: string;
 }
 
-export interface UpdateEmployeeRequest extends Omit<CreateEmployeeRequest, 'matricule'> {
+export interface UpdateEmployeeRequest {
   nom?: string;
   prenom?: string;
+  stCodes: string[];
+  htCodes: string[];
+  nDeTitre: string;
+  fonction: string;
+  divisionId: number;
+  serviceId: number;
+  equipeId?: number | null;
+  habRows?: HabRows | null;
+  dateValidation: string;
+  dateExpiration: string;
 }
