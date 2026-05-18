@@ -140,6 +140,10 @@
     "productName": "Gestion des Habilitations",
     "copyright": "Copyright © 2026",
     "asar": true,
+    "asarUnpack": [
+      "**/*.node",
+      "**/node_modules/bcrypt/**"
+    ],
     "files": [
       "dist/**/*",
       "node_modules/**/*",
