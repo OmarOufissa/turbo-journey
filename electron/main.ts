@@ -33,11 +33,12 @@ async function startServer() {
   serverStarted = true;
 
   const { createServer } = await import("../server/index.js");
-  const express = await import("express");
+  const expressModule = await import("express");
   const expressApp = createServer();
 
   const spaPath = path.join(__dirname, "../spa");
-  expressApp.use(express.default.static(spaPath));
+  const expressRef = (expressModule.default ?? expressModule) as any;
+  expressApp.use(expressRef.static(spaPath));
   expressApp.use((req: any, res: any) => {
     if (!req.path.startsWith("/api/")) {
       res.sendFile(path.join(spaPath, "index.html"));
