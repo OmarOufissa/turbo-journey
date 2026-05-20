@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, session } from "electron";
+import { app, BrowserWindow, shell, ipcMain, session, dialog } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -150,7 +150,8 @@ app.whenReady().then(async () => {
     await startServer();
     createWindow();
   } catch (err) {
-    console.error("Startup failed:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    dialog.showErrorBox("Startup Failed", message);
     app.quit();
   }
 });
