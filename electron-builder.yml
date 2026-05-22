@@ -6,7 +6,7 @@ copyright: Copyright © 2025
 main: dist/electron/main.cjs
 
 directories:
-  output: dist/installers
+  output: dist-electron
 
 files:
   - dist/electron/**
