@@ -5,10 +5,10 @@ import path from "path";
 export default defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, "server/node-build.ts"),
+      entry: path.resolve(__dirname, "server/index.ts"),
       name: "server",
-      fileName: "production",
-      formats: ["es"],
+      fileName: "index",
+      formats: ["cjs"],
     },
     outDir: "dist/server",
     target: "node22",
@@ -46,8 +46,7 @@ export default defineConfig({
         "dotenv/config",
       ],
       output: {
-        format: "es",
-        entryFileNames: "[name].mjs",
+        entryFileNames: "index.js",
       },
     },
     minify: false, // Keep readable for debugging

@@ -7,7 +7,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, "electron/main.ts"),
       formats: ["cjs"],
-      fileName: () => "main.js",
+      fileName: () => "main.cjs",
     },
     outDir: "dist/electron",
     target: "node22",
