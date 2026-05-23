@@ -22,9 +22,9 @@ export const EXPIRATION_COLOR_CONFIG: Record<ExpirationStatus, ExpirationStatusC
   },
   "6m": {
     name: "< 6 mois",
-    color: "yellow",
-    textColor: "text-yellow-600 dark:text-yellow-400",
-    bgColor: "bg-yellow-100 dark:bg-yellow-950",
+    color: "violet",
+    textColor: "text-violet-600 dark:text-violet-400",
+    bgColor: "bg-violet-100 dark:bg-violet-950",
   },
   "9m": {
     name: "< 9 mois",

@@ -61,7 +61,7 @@ export function PdfPreviewModal({ open, onOpenChange, pdfPath, title = "Aperçu 
   }
 
   function handleOpenTab() {
-    if (!pdfUrl) window.open(pdfUrl!, "_blank");
+    if (pdfUrl) window.open(pdfUrl, "_blank");
   }
 
   return (

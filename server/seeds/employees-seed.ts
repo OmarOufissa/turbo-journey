@@ -17,34 +17,82 @@ interface EmployeeSeedData {
   dateExpiration?: string;
 }
 
+function relativeDate(monthOffset: number): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() + monthOffset);
+  return d.toISOString().split("T")[0];
+}
+
 const EMPLOYEES_SEED_DATA: EmployeeSeedData[] = [
   {
     matricule: "81628",
     nom: "DUBOIS",
     prenom: "Jean",
-    fonction: "Électricien",
+    fonction: "Technicien Lignes THT&HT",
     divisionId: 1,
     serviceId: 1,
     equipeId: 1,
-    stCodes: [],
-    htCodes: ["H1V", "B1V"],
+    stCodes: ["H1V"],
+    htCodes: ["B1V"],
     nDeTitre: "81628_001",
-    dateValidation: "2023-01-01",
-    dateExpiration: "2026-01-01",
+    dateValidation: relativeDate(-36),
+    dateExpiration: relativeDate(-2),
   },
   {
     matricule: "81629",
     nom: "MARTIN",
     prenom: "Marie",
-    fonction: "Technicien",
+    fonction: "Technicien Exploitation Réseau",
     divisionId: 1,
     serviceId: 1,
     equipeId: 1,
     stCodes: [],
-    htCodes: ["H2V"],
+    htCodes: ["H2V", "B2V"],
     nDeTitre: "81629_001",
-    dateValidation: "2023-06-01",
-    dateExpiration: "2026-06-01",
+    dateValidation: relativeDate(-30),
+    dateExpiration: relativeDate(1),
+  },
+  {
+    matricule: "81630",
+    nom: "BENALI",
+    prenom: "Karim",
+    fonction: "Chef d'Equipe Postes THT/HT",
+    divisionId: 1,
+    serviceId: 1,
+    equipeId: 1,
+    stCodes: ["H0V", "H1V"],
+    htCodes: ["B0V", "B1V"],
+    nDeTitre: "81630_001",
+    dateValidation: relativeDate(-24),
+    dateExpiration: relativeDate(4),
+  },
+  {
+    matricule: "81631",
+    nom: "HAMIDI",
+    prenom: "Sara",
+    fonction: "Cadre Exploitation Réseau",
+    divisionId: 1,
+    serviceId: 1,
+    equipeId: 1,
+    stCodes: ["H1V", "H2V"],
+    htCodes: [],
+    nDeTitre: "81631_001",
+    dateValidation: relativeDate(-18),
+    dateExpiration: relativeDate(7),
+  },
+  {
+    matricule: "81632",
+    nom: "ROUSSEAU",
+    prenom: "Pierre",
+    fonction: "Monteur de Lignes THT&HT",
+    divisionId: 1,
+    serviceId: 1,
+    equipeId: 1,
+    stCodes: ["BR"],
+    htCodes: ["BR"],
+    nDeTitre: "81632_001",
+    dateValidation: relativeDate(-12),
+    dateExpiration: relativeDate(14),
   },
 ];
 

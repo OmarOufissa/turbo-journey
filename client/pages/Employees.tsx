@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Trash2, Save, BookmarkCheck, X, Download, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Plus, Trash2, Save, BookmarkCheck, X, Download, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -117,6 +117,25 @@ export default function Employees() {
       fetchEmployees();
     } catch {
       toast({ title: "Erreur", description: "Impossible de supprimer l'employé", variant: "destructive" });
+    }
+  };
+
+  const handleRenew = async (emp: Employee) => {
+    if (!emp.currentVersion) return;
+    try {
+      const token = localStorage.getItem("token") ?? "";
+      const res = await fetch("/api/renewals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ employeeId: emp.id, snapshot: emp.currentVersion }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? `HTTP ${res.status}`);
+      }
+      toast({ title: "Renouvellement créé", description: `${emp.matricule} ajouté aux renouvellements en attente` });
+    } catch (e: any) {
+      toast({ title: "Erreur", description: e.message, variant: "destructive" });
     }
   };
 
@@ -306,6 +325,16 @@ export default function Employees() {
                         <Button variant="outline" size="sm" asChild>
                           <Link to={`/employees/${emp.id}/edit`}>Modifier</Link>
                         </Button>
+                        {emp.currentVersion && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRenew(emp)}
+                            title="Créer un renouvellement"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

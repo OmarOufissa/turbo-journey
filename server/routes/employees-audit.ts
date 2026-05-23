@@ -52,7 +52,7 @@ const updateEmployeeSchema = addVersionRefinements(
 // ============================================================================
 
 export const authMiddleware: RequestHandler = (req, res, next) => {
-  const token = req.headers.authorization?.replace("Bearer ", "");
+  const token = req.headers.authorization?.replace("Bearer ", "") ?? (req.query.token as string | undefined);
   const expected = process.env.AUTH_TOKEN;
   if (expected && token !== expected) {
     return res.status(401).json({ success: false, error: "Unauthorized", data: null });

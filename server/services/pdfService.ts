@@ -19,8 +19,10 @@ export interface VersionSnapshot {
   dateExpiration: string;
 }
 
-const TEMPLATE_PATH = path.join(process.cwd(), 'server', 'seeds', 'data', 'titre_HAE_vierge.pdf');
-const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'pdfs');
+const TEMPLATE_PATH = process.env.PDF_TEMPLATE_PATH
+  ?? path.join(process.cwd(), 'server', 'seeds', 'data', 'titre_HAE_vierge.pdf');
+const UPLOAD_DIR = process.env.UPLOADS_DIR
+  ?? path.join(process.cwd(), 'uploads', 'pdfs');
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });

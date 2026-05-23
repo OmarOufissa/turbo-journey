@@ -189,7 +189,7 @@ export default function AuditLog() {
   const handleFilterChange = (key: keyof AuditFilter, value: string) => {
     setFilters((prev) => ({
       ...prev,
-      [key]: value || undefined,
+      [key]: (value === "all" ? "" : value) || undefined,
     }));
     setPage(0); // Reset to first page on filter change
   };
@@ -322,14 +322,14 @@ export default function AuditLog() {
             <div className="space-y-2">
               <Label htmlFor="action-filter">Action</Label>
               <Select
-                value={filters.action || ""}
+                value={filters.action || "all"}
                 onValueChange={(value) => handleFilterChange("action", value)}
               >
                 <SelectTrigger className="glass-input">
                   <SelectValue placeholder="Toutes les actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toutes les actions</SelectItem>
+                  <SelectItem value="all">Toutes les actions</SelectItem>
                   <SelectItem value="CREATE_EMPLOYEE">Créer Employé</SelectItem>
                   <SelectItem value="UPDATE_EMPLOYEE">Modifier Employé</SelectItem>
                   <SelectItem value="DELETE_EMPLOYEE">Supprimer Employé</SelectItem>
@@ -349,14 +349,14 @@ export default function AuditLog() {
             <div className="space-y-2">
               <Label htmlFor="entity-filter">Type d'Entité</Label>
               <Select
-                value={filters.entityType || ""}
+                value={filters.entityType || "all"}
                 onValueChange={(value) => handleFilterChange("entityType", value)}
               >
                 <SelectTrigger className="glass-input">
                   <SelectValue placeholder="Tous types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous types</SelectItem>
+                  <SelectItem value="all">Tous types</SelectItem>
                   <SelectItem value="employee">Employé</SelectItem>
                   <SelectItem value="renewal">Renouvellement</SelectItem>
                 </SelectContent>

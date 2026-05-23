@@ -30,8 +30,8 @@ export default function OrgSettings() {
   const [newSvc, setNewSvc] = useState({ name: "", divisionId: "" });
   const [newEq,  setNewEq]  = useState({ name: "", serviceId: "" });
 
-  const [selDivForSvc, setSelDivForSvc] = useState<string>("");
-  const [selSvcForEq,  setSelSvcForEq]  = useState<string>("");
+  const [selDivForSvc, setSelDivForSvc] = useState<string>("all");
+  const [selSvcForEq,  setSelSvcForEq]  = useState<string>("all");
 
   const load = async () => {
     const [d, s] = await Promise.all([
@@ -93,8 +93,8 @@ export default function OrgSettings() {
     else toast({ title: "Erreur", description: r.error, variant: "destructive" });
   };
 
-  const filteredServices = selDivForSvc ? services.filter(s => s.divisionId === parseInt(selDivForSvc)) : services;
-  const filteredEquipes  = selSvcForEq  ? equipes.filter(e => e.serviceId === parseInt(selSvcForEq)) : equipes;
+  const filteredServices = selDivForSvc !== "all" ? services.filter(s => s.divisionId === parseInt(selDivForSvc)) : services;
+  const filteredEquipes  = selSvcForEq  !== "all" ? equipes.filter(e => e.serviceId === parseInt(selSvcForEq)) : equipes;
 
   return (
     <Layout>
@@ -151,7 +151,7 @@ export default function OrgSettings() {
               <Select value={selDivForSvc} onValueChange={setSelDivForSvc}>
                 <SelectTrigger className="w-48 h-8 text-xs"><SelectValue placeholder="Toutes" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toutes</SelectItem>
+                  <SelectItem value="all">Toutes</SelectItem>
                   {divisions.map(d => <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -198,7 +198,7 @@ export default function OrgSettings() {
               <Select value={selSvcForEq} onValueChange={setSelSvcForEq}>
                 <SelectTrigger className="w-48 h-8 text-xs"><SelectValue placeholder="Tous" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous</SelectItem>
+                  <SelectItem value="all">Tous</SelectItem>
                   {services.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
