@@ -54,6 +54,7 @@
     "xlsx-js-style": "^1.2.0",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
+    "node-cron": "^3.0.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
