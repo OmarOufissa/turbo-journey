@@ -52,6 +52,7 @@
     "sql.js": "^1.13.0",
     "xlsx": "^0.18.5",
     "xlsx-js-style": "^1.2.0",
+    "cors": "^2.8.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -101,7 +102,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "concurrently": "^9.2.1",
-    "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "drizzle-kit": "^0.31.8",
     "electron": "^42.0.1",
