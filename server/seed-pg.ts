@@ -29,6 +29,7 @@ interface EmployeeData {
 const MATRICULE_KEYS = ["matricule", "MATRICULE"];
 const NOM_KEYS = ["nom", "Nom", "NOM"];
 const PRENOM_KEYS = ["prenom", "Prénom", "PRENOM", "Prénom"];
+const NOM_PRENOM_KEYS = ["nom & prénom", "nom & prenom", "nom et prénom", "nom prénom", "name"];
 const DIVISION_KEYS = ["division", "DIVISION", "Division"];
 const SERVICE_KEYS = ["service", "SERVICE", "Service", "section", "SECTION", "Section"];
 const EQUIPE_KEYS = ["equipe", "ÉQUIPE", "Equipe", "EQUIPE", "Section", "SECTION", "cellule", "CELLULE"];
@@ -183,8 +184,22 @@ async function parseExcelData(): Promise<EmployeeData[]> {
 
   for (const row of excelRows) {
     const matricule = getRowValue(row, MATRICULE_KEYS);
-    const nom = fixCasing(getRowValue(row, NOM_KEYS));
-    const prenom = fixCasing(getRowValue(row, PRENOM_KEYS));
+    let nom = fixCasing(getRowValue(row, NOM_KEYS));
+    let prenom = fixCasing(getRowValue(row, PRENOM_KEYS));
+
+    // Fallback: "Nom & Prénom" combined column — last token is prenom, rest is nom
+    if (!nom || !prenom) {
+      const combined = getRowValue(row, NOM_PRENOM_KEYS).trim();
+      if (combined) {
+        const tokens = combined.split(/\s+/);
+        if (tokens.length >= 2) {
+          prenom = fixCasing(tokens[tokens.length - 1]);
+          nom = fixCasing(tokens.slice(0, tokens.length - 1).join(" "));
+        } else {
+          nom = fixCasing(combined);
+        }
+      }
+    }
 
     if (!matricule || !nom || !prenom) {
       continue;
