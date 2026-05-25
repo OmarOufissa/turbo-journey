@@ -30,6 +30,18 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "81122",  filename: "hab81122_seed.pdf" },
   { matricule: "81014",  filename: "hab81014_seed.pdf" },
   { matricule: "62052",  filename: "hab62052_seed.pdf" },
+  // Batch 2 — XA division (Oct 2024, exp 2027/2028)
+  { matricule: "81293",  filename: "hab81293_seed.pdf" },
+  { matricule: "58941",  filename: "hab58941_seed.pdf" },
+  { matricule: "85979U", filename: "hab85979U_seed.pdf" },
+  { matricule: "45M7J",  filename: "hab45M7J_seed.pdf" },
+  { matricule: "83628",  filename: "hab83628_seed.pdf" },
+  { matricule: "82306",  filename: "hab82306_seed.pdf" },
+  { matricule: "81155",  filename: "hab81155_seed.pdf" },
+  { matricule: "85963",  filename: "hab85963_seed.pdf" },
+  { matricule: "85887",  filename: "hab85887_seed.pdf" },
+  { matricule: "B5665K", filename: "habB5665K_seed.pdf" },
+  { matricule: "B5939M", filename: "habB5939M_seed.pdf" },
 ];
 
 export async function runPdfSeedMigration(): Promise<void> {
