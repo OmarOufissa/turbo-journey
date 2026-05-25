@@ -6,6 +6,7 @@ export const DOMAINE_OPTIONS = [
 ];
 
 export const OUVRAGE_OPTIONS = [
+  "Lignes relevant de la DTC",
   "Ouvrages électriques Lignes relevant de la DTC",
   "Ouvrages électriques Postes 60/22 kV relevant de la XJ/XJ",
   "Ouvrages électriques Postes 60/22 kV relevant de la XJ/XS",
