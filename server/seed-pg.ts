@@ -31,7 +31,7 @@ const MATRICULE_KEYS = ["matricule", "MATRICULE"];
 const NOM_KEYS = ["nom", "Nom", "NOM"];
 const PRENOM_KEYS = ["prenom", "Prénom", "PRENOM", "Prénom"];
 const NOM_PRENOM_KEYS = ["nom & prénom", "nom & prenom", "nom et prénom", "nom prénom", "name"];
-const FONCTION_KEYS = ["fonction", "Fonction", "FONCTION", "poste", "Poste"];
+const FONCTION_KEYS = ["fonction", "Fonction", "FONCTION", "fonction rh", "Fonction RH", "poste", "Poste"];
 const DIVISION_KEYS = ["division", "DIVISION", "Division"];
 const SERVICE_KEYS = ["service", "SERVICE", "Service", "section", "SECTION", "Section"];
 const EQUIPE_KEYS = ["equipe", "ÉQUIPE", "Equipe", "EQUIPE", "Section", "SECTION", "cellule", "CELLULE"];
@@ -79,7 +79,7 @@ function getFirstMatchingValue(row: ExcelRow, candidates: string[]): unknown {
   for (const candidate of candidates) {
     const candidateKey = candidate.toLowerCase();
     for (const [key, value] of entries) {
-      if (key && key.toLowerCase() === candidateKey) {
+      if (key && key.trim().toLowerCase() === candidateKey) {
         if (value !== undefined && value !== null && `${value}`.toString().trim() !== "") {
           return value;
         }
@@ -189,16 +189,34 @@ async function parseExcelData(): Promise<EmployeeData[]> {
     let nom = fixCasing(getRowValue(row, NOM_KEYS));
     let prenom = fixCasing(getRowValue(row, PRENOM_KEYS));
 
-    // Fallback: "Nom & Prénom" combined column — last token is prenom, rest is nom
+    // Fallback: "Nom & Prénom" combined column
+    // Moroccan names: NOM (all-caps, may be multi-word) followed by Prenom (mixed-case, may be multi-word)
+    // Strategy: find first mixed-case token → everything before is nom, everything from it is prenom
+    // If all uppercase → last token is prenom
     if (!nom || !prenom) {
       const combined = getRowValue(row, NOM_PRENOM_KEYS).trim();
       if (combined) {
-        const tokens = combined.split(/\s+/);
-        if (tokens.length >= 2) {
-          prenom = fixCasing(tokens[tokens.length - 1]);
-          nom = fixCasing(tokens.slice(0, tokens.length - 1).join(" "));
+        const tokens = combined.split(/\s+/).filter(Boolean);
+        if (tokens.length === 1) {
+          nom = fixCasing(tokens[0]);
         } else {
-          nom = fixCasing(combined);
+          // Find first token that contains a lowercase letter (mixed case = prenom start)
+          const mixedIdx = tokens.findIndex(t => t.length > 1 && /[a-z]/.test(t));
+          if (mixedIdx > 0) {
+            nom = fixCasing(tokens.slice(0, mixedIdx).join(" "));
+            prenom = fixCasing(tokens.slice(mixedIdx).join(" "));
+          } else {
+            // All uppercase: detect "SURNAME EL/EZ/ECH PRENOM" pattern
+            const PRENOM_PREFIXES = new Set(["EL", "EZ", "ECH"]);
+            if (tokens.length === 3 && PRENOM_PREFIXES.has(tokens[1].toUpperCase())) {
+              nom = fixCasing(tokens[0]);
+              prenom = fixCasing(tokens.slice(1).join(" "));
+            } else {
+              // General fallback: last token is prenom
+              nom = fixCasing(tokens.slice(0, tokens.length - 1).join(" "));
+              prenom = fixCasing(tokens[tokens.length - 1]);
+            }
+          }
         }
       }
     }
