@@ -16,6 +16,7 @@ interface EmployeeData {
   matricule: string;
   nom: string;
   prenom: string;
+  fonction: string;
   division: string;
   service: string;
   equipe: string;
@@ -30,6 +31,7 @@ const MATRICULE_KEYS = ["matricule", "MATRICULE"];
 const NOM_KEYS = ["nom", "Nom", "NOM"];
 const PRENOM_KEYS = ["prenom", "Prénom", "PRENOM", "Prénom"];
 const NOM_PRENOM_KEYS = ["nom & prénom", "nom & prenom", "nom et prénom", "nom prénom", "name"];
+const FONCTION_KEYS = ["fonction", "Fonction", "FONCTION", "poste", "Poste"];
 const DIVISION_KEYS = ["division", "DIVISION", "Division"];
 const SERVICE_KEYS = ["service", "SERVICE", "Service", "section", "SECTION", "Section"];
 const EQUIPE_KEYS = ["equipe", "ÉQUIPE", "Equipe", "EQUIPE", "Section", "SECTION", "cellule", "CELLULE"];
@@ -205,6 +207,7 @@ async function parseExcelData(): Promise<EmployeeData[]> {
       continue;
     }
 
+    const fonction = fixCasing(getRowValue(row, FONCTION_KEYS)) || "Électricien";
     const divisionText = getRowValue(row, DIVISION_KEYS);
     const serviceText = getRowValue(row, SERVICE_KEYS);
     const equipeText = getRowValue(row, EQUIPE_KEYS);
@@ -230,6 +233,7 @@ async function parseExcelData(): Promise<EmployeeData[]> {
       matricule,
       nom,
       prenom,
+      fonction,
       division,
       service,
       equipe,
@@ -331,6 +335,15 @@ export async function seedDatabasePG() {
         employeeCount++;
       } else {
         employeeId = existing[0].id;
+        // Fix truncated names and missing fonctions from previous imports
+        await db.update(schema.employees)
+          .set({ nom: empData.nom, prenom: empData.prenom })
+          .where(eq(schema.employees.id, employeeId));
+        if (empData.fonction) {
+          await db.update(schema.employeeVersions)
+            .set({ fonction: empData.fonction })
+            .where(eq(schema.employeeVersions.employeeId, employeeId));
+        }
       }
 
       const dateExp = empData.dateExpiration || calculateExpirationDate(empData.dateValidation, "HT");
@@ -345,7 +358,7 @@ export async function seedDatabasePG() {
           stCodes,
           htCodes,
           nDeTitre,
-          fonction: "Électricien",
+          fonction: empData.fonction || "Électricien",
           divisionId,
           serviceId,
           equipeId: equipeId || null,
