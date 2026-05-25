@@ -38,6 +38,12 @@ async function initializeSeedOnStartup() {
     logger.warn("app", "Names migration skipped", { error: String(err) });
   }
   try {
+    const { runPdfSeedMigration } = await import("./migrations/seed-pdfs");
+    await runPdfSeedMigration();
+  } catch (err) {
+    logger.warn("app", "PDF seed migration skipped", { error: String(err) });
+  }
+  try {
     const { initializeNotificationJobs } = await import("./jobs/notificationJobs");
     await initializeNotificationJobs();
   } catch (err) {
