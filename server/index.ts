@@ -32,6 +32,12 @@ async function initializeSeedOnStartup() {
     logger.error("app", "Error initializing seeds", { error: String(err) });
   }
   try {
+    const { runNamesMigration } = await import("./migrations/fix-names");
+    await runNamesMigration();
+  } catch (err) {
+    logger.warn("app", "Names migration skipped", { error: String(err) });
+  }
+  try {
     const { initializeNotificationJobs } = await import("./jobs/notificationJobs");
     await initializeNotificationJobs();
   } catch (err) {
