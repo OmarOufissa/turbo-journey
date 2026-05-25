@@ -33,7 +33,7 @@ export const createPendingRenewal: RequestHandler = async (req, res) => {
   }
 };
 
-// GET /api/renewals — list pending renewals with employee name/matricule
+// GET /api/renewals — list pending renewals with employee name/matricule + division/service names
 export const listPendingRenewals: RequestHandler = async (_req, res) => {
   try {
     const renewals = await db
@@ -50,7 +50,27 @@ export const listPendingRenewals: RequestHandler = async (_req, res) => {
       .leftJoin(schema.employees, eq(schema.pendingRenewals.employeeId, schema.employees.id))
       .orderBy(desc(schema.pendingRenewals.createdAt));
 
-    res.json({ success: true, data: renewals, error: null });
+    // Resolve division/service names from snapshot IDs in a single batch query
+    const divIds = [...new Set(renewals.map(r => (r.snapshot as any)?.divisionId).filter(Boolean))];
+    const svcIds = [...new Set(renewals.map(r => (r.snapshot as any)?.serviceId).filter(Boolean))];
+
+    const [divRows, svcRows] = await Promise.all([
+      divIds.length ? db.select({ id: schema.divisions.id, name: schema.divisions.name }).from(schema.divisions) : Promise.resolve([]),
+      svcIds.length ? db.select({ id: schema.services.id, name: schema.services.name }).from(schema.services) : Promise.resolve([]),
+    ]);
+    const divMap = Object.fromEntries(divRows.map(d => [d.id, d.name]));
+    const svcMap = Object.fromEntries(svcRows.map(s => [s.id, s.name]));
+
+    const enriched = renewals.map(r => {
+      const snap = r.snapshot as any;
+      return {
+        ...r,
+        divisionName: snap?.divisionId ? (divMap[snap.divisionId] ?? null) : null,
+        serviceName: snap?.serviceId ? (svcMap[snap.serviceId] ?? null) : null,
+      };
+    });
+
+    res.json({ success: true, data: enriched, error: null });
   } catch (err) {
     console.error("listPendingRenewals error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });

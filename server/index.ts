@@ -263,10 +263,20 @@ export function createServer() {
       try {
         const { db } = await import("./db-pg");
         const schema = await import("./schema");
-        const { eq, isNull } = await import("drizzle-orm");
+        const { eq } = await import("drizzle-orm");
         const { generateHabilitationPdf } = await import("./services/pdfService");
 
-        const rows = await db
+        // Pre-load all divisions, services, equipes in 3 queries (no N+1)
+        const [allDivs, allSvcs, allEquipes] = await Promise.all([
+          db.select({ id: schema.divisions.id, name: schema.divisions.name }).from(schema.divisions),
+          db.select({ id: schema.services.id, name: schema.services.name }).from(schema.services),
+          db.select({ id: schema.equipes.id, name: schema.equipes.name }).from(schema.equipes),
+        ]);
+        const divMap = Object.fromEntries(allDivs.map(d => [d.id, d.name]));
+        const svcMap = Object.fromEntries(allSvcs.map(s => [s.id, s.name]));
+        const equipeMap = Object.fromEntries(allEquipes.map(e => [e.id, e.name]));
+
+        const allRows = await db
           .select({
             empId: schema.employees.id,
             matricule: schema.employees.matricule,
@@ -289,31 +299,29 @@ export function createServer() {
           .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
           .where(eq(schema.employees.deleted, false) as any);
 
-        const missing = rows.filter(r => !r.verId);
-        // Also include those with no PDF on the version
-        const allRows = rows;
+        // Stream progress via SSE
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+
+        const send = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
         let generated = 0;
         let failed = 0;
+        const total = allRows.length;
         const errors: string[] = [];
 
         for (const row of allRows) {
           try {
-            const [div] = await db.select({ name: schema.divisions.name }).from(schema.divisions).where(eq(schema.divisions.id, row.divisionId));
-            const [svc] = await db.select({ name: schema.services.name }).from(schema.services).where(eq(schema.services.id, row.serviceId));
-            const equipe = row.equipeId
-              ? (await db.select({ name: schema.equipes.name }).from(schema.equipes).where(eq(schema.equipes.id, row.equipeId)))[0]
-              : null;
-
             const result = await generateHabilitationPdf({
               matricule: row.matricule,
               nom: row.nom,
               prenom: row.prenom,
               nDeTitre: row.nDeTitre,
               fonction: row.fonction,
-              division: div?.name ?? "",
-              service: svc?.name ?? null,
-              equipe: equipe?.name ?? null,
+              division: divMap[row.divisionId] ?? "",
+              service: svcMap[row.serviceId] ?? null,
+              equipe: row.equipeId ? (equipeMap[row.equipeId] ?? null) : null,
               stCodes: (row.stCodes as string[]) ?? [],
               htCodes: (row.htCodes as string[]) ?? [],
               habRows: (row.habRows as any) ?? null,
@@ -327,12 +335,15 @@ export function createServer() {
             failed++;
             errors.push(`${row.matricule}: ${(err as Error).message}`);
           }
+          send({ generated, failed, total, current: row.matricule, finished: false });
         }
 
-        res.json({ success: true, data: { generated, failed, errors }, error: null });
+        send({ generated, failed, total, finished: true, errors });
+        res.end();
       } catch (err) {
-        console.error("bulk-generate-pdf error:", err);
-        res.status(500).json({ success: false, data: null, error: (err as Error).message });
+        logger.error("app", "bulk-generate-pdf error", { error: String(err) });
+        res.write(`data: ${JSON.stringify({ error: (err as Error).message, finished: true })}\n\n`);
+        res.end();
       }
     });
   });

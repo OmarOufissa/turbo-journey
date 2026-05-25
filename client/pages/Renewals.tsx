@@ -28,6 +28,8 @@ interface PendingRenewal {
   matricule: string;
   nom: string;
   prenom: string;
+  divisionName: string | null;
+  serviceName: string | null;
 }
 
 function getDaysUntilExpiry(dateExpiration: string): number {
@@ -179,6 +181,11 @@ export default function Renewals() {
                       </h3>
                       <p className="text-sm text-muted-foreground">Matricule: {renewal.matricule}</p>
                       <p className="text-sm text-muted-foreground">Fonction: {renewal.snapshot.fonction}</p>
+                      {(renewal.divisionName || renewal.serviceName) && (
+                        <p className="text-sm text-muted-foreground">
+                          {[renewal.divisionName, renewal.serviceName].filter(Boolean).join(" / ")}
+                        </p>
+                      )}
                       <div className="flex gap-2 mt-2 flex-wrap">
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-white/10 border border-white/20">
                           <Clock className="w-3 h-3" />

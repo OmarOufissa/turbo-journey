@@ -52,7 +52,6 @@ export default function Employees() {
   const { toast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [expirationFilter, setExpirationFilter] = useState("all");
@@ -71,7 +70,6 @@ export default function Employees() {
   const handleSort = (col: string) => {
     if (sort === col) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSort(col); setSortDir("asc"); }
-    setPage(1);
   };
 
   const SortIcon = ({ col }: { col: string }) => {
@@ -84,7 +82,7 @@ export default function Employees() {
   const fetchEmployees = useCallback(async () => {
     setIsLoading(true);
     try {
-      const params: Record<string, any> = { page, limit: 20, sort, sortDir };
+      const params: Record<string, any> = { page: 1, limit: 500, sort, sortDir };
       if (searchTerm) params.search = searchTerm;
       if (hasPdfFilter !== "all") params.hasPdf = hasPdfFilter;
       const range = getExpirationRange(expirationFilter);
@@ -101,7 +99,7 @@ export default function Employees() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, searchTerm, expirationFilter, hasPdfFilter, sort, sortDir, toast]);
+  }, [searchTerm, expirationFilter, hasPdfFilter, sort, sortDir, toast]);
 
   useEffect(() => { fetchEmployees(); }, [fetchEmployees]);
 
@@ -140,7 +138,6 @@ export default function Employees() {
     setSearchTerm(preset.search);
     setExpirationFilter(preset.expirationFilter);
     setHasPdfFilter(preset.hasPdfFilter);
-    setPage(1);
   };
 
   const handleDeletePreset = (name: string) => {
@@ -149,7 +146,16 @@ export default function Employees() {
     savePresets(updated);
   };
 
-  const totalPages = Math.ceil(total / 20);
+  const buildExportUrl = () => {
+    const params = new URLSearchParams();
+    if (searchTerm) params.set("search", searchTerm);
+    if (hasPdfFilter !== "all") params.set("hasPdf", hasPdfFilter);
+    const range = getExpirationRange(expirationFilter);
+    if (range.expirationFrom) params.set("expirationFrom", range.expirationFrom);
+    if (range.expirationTo) params.set("expirationTo", range.expirationTo);
+    const qs = params.toString();
+    return `/api/employees/export${qs ? `?${qs}` : ""}`;
+  };
 
   return (
     <Layout>
@@ -158,8 +164,8 @@ export default function Employees() {
           <h1 className="text-2xl font-bold">Employés ({total})</h1>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>
-              <a href="/api/employees/export" download>
-                <Download className="w-4 h-4 mr-1" />Exporter
+              <a href={buildExportUrl()} download>
+                <Download className="w-4 h-4 mr-1" />Exporter ({total})
               </a>
             </Button>
             <Button variant="outline" size="sm" onClick={() => setColorCodingEnabled(v => !v)}>
@@ -176,10 +182,10 @@ export default function Employees() {
           <Input
             placeholder="Rechercher par matricule, nom, prénom..."
             value={searchTerm}
-            onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
+            onChange={e => { setSearchTerm(e.target.value); }}
             className="max-w-xs"
           />
-          <Select value={expirationFilter} onValueChange={v => { setExpirationFilter(v); setPage(1); }}>
+          <Select value={expirationFilter} onValueChange={v => { setExpirationFilter(v); }}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Expiration" />
             </SelectTrigger>
@@ -191,7 +197,7 @@ export default function Employees() {
               <SelectItem value="9m">&lt; 9 mois</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={hasPdfFilter} onValueChange={v => { setHasPdfFilter(v); setPage(1); }}>
+          <Select value={hasPdfFilter} onValueChange={v => { setHasPdfFilter(v); }}>
             <SelectTrigger className="w-36">
               <SelectValue placeholder="PDF" />
             </SelectTrigger>
@@ -336,17 +342,6 @@ export default function Employees() {
               </TableBody>
             </Table>
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                  Précédent
-                </Button>
-                <span className="text-sm text-muted-foreground">Page {page} / {totalPages}</span>
-                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                  Suivant
-                </Button>
-              </div>
-            )}
           </>
         )}
       </div>

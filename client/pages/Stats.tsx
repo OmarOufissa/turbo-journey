@@ -62,6 +62,7 @@ export default function Stats() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; current: string } | null>(null);
   const token = localStorage.getItem("token");
 
   const load = () => {
@@ -75,23 +76,58 @@ export default function Stats() {
 
   useEffect(load, []);
 
+  // Refresh when tab becomes visible again
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
+
   const handleBulkPdf = async () => {
     if (!window.confirm("Générer les PDFs pour tous les employés actifs ? Cela peut prendre quelques minutes.")) return;
     setBulkLoading(true);
+    setBulkProgress(null);
     try {
       const res = await fetch("/api/employees/bulk-generate-pdf", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
-      if (data.success) {
-        toast({ title: "Génération terminée", description: `${data.data.generated} PDF(s) générés, ${data.data.failed} erreur(s)` });
-        load();
+      if (!res.body) throw new Error("No response body");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let lastEvent: any = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const evt = JSON.parse(line.slice(6));
+              lastEvent = evt;
+              if (!evt.finished) {
+                setBulkProgress({ done: evt.generated, total: evt.total, current: evt.current });
+              }
+            } catch { /* ignore parse errors */ }
+          }
+        }
       }
+
+      if (lastEvent?.error) {
+        toast({ title: "Erreur", description: lastEvent.error, variant: "destructive" });
+      } else {
+        toast({ title: "Génération terminée", description: `${lastEvent?.generated ?? 0} PDF(s) générés, ${lastEvent?.failed ?? 0} erreur(s)` });
+      }
+      load();
     } catch {
       toast({ title: "Erreur", description: "Erreur lors de la génération", variant: "destructive" });
     } finally {
       setBulkLoading(false);
+      setBulkProgress(null);
     }
   };
 
@@ -136,8 +172,12 @@ export default function Stats() {
           <h1 className="text-2xl font-bold">Statistiques</h1>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={load}><RefreshCw className="w-4 h-4 mr-1" />Actualiser</Button>
-            <Button size="sm" onClick={handleBulkPdf} disabled={bulkLoading}>
-              <FileText className="w-4 h-4 mr-1" />{bulkLoading ? "Génération..." : "Générer tous les PDFs"}
+            <Button size="sm" onClick={handleBulkPdf} disabled={bulkLoading} className="min-w-48">
+              <FileText className="w-4 h-4 mr-1" />
+              {bulkProgress
+                ? `${bulkProgress.done}/${bulkProgress.total} — ${bulkProgress.current}`
+                : bulkLoading ? "Démarrage..."
+                : "Générer tous les PDFs"}
             </Button>
           </div>
         </div>

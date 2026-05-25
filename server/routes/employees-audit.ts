@@ -151,7 +151,7 @@ export const getEquipesByService: RequestHandler = async (req, res) => {
 export const getEmployees: RequestHandler = async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(100, parseInt(req.query.limit as string) || 20);
+    const limit = Math.min(1000, parseInt(req.query.limit as string) || 20);
     const offset = (page - 1) * limit;
     const showDeleted = req.query.deleted === "true";
     const search = req.query.search as string | undefined;
@@ -813,8 +813,24 @@ export const deletePdf: RequestHandler = async (req, res) => {
 // EXCEL EXPORT
 // ============================================================================
 
-export const exportEmployees: RequestHandler = async (_req, res) => {
+export const exportEmployees: RequestHandler = async (req, res) => {
   try {
+    const search = req.query.search as string | undefined;
+    const expirationFrom = req.query.expirationFrom as string | undefined;
+    const expirationTo = req.query.expirationTo as string | undefined;
+    const hasPdf = req.query.hasPdf as string | undefined;
+
+    const conditions: any[] = [eq(schema.employees.deleted, false)];
+    if (search) {
+      const pat = `%${search}%`;
+      conditions.push(or(like(schema.employees.matricule, pat), like(schema.employees.nom, pat), like(schema.employees.prenom, pat)));
+    }
+    if (expirationFrom) conditions.push(gte(schema.employeeVersions.dateExpiration, expirationFrom));
+    if (expirationTo) conditions.push(lte(schema.employeeVersions.dateExpiration, expirationTo));
+    if (hasPdf === "true") conditions.push(isNotNull(schema.employeeVersions.pdfPath));
+    if (hasPdf === "false") conditions.push(isNull(schema.employeeVersions.pdfPath));
+    const whereClause = conditions.length === 1 ? conditions[0] : and(...conditions);
+
     const rows = await db
       .select({
         matricule: schema.employees.matricule,
@@ -837,7 +853,7 @@ export const exportEmployees: RequestHandler = async (_req, res) => {
       .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
       .leftJoin(schema.services, eq(schema.employeeVersions.serviceId, schema.services.id))
       .leftJoin(schema.equipes, eq(schema.employeeVersions.equipeId, schema.equipes.id))
-      .where(eq(schema.employees.deleted, false))
+      .where(whereClause)
       .orderBy(asc(schema.employees.matricule));
 
     const XLSX = await import("xlsx");
