@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createEmployee } from "@/api/employees";
 import { setLastAction } from "@/components/UndoButton";
 import { ST_CODES, HT_CODES } from "@/types/habilitation";
 import { VALID_FONCTIONS } from "@/types/fonctions";
+import { DOMAINE_OPTIONS, OUVRAGE_OPTIONS, INDICATION_OPTIONS } from "@/types/habRows";
 import type { HabRows } from "@/types/employee";
 
 interface OrgItem { id: number; name: string; }
@@ -40,6 +40,8 @@ export default function AddEmployee() {
   const [services, setServices] = useState<OrgItem[]>([]);
   const [equipes, setEquipes] = useState<OrgItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     matricule: "",
@@ -129,9 +131,24 @@ export default function AddEmployee() {
         dateExpiration: form.dateExpiration,
       });
       if (res.success) {
+        const newId = res.data.employee?.id;
+        if (pdfFile && newId) {
+          try {
+            const buffer = await pdfFile.arrayBuffer();
+            const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+            const token = localStorage.getItem("token");
+            await fetch(`/api/employees/${newId}/upload-pdf`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ pdfBase64: base64 }),
+            });
+          } catch {
+            // PDF upload failure is non-fatal
+          }
+        }
         toast({ title: "Succès", description: `Employé ${form.matricule} créé` });
         if (res.data.auditLogId) setLastAction({ auditLogId: res.data.auditLogId, description: `Employé ${form.matricule} créé`, timestamp: Date.now() });
-        navigate(`/employees/${res.data.employee?.id}`);
+        navigate(`/employees/${newId}`);
       }
     } catch (err: any) {
       toast({ title: "Erreur", description: err.message ?? "Erreur lors de la création", variant: "destructive" });
@@ -272,29 +289,30 @@ export default function AddEmployee() {
                     <div className="grid grid-cols-1 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Domaine de tension</Label>
-                        <Input
-                          value={habRows[r.key]?.domaine ?? ''}
-                          onChange={e => setHabField(r.key, 'domaine', e.target.value)}
-                          placeholder="ex: HT BT TBT"
-                        />
+                        <Select value={habRows[r.key]?.domaine ?? ''} onValueChange={v => setHabField(r.key, 'domaine', v)}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+                          <SelectContent>
+                            {DOMAINE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Ouvrages Concernés</Label>
-                        <Textarea
-                          value={habRows[r.key]?.ouvrage ?? ''}
-                          onChange={e => setHabField(r.key, 'ouvrage', e.target.value)}
-                          placeholder="Décrire les ouvrages concernés"
-                          rows={2}
-                        />
+                        <Select value={habRows[r.key]?.ouvrage ?? ''} onValueChange={v => setHabField(r.key, 'ouvrage', v)}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+                          <SelectContent>
+                            {OUVRAGE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Indications Complémentaires</Label>
-                        <Textarea
-                          value={habRows[r.key]?.indication ?? ''}
-                          onChange={e => setHabField(r.key, 'indication', e.target.value)}
-                          placeholder="Indications complémentaires"
-                          rows={2}
-                        />
+                        <Select value={habRows[r.key]?.indication ?? ''} onValueChange={v => setHabField(r.key, 'indication', v)}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+                          <SelectContent>
+                            {INDICATION_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
@@ -302,6 +320,38 @@ export default function AddEmployee() {
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><FileText className="w-4 h-4" /> PDF existant (optionnel)</CardTitle>
+              <CardDescription>Joindre le certificat PDF existant de cet employé</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={e => setPdfFile(e.target.files?.[0] ?? null)}
+              />
+              <div className="flex items-center gap-3">
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Choisir un PDF
+                </Button>
+                {pdfFile ? (
+                  <span className="text-sm text-foreground">{pdfFile.name}</span>
+                ) : (
+                  <span className="text-sm text-muted-foreground">Aucun fichier sélectionné</span>
+                )}
+                {pdfFile && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => { setPdfFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+                    Supprimer
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" asChild>

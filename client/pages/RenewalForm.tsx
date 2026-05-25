@@ -4,7 +4,6 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,6 +11,7 @@ import { ArrowLeft, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ST_CODES, HT_CODES } from "@/types/habilitation";
 import { VALID_FONCTIONS } from "@/types/fonctions";
+import { DOMAINE_OPTIONS, OUVRAGE_OPTIONS, INDICATION_OPTIONS } from "@/types/habRows";
 import type { Employee, HabRows } from "@/types/employee";
 
 interface OrgItem { id: number; name: string; }
@@ -336,15 +336,30 @@ export default function RenewalForm() {
                     <div className="grid grid-cols-1 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Domaine de tension</Label>
-                        <Input value={habRows[r.key]?.domaine ?? ''} onChange={e => setHabField(r.key, 'domaine', e.target.value)} placeholder="ex: HT BT TBT" />
+                        <Select value={habRows[r.key]?.domaine ?? ''} onValueChange={v => setHabField(r.key, 'domaine', v)}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+                          <SelectContent>
+                            {DOMAINE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Ouvrages Concernés</Label>
-                        <Textarea value={habRows[r.key]?.ouvrage ?? ''} onChange={e => setHabField(r.key, 'ouvrage', e.target.value)} placeholder="Décrire les ouvrages concernés" rows={2} />
+                        <Select value={habRows[r.key]?.ouvrage ?? ''} onValueChange={v => setHabField(r.key, 'ouvrage', v)}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+                          <SelectContent>
+                            {OUVRAGE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Indications Complémentaires</Label>
-                        <Textarea value={habRows[r.key]?.indication ?? ''} onChange={e => setHabField(r.key, 'indication', e.target.value)} placeholder="Indications complémentaires" rows={2} />
+                        <Select value={habRows[r.key]?.indication ?? ''} onValueChange={v => setHabField(r.key, 'indication', v)}>
+                          <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+                          <SelectContent>
+                            {INDICATION_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>

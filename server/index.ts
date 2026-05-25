@@ -381,6 +381,50 @@ export function createServer() {
     authMiddleware(req, res, () => revertToVersion(req, res, () => {}));
   });
 
+  app.post("/api/employees/:id/upload-pdf", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const employeeId = parseInt(req.params.id);
+        const { pdfBase64 } = req.body as { pdfBase64: string };
+        if (!pdfBase64) return res.status(400).json({ success: false, error: "pdfBase64 required" });
+
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq, desc } = await import("drizzle-orm");
+        const fs = await import("fs");
+        const path = await import("path");
+
+        const ver = await db.query.employeeVersions.findFirst({
+          where: eq(schema.employeeVersions.employeeId, employeeId),
+          orderBy: [desc(schema.employeeVersions.versionNumber)],
+        });
+        if (!ver) return res.status(404).json({ success: false, error: "Employee version not found" });
+
+        const emp = await db.query.employees.findFirst({
+          where: eq(schema.employees.id, employeeId),
+        });
+        if (!emp) return res.status(404).json({ success: false, error: "Employee not found" });
+
+        const uploadDir = process.env.UPLOADS_DIR ?? path.join(process.cwd(), "uploads", "pdfs");
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+        const filename = `hab${emp.matricule}_uploaded.pdf`;
+        const filePath = path.join(uploadDir, filename);
+        const buffer = Buffer.from(pdfBase64, "base64");
+        fs.writeFileSync(filePath, buffer);
+
+        const pdfPath = `/uploads/pdfs/${filename}`;
+        await db.update(schema.employeeVersions).set({ pdfPath }).where(eq(schema.employeeVersions.id, ver.id));
+
+        return res.json({ success: true, data: { pdfPath } });
+      } catch (err: any) {
+        logger.error("app", "upload-pdf error", { error: String(err) });
+        return res.status(500).json({ success: false, error: err.message });
+      }
+    });
+  });
+
   // ============================================================================
   // ORG STRUCTURE
   // ============================================================================
