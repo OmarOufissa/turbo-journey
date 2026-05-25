@@ -14,6 +14,7 @@ import { setLastAction } from "@/components/UndoButton";
 import { ST_CODES, HT_CODES } from "@/types/habilitation";
 import { VALID_FONCTIONS } from "@/types/fonctions";
 import { DOMAINE_OPTIONS, OUVRAGE_OPTIONS, INDICATION_OPTIONS } from "@/types/habRows";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { HabRows } from "@/types/employee";
 
 interface OrgItem { id: number; name: string; }
@@ -135,7 +136,12 @@ export default function AddEmployee() {
         if (pdfFile && newId) {
           try {
             const buffer = await pdfFile.arrayBuffer();
-            const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+            const bytes = new Uint8Array(buffer);
+            let binary = "";
+            for (let i = 0; i < bytes.length; i += 8192) {
+              binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+            }
+            const base64 = btoa(binary);
             const token = localStorage.getItem("token");
             await fetch(`/api/employees/${newId}/upload-pdf`, {
               method: "POST",
@@ -289,27 +295,24 @@ export default function AddEmployee() {
                     <div className="grid grid-cols-1 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Domaine de tension</Label>
-                        <Select value={habRows[r.key]?.domaine ?? ''} onValueChange={v => setHabField(r.key, 'domaine', v)}>
+                        <Select value={habRows[r.key]?.domaine ?? ''} onValueChange={v => setHabField(r.key, 'domaine', v === '__clear__' ? '' : v)}>
                           <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="__clear__" className="text-muted-foreground italic">— Aucun —</SelectItem>
                             {DOMAINE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Ouvrages Concernés</Label>
-                        <Select value={habRows[r.key]?.ouvrage ?? ''} onValueChange={v => setHabField(r.key, 'ouvrage', v)}>
-                          <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
-                          <SelectContent>
-                            {OUVRAGE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                        <SearchableSelect value={habRows[r.key]?.ouvrage ?? ''} onChange={v => setHabField(r.key, 'ouvrage', v)} options={OUVRAGE_OPTIONS} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Indications Complémentaires</Label>
-                        <Select value={habRows[r.key]?.indication ?? ''} onValueChange={v => setHabField(r.key, 'indication', v)}>
+                        <Select value={habRows[r.key]?.indication ?? ''} onValueChange={v => setHabField(r.key, 'indication', v === '__clear__' ? '' : v)}>
                           <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="__clear__" className="text-muted-foreground italic">— Aucun —</SelectItem>
                             {INDICATION_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                           </SelectContent>
                         </Select>

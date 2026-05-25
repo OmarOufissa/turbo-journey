@@ -414,10 +414,9 @@ export function createServer() {
         const buffer = Buffer.from(pdfBase64, "base64");
         fs.writeFileSync(filePath, buffer);
 
-        const pdfPath = `/uploads/pdfs/${filename}`;
-        await db.update(schema.employeeVersions).set({ pdfPath }).where(eq(schema.employeeVersions.id, ver.id));
+        await db.update(schema.employeeVersions).set({ pdfPath: filename }).where(eq(schema.employeeVersions.id, ver.id));
 
-        return res.json({ success: true, data: { pdfPath } });
+        return res.json({ success: true, data: { pdfPath: filename } });
       } catch (err: any) {
         logger.error("app", "upload-pdf error", { error: String(err) });
         return res.status(500).json({ success: false, error: err.message });
