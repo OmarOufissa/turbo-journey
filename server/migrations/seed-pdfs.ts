@@ -42,6 +42,8 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "85887",  filename: "hab85887_seed.pdf" },
   { matricule: "B5665K", filename: "habB5665K_seed.pdf" },
   { matricule: "B5939M", filename: "habB5939M_seed.pdf" },
+  // Batch 3
+  { matricule: "81628",  filename: "hab81628_seed.pdf" },
 ];
 
 export async function runPdfSeedMigration(): Promise<void> {
