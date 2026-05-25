@@ -625,6 +625,21 @@ export function createServer() {
   // BACKUPS
   // ============================================================================
 
+  app.post("/api/resync-names", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { resyncEmployeeNames } = await import("./seed-pg");
+        const result = await resyncEmployeeNames();
+        res.json({ success: true, data: result, error: null });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[resync-names]", msg);
+        res.status(500).json({ success: false, data: null, error: msg });
+      }
+    });
+  });
+
   app.post("/api/backups/create", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     authMiddleware(req, res, async () => {

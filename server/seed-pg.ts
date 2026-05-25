@@ -407,3 +407,47 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   });
 }
+
+// Resync only names + fonctions from Excel without touching versions or org structure
+export async function resyncEmployeeNames(): Promise<{ updated: number; skipped: number; errors: string[] }> {
+  const errors: string[] = [];
+  let updated = 0;
+  let skipped = 0;
+
+  const employees = await parseExcelData();
+
+  for (const emp of employees) {
+    try {
+      const existing = await db
+        .select({ id: schema.employees.id })
+        .from(schema.employees)
+        .where(eq(schema.employees.matricule, emp.matricule))
+        .limit(1);
+
+      if (existing.length === 0) {
+        skipped++;
+        continue;
+      }
+
+      const empId = existing[0].id;
+      await db
+        .update(schema.employees)
+        .set({ nom: emp.nom, prenom: emp.prenom })
+        .where(eq(schema.employees.id, empId));
+
+      if (emp.fonction) {
+        await db
+          .update(schema.employeeVersions)
+          .set({ fonction: emp.fonction })
+          .where(eq(schema.employeeVersions.employeeId, empId));
+      }
+
+      updated++;
+    } catch (err) {
+      errors.push(`${emp.matricule}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  console.log(`[resyncEmployeeNames] updated=${updated} skipped=${skipped} errors=${errors.length}`);
+  return { updated, skipped, errors };
+}

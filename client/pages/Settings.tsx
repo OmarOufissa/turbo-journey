@@ -62,6 +62,8 @@ export default function Settings() {
   const [healthReport, setHealthReport] = useState<any>(null);
   const [healthLoading, setHealthLoading] = useState(false);
   const [backupLoading, setBackupLoading] = useState(false);
+  const [resyncLoading, setResyncLoading] = useState(false);
+  const [resyncResult, setResyncResult] = useState<{ updated: number; skipped: number } | null>(null);
   const [appVersion, setAppVersion] = useState<string>("—");
 
   // Load app version from package.json via server
@@ -93,6 +95,28 @@ export default function Settings() {
       toast({ title: "Erreur", description: "Impossible d'exécuter les vérifications", variant: "destructive" });
     } finally {
       setHealthLoading(false);
+    }
+  }
+
+  async function handleResyncNames() {
+    setResyncLoading(true);
+    setResyncResult(null);
+    try {
+      const res = await fetch("/api/resync-names", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token") ?? ""}` },
+      });
+      const json = await res.json();
+      if (json.success) {
+        setResyncResult(json.data);
+        toast({ title: "Noms synchronisés", description: `${json.data.updated} employés mis à jour` });
+      } else {
+        throw new Error(json.error ?? "Erreur");
+      }
+    } catch (err: any) {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    } finally {
+      setResyncLoading(false);
     }
   }
 
@@ -312,6 +336,35 @@ export default function Settings() {
                 ))}
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Resync Names ──────────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Corriger les noms des employés
+            </CardTitle>
+            <CardDescription>
+              Resynchronise les noms et prénoms depuis le fichier Excel source. À utiliser si des noms sont tronqués ou incorrects.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button
+              variant="outline"
+              onClick={handleResyncNames}
+              disabled={resyncLoading}
+              className="gap-2"
+            >
+              {resyncLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              {resyncLoading ? "Synchronisation en cours..." : "Corriger les noms maintenant"}
+            </Button>
+            {resyncResult && (
+              <p className="text-sm text-green-600 dark:text-green-400">
+                ✓ {resyncResult.updated} employés mis à jour, {resyncResult.skipped} ignorés
+              </p>
+            )}
           </CardContent>
         </Card>
 
