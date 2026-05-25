@@ -120,23 +120,9 @@ export default function Employees() {
     }
   };
 
-  const handleRenew = async (emp: Employee) => {
+  const handleRenew = (emp: Employee) => {
     if (!emp.currentVersion) return;
-    try {
-      const token = localStorage.getItem("token") ?? "";
-      const res = await fetch("/api/renewals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ employeeId: emp.id, snapshot: emp.currentVersion }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? `HTTP ${res.status}`);
-      }
-      toast({ title: "Renouvellement créé", description: `${emp.matricule} ajouté aux renouvellements en attente` });
-    } catch (e: any) {
-      toast({ title: "Erreur", description: e.message, variant: "destructive" });
-    }
+    navigate(`/employees/${emp.id}/renew`);
   };
 
   const handleSavePreset = () => {

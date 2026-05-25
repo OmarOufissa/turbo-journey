@@ -31,9 +31,9 @@ import AuditLog from "./pages/AuditLog";
 import EmployeeHistory from "./pages/EmployeeHistory";
 import BackupRestore from "./pages/BackupRestore";
 import Settings from "./pages/Settings";
-import OrgSettings from "./pages/OrgSettings";
 import NotFound from "./pages/NotFound";
 import Reports from "./pages/Reports";
+import RenewalForm from "./pages/RenewalForm";
 
 const queryClient = new QueryClient();
 
@@ -119,6 +119,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditEmployee />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employees/:id/renew"
+            element={
+              <ProtectedRoute>
+                <RenewalForm />
               </ProtectedRoute>
             }
           />
@@ -212,14 +220,6 @@ function App() {
             }
           />
 
-          <Route
-            path="/settings/organization"
-            element={
-              <ProtectedRoute>
-                <OrgSettings />
-              </ProtectedRoute>
-            }
-          />
 
           <Route
             path="/reports"

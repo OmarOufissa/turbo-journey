@@ -79,7 +79,7 @@ export function createServer() {
   });
 
 
-  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+  app.use("/uploads", express.static(process.env.UPLOADS_BASE_DIR ?? path.join(process.cwd(), "uploads")));
 
   app.get("/api/ping", (_req, res) => {
     res.json({ message: process.env.PING_MESSAGE ?? "ping", version: "1.0.0" });
@@ -121,6 +121,117 @@ export function createServer() {
   app.get("/api/stats", async (req, res) => {
     const { authMiddleware, getStats } = await import("./routes/employees-audit");
     authMiddleware(req, res, () => getStats(req, res, () => {}));
+  });
+
+  app.get("/api/analytics", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq, and, gte, sql } = await import("drizzle-orm");
+
+        // Total active employees
+        const [{ total }] = await db
+          .select({ total: sql<number>`count(*)` })
+          .from(schema.employees)
+          .where(eq(schema.employees.deleted, false));
+
+        // Total deleted employees
+        const [{ totalDeleted }] = await db
+          .select({ totalDeleted: sql<number>`count(*)` })
+          .from(schema.employees)
+          .where(eq(schema.employees.deleted, true));
+
+        // Employees added per month (by createdAt) — last 12 months
+        const addedByMonth = await db
+          .select({
+            month: sql<string>`strftime('%Y-%m', created_at)`,
+            count: sql<number>`count(*)`,
+          })
+          .from(schema.employees)
+          .where(gte(schema.employees.createdAt, sql`datetime('now', '-12 months')`))
+          .groupBy(sql`strftime('%Y-%m', created_at)`)
+          .orderBy(sql`strftime('%Y-%m', created_at)`);
+
+        // Employees activated by division (breakdown of current active)
+        const byDivision = await db
+          .select({
+            division: schema.divisions.name,
+            count: sql<number>`count(*)`,
+          })
+          .from(schema.employees)
+          .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+          .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
+          .where(eq(schema.employees.deleted, false))
+          .groupBy(schema.divisions.name)
+          .orderBy(sql`count(*) desc`);
+
+        // Pending renewals
+        const [{ pendingRenewals }] = await db
+          .select({ pendingRenewals: sql<number>`count(*)` })
+          .from(schema.pendingRenewals);
+
+        // Audit log: CREATE_EMPLOYEE counts by month
+        const createdByMonth = await db
+          .select({
+            month: sql<string>`strftime('%Y-%m', created_at)`,
+            count: sql<number>`count(*)`,
+          })
+          .from(schema.auditLogs)
+          .where(and(
+            eq(schema.auditLogs.action, "CREATE_EMPLOYEE"),
+            gte(schema.auditLogs.createdAt, sql`datetime('now', '-12 months')`)
+          ))
+          .groupBy(sql`strftime('%Y-%m', created_at)`)
+          .orderBy(sql`strftime('%Y-%m', created_at)`);
+
+        // Audit log: DELETE_EMPLOYEE counts by month
+        const deletedByMonth = await db
+          .select({
+            month: sql<string>`strftime('%Y-%m', created_at)`,
+            count: sql<number>`count(*)`,
+          })
+          .from(schema.auditLogs)
+          .where(and(
+            eq(schema.auditLogs.action, "DELETE_EMPLOYEE"),
+            gte(schema.auditLogs.createdAt, sql`datetime('now', '-12 months')`)
+          ))
+          .groupBy(sql`strftime('%Y-%m', created_at)`)
+          .orderBy(sql`strftime('%Y-%m', created_at)`);
+
+        // Renewals activated by month
+        const activatedByMonth = await db
+          .select({
+            month: sql<string>`strftime('%Y-%m', created_at)`,
+            count: sql<number>`count(*)`,
+          })
+          .from(schema.auditLogs)
+          .where(and(
+            eq(schema.auditLogs.action, "ACTIVATE_RENEWAL"),
+            gte(schema.auditLogs.createdAt, sql`datetime('now', '-12 months')`)
+          ))
+          .groupBy(sql`strftime('%Y-%m', created_at)`)
+          .orderBy(sql`strftime('%Y-%m', created_at)`);
+
+        res.json({
+          success: true,
+          data: {
+            totalActive: Number(total),
+            totalDeleted: Number(totalDeleted),
+            pendingRenewals: Number(pendingRenewals),
+            addedByMonth,
+            deletedByMonth: deletedByMonth,
+            activatedByMonth,
+            byDivision,
+          },
+          error: null,
+        });
+      } catch (err) {
+        console.error("analytics error:", err);
+        res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+      }
+    });
   });
 
   app.get("/api/reports/expiration/pdf", async (req, res) => {

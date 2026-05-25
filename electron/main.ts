@@ -11,6 +11,7 @@ const ALLOWED_ORIGIN = isDev ? "http://localhost:8080" : `http://localhost:${POR
 if (!isDev) {
   const userData = app.getPath("userData");
   process.env.DATABASE_URL = `file:${path.join(userData, "habilitations.db")}`;
+  process.env.UPLOADS_BASE_DIR = path.join(userData, "uploads");
   process.env.UPLOADS_DIR = path.join(userData, "uploads", "pdfs");
   process.env.PDF_TEMPLATE_PATH = path.join(__dirname, "../server/seeds/data/titre_HAE_vierge.pdf");
 }
