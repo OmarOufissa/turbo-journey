@@ -44,6 +44,66 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "B5939M", filename: "habB5939M_seed.pdf" },
   // Batch 3
   { matricule: "81628",  filename: "hab81628_seed.pdf" },
+  // Batch 4 — from full PDF archive (May 2026)
+  { matricule: "84742",  filename: "hab84742_seed.pdf" },
+  { matricule: "82019",  filename: "hab82019_seed.pdf" },
+  { matricule: "83635",  filename: "hab83635_seed.pdf" },
+  { matricule: "00958",  filename: "hab00958_seed.pdf" },
+  { matricule: "01587",  filename: "hab01587_seed.pdf" },
+  { matricule: "34172",  filename: "hab34172_seed.pdf" },
+  { matricule: "31394",  filename: "hab31394_seed.pdf" },
+  // HAE XJ Oct 2025 (exp Oct 2026)
+  { matricule: "80922",  filename: "hab80922_seed.pdf" },
+  { matricule: "81914",  filename: "hab81914_seed.pdf" },
+  { matricule: "80045",  filename: "hab80045_seed.pdf" },
+  { matricule: "80793",  filename: "hab80793_seed.pdf" },
+  { matricule: "78953",  filename: "hab78953_seed.pdf" },
+  { matricule: "84715",  filename: "hab84715_seed.pdf" },
+  // TST Jan 2026 (exp Dec 2026)
+  { matricule: "79195",  filename: "hab79195_seed.pdf" },
+  { matricule: "81981",  filename: "hab81981_seed.pdf" },
+  { matricule: "82316",  filename: "hab82316_seed.pdf" },
+  { matricule: "82637",  filename: "hab82637_seed.pdf" },
+  { matricule: "89938",  filename: "hab89938_seed.pdf" },
+  { matricule: "84628",  filename: "hab84628_seed.pdf" },
+  { matricule: "86034",  filename: "hab86034_seed.pdf" },
+  { matricule: "82622",  filename: "hab82622_seed.pdf" },
+  // XJ Apr 2026 (exp Aug 2027)
+  { matricule: "78677",  filename: "hab78677_seed.pdf" },
+  { matricule: "82452",  filename: "hab82452_seed.pdf" },
+  { matricule: "84716",  filename: "hab84716_seed.pdf" },
+  { matricule: "84801",  filename: "hab84801_seed.pdf" },
+  { matricule: "83344",  filename: "hab83344_seed.pdf" },
+  { matricule: "81018",  filename: "hab81018_seed.pdf" },
+  { matricule: "85401",  filename: "hab85401_seed.pdf" },
+  // XJ pratique Apr 2026 (exp Apr 2028)
+  { matricule: "84759",  filename: "hab84759_seed.pdf" },
+  { matricule: "80908",  filename: "hab80908_seed.pdf" },
+  { matricule: "81206",  filename: "hab81206_seed.pdf" },
+  { matricule: "80031",  filename: "hab80031_seed.pdf" },
+  { matricule: "80000",  filename: "hab80000_seed.pdf" },
+  { matricule: "84871",  filename: "hab84871_seed.pdf" },
+  { matricule: "78853",  filename: "hab78853_seed.pdf" },
+  // XJ Apr 2026 batch 2 (exp Apr 2028)
+  { matricule: "76808",  filename: "hab76808_seed.pdf" },
+  { matricule: "83980",  filename: "hab83980_seed.pdf" },
+  { matricule: "83962",  filename: "hab83962_seed.pdf" },
+  { matricule: "79223",  filename: "hab79223_seed.pdf" },
+  { matricule: "84412",  filename: "hab84412_seed.pdf" },
+  { matricule: "81807",  filename: "hab81807_seed.pdf" },
+  { matricule: "82813",  filename: "hab82813_seed.pdf" },
+  { matricule: "83399",  filename: "hab83399_seed.pdf" },
+  // XA Mar 2026 (exp Mar 2027)
+  { matricule: "71088",  filename: "hab71088_seed.pdf" },
+  { matricule: "63475",  filename: "hab63475_seed.pdf" },
+  { matricule: "63478",  filename: "hab63478_seed.pdf" },
+  { matricule: "74411",  filename: "hab74411_seed.pdf" },
+  // XC Aug 2024 partie 2 (exp Jul 2027)
+  { matricule: "84891",  filename: "hab84891_seed.pdf" },
+  { matricule: "85889",  filename: "hab85889_seed.pdf" },
+  { matricule: "84033",  filename: "hab84033_seed.pdf" },
+  { matricule: "80498",  filename: "hab80498_seed.pdf" },
+  { matricule: "85488",  filename: "hab85488_seed.pdf" },
 ];
 
 export async function runPdfSeedMigration(): Promise<void> {
