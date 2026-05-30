@@ -300,10 +300,13 @@ export function createServer() {
             habRows: schema.employeeVersions.habRows,
             dateValidation: schema.employeeVersions.dateValidation,
             dateExpiration: schema.employeeVersions.dateExpiration,
+            pdfPath: schema.employeeVersions.pdfPath,
           })
           .from(schema.employees)
           .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
           .where(eq(schema.employees.deleted, false) as any);
+
+        const { skipExisting = true } = req.body ?? {};
 
         // Stream progress via SSE
         res.setHeader("Content-Type", "text/event-stream");
@@ -312,12 +315,13 @@ export function createServer() {
 
         const send = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
+        const rows = skipExisting ? allRows.filter(r => !r.pdfPath) : allRows;
         let generated = 0;
         let failed = 0;
-        const total = allRows.length;
+        const total = rows.length;
         const errors: string[] = [];
 
-        for (const row of allRows) {
+        for (const row of rows) {
           try {
             const result = await generateHabilitationPdf({
               matricule: row.matricule,

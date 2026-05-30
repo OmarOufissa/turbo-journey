@@ -20,7 +20,7 @@ export interface VersionSnapshot {
 }
 
 const TEMPLATE_PATH = process.env.PDF_TEMPLATE_PATH
-  ?? path.join(process.cwd(), 'server', 'seeds', 'data', 'titre_HAE_vierge.pdf');
+  ?? path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'seeds', 'data', 'titre_HAE_vierge.pdf');
 const UPLOAD_DIR = process.env.UPLOADS_DIR
   ?? path.join(process.cwd(), 'uploads', 'pdfs');
 
