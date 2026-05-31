@@ -32,6 +32,12 @@ async function initializeSeedOnStartup() {
     logger.error("app", "Error initializing seeds", { error: String(err) });
   }
   try {
+    const { removeDemoEmployees } = await import("./migrations/remove-demo-employees");
+    await removeDemoEmployees();
+  } catch (err) {
+    logger.warn("app", "Demo employee cleanup skipped", { error: String(err) });
+  }
+  try {
     const { runNamesMigration } = await import("./migrations/fix-names");
     await runNamesMigration();
   } catch (err) {

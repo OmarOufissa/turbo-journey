@@ -23,78 +23,8 @@ function relativeDate(monthOffset: number): string {
   return d.toISOString().split("T")[0];
 }
 
-const EMPLOYEES_SEED_DATA: EmployeeSeedData[] = [
-  {
-    matricule: "81628",
-    nom: "DUBOIS",
-    prenom: "Jean",
-    fonction: "Technicien Lignes THT&HT",
-    divisionId: 1,
-    serviceId: 1,
-    equipeId: 1,
-    stCodes: ["H1V"],
-    htCodes: ["B1V"],
-    nDeTitre: "81628_001",
-    dateValidation: relativeDate(-36),
-    dateExpiration: relativeDate(-2),
-  },
-  {
-    matricule: "81629",
-    nom: "MARTIN",
-    prenom: "Marie",
-    fonction: "Technicien Exploitation Réseau",
-    divisionId: 1,
-    serviceId: 1,
-    equipeId: 1,
-    stCodes: [],
-    htCodes: ["H2V", "B2V"],
-    nDeTitre: "81629_001",
-    dateValidation: relativeDate(-30),
-    dateExpiration: relativeDate(1),
-  },
-  {
-    matricule: "81630",
-    nom: "BENALI",
-    prenom: "Karim",
-    fonction: "Chef d'Equipe Postes THT/HT",
-    divisionId: 1,
-    serviceId: 1,
-    equipeId: 1,
-    stCodes: ["H0V", "H1V"],
-    htCodes: ["B0V", "B1V"],
-    nDeTitre: "81630_001",
-    dateValidation: relativeDate(-24),
-    dateExpiration: relativeDate(4),
-  },
-  {
-    matricule: "81631",
-    nom: "HAMIDI",
-    prenom: "Sara",
-    fonction: "Cadre Exploitation Réseau",
-    divisionId: 1,
-    serviceId: 1,
-    equipeId: 1,
-    stCodes: ["H1V", "H2V"],
-    htCodes: [],
-    nDeTitre: "81631_001",
-    dateValidation: relativeDate(-18),
-    dateExpiration: relativeDate(7),
-  },
-  {
-    matricule: "81632",
-    nom: "ROUSSEAU",
-    prenom: "Pierre",
-    fonction: "Monteur de Lignes THT&HT",
-    divisionId: 1,
-    serviceId: 1,
-    equipeId: 1,
-    stCodes: ["BR"],
-    htCodes: ["BR"],
-    nDeTitre: "81632_001",
-    dateValidation: relativeDate(-12),
-    dateExpiration: relativeDate(14),
-  },
-];
+const EMPLOYEES_SEED_DATA: EmployeeSeedData[] = [];
+// Demo employees removed — all employees come from the official Excel import only.
 
 export async function seedEmployees(): Promise<{
   success: boolean;
