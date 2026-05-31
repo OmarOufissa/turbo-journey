@@ -27,6 +27,7 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "94481",  filename: "hab94481_seed.pdf" },
   { matricule: "03256",  filename: "hab03256_seed.pdf" },
   { matricule: "81122",  filename: "hab81122_seed.pdf" },
+  { matricule: "81123",  filename: "hab81123_seed.pdf" },
   { matricule: "81014",  filename: "hab81014_seed.pdf" },
   { matricule: "62052",  filename: "hab62052_seed.pdf" },
   // Batch 2 — XA division (Oct 2024, exp 2027/2028)
