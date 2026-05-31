@@ -55,7 +55,6 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "81914",  filename: "hab81914_seed.pdf" },
   { matricule: "80045",  filename: "hab80045_seed.pdf" },
   { matricule: "80793",  filename: "hab80793_seed.pdf" },
-  { matricule: "78953",  filename: "hab78953_seed.pdf" },
   { matricule: "84715",  filename: "hab84715_seed.pdf" },
   // TST Jan 2026 (exp Dec 2026)
   { matricule: "81981",  filename: "hab81981_seed.pdf" },
@@ -108,8 +107,6 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "84073",  filename: "hab84073_seed.pdf" },
   { matricule: "83630",  filename: "hab83630_seed.pdf" },
   { matricule: "81632",  filename: "hab81632_seed.pdf" },
-  { matricule: "82790",  filename: "hab82790_seed.pdf" },
-  { matricule: "83878",  filename: "hab83878_seed.pdf" },
   // XC Aug 2024 full batch (exp Aug 2027)
   { matricule: "80237",  filename: "hab80237_seed.pdf" },
   { matricule: "19850",  filename: "hab19850_seed.pdf" },
@@ -185,7 +182,6 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "84081",  filename: "hab84081_seed.pdf" },
   { matricule: "81594",  filename: "hab81594_seed.pdf" },
   { matricule: "82925",  filename: "hab82925_seed.pdf" },
-  { matricule: "84851",  filename: "hab84851_seed.pdf" },
   { matricule: "80335",  filename: "hab80335_seed.pdf" },
   { matricule: "81371",  filename: "hab81371_seed.pdf" },
   { matricule: "03909",  filename: "hab03909_seed.pdf" },
