@@ -38,6 +38,12 @@ async function initializeSeedOnStartup() {
     logger.warn("app", "Demo employee cleanup skipped", { error: String(err) });
   }
   try {
+    const { addMissingEmployees } = await import("./migrations/add-missing-employees");
+    await addMissingEmployees();
+  } catch (err) {
+    logger.warn("app", "Add missing employees migration skipped", { error: String(err) });
+  }
+  try {
     const { runNamesMigration } = await import("./migrations/fix-names");
     await runNamesMigration();
   } catch (err) {

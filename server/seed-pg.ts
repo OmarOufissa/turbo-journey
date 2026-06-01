@@ -178,7 +178,7 @@ function extractCodes(row: ExcelRow): { htCodes: string[]; stCodes: string[] } {
   };
 }
 
-async function parseExcelData(): Promise<EmployeeData[]> {
+export async function parseExcelData(): Promise<EmployeeData[]> {
   const excelRows = await loadExcelRows();
   console.log(`Loaded ${excelRows.length} rows from Excel source`);
 
