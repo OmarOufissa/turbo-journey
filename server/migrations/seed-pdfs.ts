@@ -152,6 +152,11 @@ export async function runPdfSeedMigration(): Promise<void> {
       copied++;
     }
 
+    // Skip if a proper versioned file already exists for this employee in uploads
+    const hasVersioned = fs.readdirSync(uploadsDir)
+      .some(f => f.startsWith(`hab${entry.matricule}_v`) && f.endsWith(".pdf"));
+    if (hasVersioned) { skipped++; continue; }
+
     // Find employee and update pdfPath on current version (only if no PDF already set)
     try {
       const emp = await db.query.employees.findFirst({

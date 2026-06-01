@@ -56,6 +56,12 @@ async function initializeSeedOnStartup() {
     logger.warn("app", "PDF seed migration skipped", { error: String(err) });
   }
   try {
+    const { runPdfImportMigration } = await import("./migrations/import-pdfs");
+    await runPdfImportMigration();
+  } catch (err) {
+    logger.warn("app", "PDF import migration skipped", { error: String(err) });
+  }
+  try {
     const { initializeNotificationJobs } = await import("./jobs/notificationJobs");
     await initializeNotificationJobs();
   } catch (err) {
