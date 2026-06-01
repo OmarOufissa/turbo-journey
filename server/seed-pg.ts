@@ -225,7 +225,7 @@ async function parseExcelData(): Promise<EmployeeData[]> {
       continue;
     }
 
-    const fonction = fixCasing(getRowValue(row, FONCTION_KEYS)) || "Électricien";
+    const fonction = fixCasing(getRowValue(row, FONCTION_KEYS)) || "Non spécifié";
     const divisionText = getRowValue(row, DIVISION_KEYS);
     const serviceText = getRowValue(row, SERVICE_KEYS);
     const equipeText = getRowValue(row, EQUIPE_KEYS);
@@ -376,7 +376,7 @@ export async function seedDatabasePG() {
           stCodes,
           htCodes,
           nDeTitre,
-          fonction: empData.fonction || "Électricien",
+          fonction: empData.fonction || "Non spécifié",
           divisionId,
           serviceId,
           equipeId: equipeId || null,
