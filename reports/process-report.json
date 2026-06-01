@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-06-01T22:50:05.324135+00:00",
+  "generated_at": "2026-06-01T23:23:51.843251+00:00",
   "stats": {
     "total_pages": 445,
-    "habilitation_pages": 377,
-    "non_habilitation_pages": 68,
+    "habilitation_pages": 284,
+    "non_habilitation_pages": 161,
     "photo_pages": 0,
-    "certificates_created": 173,
-    "one_page_certs": 172,
+    "certificates_created": 162,
+    "one_page_certs": 161,
     "two_page_certs": 1,
     "multi_page_certs": 0,
     "ocr_failures": 0,
-    "review_items": 173
+    "review_items": 15
   },
   "certificates": [
     {
@@ -23,8 +23,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82649_v2.pdf",
-      "version": 2
+      "output_file": "hab82649_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84084",
@@ -36,8 +36,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84084_v2.pdf",
-      "version": 2
+      "output_file": "hab84084_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82513",
@@ -49,8 +49,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82513_v2.pdf",
-      "version": 2
+      "output_file": "hab82513_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82376",
@@ -62,8 +62,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82376_v2.pdf",
-      "version": 2
+      "output_file": "hab82376_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81999",
@@ -75,8 +75,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81999_v2.pdf",
-      "version": 2
+      "output_file": "hab81999_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81989",
@@ -88,8 +88,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81989_v2.pdf",
-      "version": 2
+      "output_file": "hab81989_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82743",
@@ -101,8 +101,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82743_v2.pdf",
-      "version": 2
+      "output_file": "hab82743_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82337",
@@ -114,8 +114,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82337_v2.pdf",
-      "version": 2
+      "output_file": "hab82337_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84741",
@@ -127,8 +127,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84741_v2.pdf",
-      "version": 2
+      "output_file": "hab84741_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84828",
@@ -140,8 +140,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84828_v2.pdf",
-      "version": 2
+      "output_file": "hab84828_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85072",
@@ -153,8 +153,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85072_v2.pdf",
-      "version": 2
+      "output_file": "hab85072_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83172",
@@ -166,8 +166,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83172_v2.pdf",
-      "version": 2
+      "output_file": "hab83172_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84066",
@@ -179,8 +179,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84066_v2.pdf",
-      "version": 2
+      "output_file": "hab84066_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81135",
@@ -192,8 +192,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81135_v2.pdf",
-      "version": 2
+      "output_file": "hab81135_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83527",
@@ -205,8 +205,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83527_v2.pdf",
-      "version": 2
+      "output_file": "hab83527_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85749E",
@@ -218,8 +218,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85749E_v2.pdf",
-      "version": 2
+      "output_file": "hab85749E_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84881",
@@ -231,8 +231,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84881_v2.pdf",
-      "version": 2
+      "output_file": "hab84881_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85045",
@@ -244,8 +244,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85045_v2.pdf",
-      "version": 2
+      "output_file": "hab85045_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83526",
@@ -257,8 +257,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83526_v2.pdf",
-      "version": 2
+      "output_file": "hab83526_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81123",
@@ -270,8 +270,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81123_v2.pdf",
-      "version": 2
+      "output_file": "hab81123_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81014",
@@ -283,8 +283,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81014_v2.pdf",
-      "version": 2
+      "output_file": "hab81014_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82552",
@@ -296,8 +296,21 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82552_v2.pdf",
-      "version": 2
+      "output_file": "hab82552_v3.pdf",
+      "version": 3
+    },
+    {
+      "matricule": "85031",
+      "matricule_raw": "85031",
+      "pages": [
+        {
+          "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+          "page": 10
+        }
+      ],
+      "page_count": 1,
+      "output_file": "hab85031_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81293",
@@ -309,21 +322,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81293_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "78849",
-      "matricule_raw": "78849",
-      "pages": [
-        {
-          "file": "12 TITRES HABILITATIONs XA .pdf",
-          "page": 3
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab78849_v2.pdf",
-      "version": 2
+      "output_file": "hab81293_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81155",
@@ -335,21 +335,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81155_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "81155P",
-      "matricule_raw": "81155P",
-      "pages": [
-        {
-          "file": "12 TITRES HABILITATIONs XA .pdf",
-          "page": 11
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab81155P_v2.pdf",
-      "version": 2
+      "output_file": "hab81155_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82306",
@@ -361,8 +348,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82306_v2.pdf",
-      "version": 2
+      "output_file": "hab82306_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83628",
@@ -374,8 +361,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83628_v2.pdf",
-      "version": 2
+      "output_file": "hab83628_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85941",
@@ -387,21 +374,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85941_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "85941P",
-      "matricule_raw": "85941P",
-      "pages": [
-        {
-          "file": "12 TITRES HABILITATIONs XA .pdf",
-          "page": 22
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab85941P_v2.pdf",
-      "version": 2
+      "output_file": "hab85941_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85978U",
@@ -413,8 +387,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85978U_v2.pdf",
-      "version": 2
+      "output_file": "hab85978U_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85863",
@@ -426,8 +400,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85863_v2.pdf",
-      "version": 2
+      "output_file": "hab85863_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85939M",
@@ -439,8 +413,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85939M_v2.pdf",
-      "version": 2
+      "output_file": "hab85939M_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85865K",
@@ -452,8 +426,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85865K_v2.pdf",
-      "version": 2
+      "output_file": "hab85865K_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85872J",
@@ -465,8 +439,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85872J_v2.pdf",
-      "version": 2
+      "output_file": "hab85872J_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85887",
@@ -478,47 +452,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85887_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "78936",
-      "matricule_raw": "78936",
-      "pages": [
-        {
-          "file": "20240718100118.pdf",
-          "page": 1
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab78936_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "85024",
-      "matricule_raw": "85024",
-      "pages": [
-        {
-          "file": "20240718100118.pdf",
-          "page": 2
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab85024_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "79205",
-      "matricule_raw": "79205",
-      "pages": [
-        {
-          "file": "20250108103124.pdf",
-          "page": 1
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab79205_v2.pdf",
-      "version": 2
+      "output_file": "hab85887_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83635",
@@ -530,8 +465,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83635_v2.pdf",
-      "version": 2
+      "output_file": "hab83635_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "79919",
@@ -543,8 +478,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab79919_v2.pdf",
-      "version": 2
+      "output_file": "hab79919_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85939",
@@ -556,8 +491,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85939_v2.pdf",
-      "version": 2
+      "output_file": "hab85939_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81581",
@@ -569,8 +504,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81581_v2.pdf",
-      "version": 2
+      "output_file": "hab81581_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82316",
@@ -582,8 +517,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82316_v2.pdf",
-      "version": 2
+      "output_file": "hab82316_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82637",
@@ -595,8 +530,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82637_v2.pdf",
-      "version": 2
+      "output_file": "hab82637_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85083",
@@ -608,60 +543,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85083_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "81165",
-      "matricule_raw": "81165",
-      "pages": [
-        {
-          "file": "20250901100316.pdf",
-          "page": 3
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab81165_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "77162",
-      "matricule_raw": "77162",
-      "pages": [
-        {
-          "file": "20250901100316.pdf",
-          "page": 6
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab77162_v1.pdf",
-      "version": 1
-    },
-    {
-      "matricule": "77152",
-      "matricule_raw": "77152",
-      "pages": [
-        {
-          "file": "20250901100522.pdf",
-          "page": 2
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab77152_v1.pdf",
-      "version": 1
-    },
-    {
-      "matricule": "78205",
-      "matricule_raw": "78205",
-      "pages": [
-        {
-          "file": "20250901100522.pdf",
-          "page": 3
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab78205_v2.pdf",
-      "version": 2
+      "output_file": "hab85083_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82308",
@@ -673,8 +556,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82308_v2.pdf",
-      "version": 2
+      "output_file": "hab82308_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84742",
@@ -686,8 +569,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84742_v2.pdf",
-      "version": 2
+      "output_file": "hab84742_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82019",
@@ -699,8 +582,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82019_v2.pdf",
-      "version": 2
+      "output_file": "hab82019_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84072",
@@ -712,8 +595,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84072_v2.pdf",
-      "version": 2
+      "output_file": "hab84072_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81594",
@@ -725,8 +608,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81594_v2.pdf",
-      "version": 2
+      "output_file": "hab81594_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "80922",
@@ -734,12 +617,12 @@
       "pages": [
         {
           "file": "HAE XJ 10 2025.pdf",
-          "page": 1
+          "page": 5
         }
       ],
       "page_count": 1,
-      "output_file": "hab80922_v2.pdf",
-      "version": 2
+      "output_file": "hab80922_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81914",
@@ -751,8 +634,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81914_v2.pdf",
-      "version": 2
+      "output_file": "hab81914_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "80045",
@@ -764,8 +647,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80045_v2.pdf",
-      "version": 2
+      "output_file": "hab80045_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "80793",
@@ -777,8 +660,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80793_v2.pdf",
-      "version": 2
+      "output_file": "hab80793_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "78953",
@@ -790,8 +673,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab78953_v2.pdf",
-      "version": 2
+      "output_file": "hab78953_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84715",
@@ -803,8 +686,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84715_v2.pdf",
-      "version": 2
+      "output_file": "hab84715_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84959",
@@ -816,8 +699,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84959_v2.pdf",
-      "version": 2
+      "output_file": "hab84959_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "80335",
@@ -829,8 +712,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80335_v2.pdf",
-      "version": 2
+      "output_file": "hab80335_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81371",
@@ -842,8 +725,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81371_v2.pdf",
-      "version": 2
+      "output_file": "hab81371_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85908",
@@ -855,8 +738,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85908_v2.pdf",
-      "version": 2
+      "output_file": "hab85908_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81657",
@@ -868,8 +751,21 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81657_v2.pdf",
-      "version": 2
+      "output_file": "hab81657_v3.pdf",
+      "version": 3
+    },
+    {
+      "matricule": "85024",
+      "matricule_raw": "85024",
+      "pages": [
+        {
+          "file": "TITRES TST  2026.pdf",
+          "page": 19
+        }
+      ],
+      "page_count": 1,
+      "output_file": "hab85024_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82622",
@@ -878,15 +774,11 @@
         {
           "file": "TITRES TST  2026.pdf",
           "page": 21
-        },
-        {
-          "file": "TITRES TST  2026.pdf",
-          "page": 22
         }
       ],
-      "page_count": 2,
-      "output_file": "hab82622_v2.pdf",
-      "version": 2
+      "page_count": 1,
+      "output_file": "hab82622_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82342",
@@ -898,8 +790,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82342_v1.pdf",
-      "version": 1
+      "output_file": "hab82342_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "82925",
@@ -911,8 +803,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82925_v2.pdf",
-      "version": 2
+      "output_file": "hab82925_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84851",
@@ -924,8 +816,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84851_v2.pdf",
-      "version": 2
+      "output_file": "hab84851_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "80559",
@@ -937,8 +829,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80559_v2.pdf",
-      "version": 2
+      "output_file": "hab80559_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84981",
@@ -950,8 +842,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84981_v2.pdf",
-      "version": 2
+      "output_file": "hab84981_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85888",
@@ -963,8 +855,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85888_v2.pdf",
-      "version": 2
+      "output_file": "hab85888_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84923",
@@ -976,8 +868,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84923_v2.pdf",
-      "version": 2
+      "output_file": "hab84923_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85496",
@@ -989,8 +881,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85496_v2.pdf",
-      "version": 2
+      "output_file": "hab85496_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85495",
@@ -1002,8 +894,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85495_v2.pdf",
-      "version": 2
+      "output_file": "hab85495_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85910",
@@ -1015,8 +907,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85910_v2.pdf",
-      "version": 2
+      "output_file": "hab85910_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85886",
@@ -1028,8 +920,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85886_v2.pdf",
-      "version": 2
+      "output_file": "hab85886_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83756",
@@ -1041,8 +933,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83756_v2.pdf",
-      "version": 2
+      "output_file": "hab83756_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "80227",
@@ -1054,8 +946,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80227_v1.pdf",
-      "version": 1
+      "output_file": "hab80227_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "78955D",
@@ -1067,8 +959,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab78955D_v2.pdf",
-      "version": 2
+      "output_file": "hab78955D_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "80925",
@@ -1080,8 +972,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80925_v2.pdf",
-      "version": 2
+      "output_file": "hab80925_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83407P",
@@ -1093,8 +985,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83407P_v2.pdf",
-      "version": 2
+      "output_file": "hab83407P_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "79917",
@@ -1106,8 +998,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab79917_v2.pdf",
-      "version": 2
+      "output_file": "hab79917_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "78983",
@@ -1119,8 +1011,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab78983_v2.pdf",
-      "version": 2
+      "output_file": "hab78983_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82323",
@@ -1132,8 +1024,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82323_v2.pdf",
-      "version": 2
+      "output_file": "hab82323_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84063",
@@ -1145,8 +1037,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84063_v2.pdf",
-      "version": 2
+      "output_file": "hab84063_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82472",
@@ -1158,8 +1050,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82472_v2.pdf",
-      "version": 2
+      "output_file": "hab82472_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82262",
@@ -1171,8 +1063,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82262_v2.pdf",
-      "version": 2
+      "output_file": "hab82262_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "76361",
@@ -1184,8 +1076,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab76361_v1.pdf",
-      "version": 1
+      "output_file": "hab76361_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "80537",
@@ -1197,8 +1089,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80537_v2.pdf",
-      "version": 2
+      "output_file": "hab80537_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81913",
@@ -1210,8 +1102,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81913_v2.pdf",
-      "version": 2
+      "output_file": "hab81913_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82386",
@@ -1223,8 +1115,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82386_v1.pdf",
-      "version": 1
+      "output_file": "hab82386_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "81595",
@@ -1236,8 +1128,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81595_v2.pdf",
-      "version": 2
+      "output_file": "hab81595_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "76964",
@@ -1249,8 +1141,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab76964_v2.pdf",
-      "version": 2
+      "output_file": "hab76964_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "77168",
@@ -1262,8 +1154,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab77168_v1.pdf",
-      "version": 1
+      "output_file": "hab77168_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "78234",
@@ -1275,8 +1167,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab78234_v2.pdf",
-      "version": 2
+      "output_file": "hab78234_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82094",
@@ -1288,8 +1180,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82094_v2.pdf",
-      "version": 2
+      "output_file": "hab82094_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83559",
@@ -1301,8 +1193,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83559_v2.pdf",
-      "version": 2
+      "output_file": "hab83559_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82302",
@@ -1314,8 +1206,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82302_v2.pdf",
-      "version": 2
+      "output_file": "hab82302_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82733",
@@ -1327,8 +1219,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82733_v1.pdf",
-      "version": 1
+      "output_file": "hab82733_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "76888",
@@ -1340,8 +1232,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab76888_v1.pdf",
-      "version": 1
+      "output_file": "hab76888_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "74337",
@@ -1353,8 +1245,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab74337_v2.pdf",
-      "version": 2
+      "output_file": "hab74337_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "78952",
@@ -1366,8 +1258,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab78952_v1.pdf",
-      "version": 1
+      "output_file": "hab78952_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "80409",
@@ -1379,8 +1271,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80409_v1.pdf",
-      "version": 1
+      "output_file": "hab80409_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "82450",
@@ -1392,8 +1284,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82450_v1.pdf",
-      "version": 1
+      "output_file": "hab82450_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "82446",
@@ -1405,8 +1297,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82446_v2.pdf",
-      "version": 2
+      "output_file": "hab82446_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84004",
@@ -1418,8 +1310,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84004_v2.pdf",
-      "version": 2
+      "output_file": "hab84004_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84002",
@@ -1431,8 +1323,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84002_v2.pdf",
-      "version": 2
+      "output_file": "hab84002_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83509",
@@ -1444,8 +1336,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83509_v2.pdf",
-      "version": 2
+      "output_file": "hab83509_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83781",
@@ -1457,8 +1349,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83781_v2.pdf",
-      "version": 2
+      "output_file": "hab83781_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81107",
@@ -1470,8 +1362,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81107_v2.pdf",
-      "version": 2
+      "output_file": "hab81107_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81011",
@@ -1483,8 +1375,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81011_v1.pdf",
-      "version": 1
+      "output_file": "hab81011_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "76759",
@@ -1496,8 +1388,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab76759_v2.pdf",
-      "version": 2
+      "output_file": "hab76759_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81124",
@@ -1509,8 +1401,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81124_v1.pdf",
-      "version": 1
+      "output_file": "hab81124_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "74173",
@@ -1522,8 +1414,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab74173_v1.pdf",
-      "version": 1
+      "output_file": "hab74173_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "81920",
@@ -1535,8 +1427,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81920_v2.pdf",
-      "version": 2
+      "output_file": "hab81920_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "77889T",
@@ -1548,8 +1440,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab77889T_v2.pdf",
-      "version": 2
+      "output_file": "hab77889T_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "80345",
@@ -1561,8 +1453,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80345_v1.pdf",
-      "version": 1
+      "output_file": "hab80345_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "82304",
@@ -1574,8 +1466,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82304_v2.pdf",
-      "version": 2
+      "output_file": "hab82304_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83513",
@@ -1587,8 +1479,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83513_v2.pdf",
-      "version": 2
+      "output_file": "hab83513_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83519",
@@ -1600,8 +1492,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83519_v2.pdf",
-      "version": 2
+      "output_file": "hab83519_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81126",
@@ -1613,8 +1505,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81126_v1.pdf",
-      "version": 1
+      "output_file": "hab81126_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "83506",
@@ -1626,8 +1518,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83506_v2.pdf",
-      "version": 2
+      "output_file": "hab83506_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "79274",
@@ -1639,8 +1531,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab79274_v1.pdf",
-      "version": 1
+      "output_file": "hab79274_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "83625",
@@ -1652,8 +1544,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83625_v1.pdf",
-      "version": 1
+      "output_file": "hab83625_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "80924",
@@ -1665,8 +1557,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80924_v2.pdf",
-      "version": 2
+      "output_file": "hab80924_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84003",
@@ -1678,8 +1570,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84003_v2.pdf",
-      "version": 2
+      "output_file": "hab84003_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83515",
@@ -1691,8 +1583,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83515_v2.pdf",
-      "version": 2
+      "output_file": "hab83515_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84005",
@@ -1704,8 +1596,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84005_v2.pdf",
-      "version": 2
+      "output_file": "hab84005_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82400",
@@ -1717,8 +1609,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82400_v2.pdf",
-      "version": 2
+      "output_file": "hab82400_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81130",
@@ -1730,8 +1622,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81130_v1.pdf",
-      "version": 1
+      "output_file": "hab81130_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "83945",
@@ -1743,8 +1635,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83945_v2.pdf",
-      "version": 2
+      "output_file": "hab83945_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81132",
@@ -1756,8 +1648,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81132_v2.pdf",
-      "version": 2
+      "output_file": "hab81132_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "77687",
@@ -1769,8 +1661,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab77687_v1.pdf",
-      "version": 1
+      "output_file": "hab77687_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "81134",
@@ -1782,8 +1674,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81134_v1.pdf",
-      "version": 1
+      "output_file": "hab81134_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "82641",
@@ -1795,8 +1687,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82641_v1.pdf",
-      "version": 1
+      "output_file": "hab82641_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "82617",
@@ -1808,8 +1700,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82617_v1.pdf",
-      "version": 1
+      "output_file": "hab82617_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "82363",
@@ -1821,8 +1713,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82363_v1.pdf",
-      "version": 1
+      "output_file": "hab82363_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "72682",
@@ -1834,8 +1726,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab72682_v1.pdf",
-      "version": 1
+      "output_file": "hab72682_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "80460",
@@ -1847,8 +1739,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80460_v1.pdf",
-      "version": 1
+      "output_file": "hab80460_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "81628",
@@ -1860,8 +1752,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81628_v2.pdf",
-      "version": 2
+      "output_file": "hab81628_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "79868",
@@ -1873,8 +1765,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab79868_v2.pdf",
-      "version": 2
+      "output_file": "hab79868_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83878",
@@ -1886,8 +1778,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83878_v2.pdf",
-      "version": 2
+      "output_file": "hab83878_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82790",
@@ -1899,8 +1791,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82790_v2.pdf",
-      "version": 2
+      "output_file": "hab82790_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81632",
@@ -1912,8 +1804,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81632_v2.pdf",
-      "version": 2
+      "output_file": "hab81632_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83630",
@@ -1925,8 +1817,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83630_v2.pdf",
-      "version": 2
+      "output_file": "hab83630_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84073",
@@ -1938,8 +1830,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84073_v2.pdf",
-      "version": 2
+      "output_file": "hab84073_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "79411",
@@ -1951,8 +1843,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab79411_v2.pdf",
-      "version": 2
+      "output_file": "hab79411_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84683",
@@ -1964,8 +1856,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84683_v2.pdf",
-      "version": 2
+      "output_file": "hab84683_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "79876",
@@ -1977,8 +1869,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab79876_v2.pdf",
-      "version": 2
+      "output_file": "hab79876_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "70876F",
@@ -1990,8 +1882,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab70876F_v2.pdf",
-      "version": 2
+      "output_file": "hab70876F_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84583",
@@ -2003,8 +1895,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84583_v2.pdf",
-      "version": 2
+      "output_file": "hab84583_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81582",
@@ -2013,24 +1905,15 @@
         {
           "file": "titres HAE XA 130326 dossier complet.pdf",
           "page": 26
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab81582_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "84973",
-      "matricule_raw": "84973",
-      "pages": [
+        },
         {
           "file": "titres HAE XA 130326 dossier complet.pdf",
-          "page": 37
+          "page": 27
         }
       ],
-      "page_count": 1,
-      "output_file": "hab84973_v2.pdf",
-      "version": 2
+      "page_count": 2,
+      "output_file": "hab81582_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "79677",
@@ -2042,8 +1925,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab79677_v2.pdf",
-      "version": 2
+      "output_file": "hab79677_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83192",
@@ -2055,8 +1938,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83192_v2.pdf",
-      "version": 2
+      "output_file": "hab83192_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84716",
@@ -2068,8 +1951,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84716_v2.pdf",
-      "version": 2
+      "output_file": "hab84716_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "82548",
@@ -2081,8 +1964,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab82548_v2.pdf",
-      "version": 2
+      "output_file": "hab82548_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81915",
@@ -2094,8 +1977,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81915_v1.pdf",
-      "version": 1
+      "output_file": "hab81915_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "80491",
@@ -2107,8 +1990,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab80491_v1.pdf",
-      "version": 1
+      "output_file": "hab80491_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "81122",
@@ -2120,8 +2003,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81122_v1.pdf",
-      "version": 1
+      "output_file": "hab81122_v2.pdf",
+      "version": 2
     },
     {
       "matricule": "78939",
@@ -2133,8 +2016,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab78939_v2.pdf",
-      "version": 2
+      "output_file": "hab78939_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85860",
@@ -2146,8 +2029,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85860_v2.pdf",
-      "version": 2
+      "output_file": "hab85860_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "85862",
@@ -2159,8 +2042,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab85862_v2.pdf",
-      "version": 2
+      "output_file": "hab85862_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "79920",
@@ -2172,8 +2055,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab79920_v2.pdf",
-      "version": 2
+      "output_file": "hab79920_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84743",
@@ -2185,8 +2068,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84743_v2.pdf",
-      "version": 2
+      "output_file": "hab84743_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "83300",
@@ -2198,8 +2081,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab83300_v2.pdf",
-      "version": 2
+      "output_file": "hab83300_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84705",
@@ -2211,8 +2094,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84705_v2.pdf",
-      "version": 2
+      "output_file": "hab84705_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "81208",
@@ -2224,21 +2107,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab81208_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "85031",
-      "matricule_raw": "85031",
-      "pages": [
-        {
-          "file": "titres HAE XJ pratique 0426.pdf",
-          "page": 4
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab85031_v2.pdf",
-      "version": 2
+      "output_file": "hab81208_v3.pdf",
+      "version": 3
     },
     {
       "matricule": "84071",
@@ -2250,21 +2120,8 @@
         }
       ],
       "page_count": 1,
-      "output_file": "hab84071_v2.pdf",
-      "version": 2
-    },
-    {
-      "matricule": "81523",
-      "matricule_raw": "81523",
-      "pages": [
-        {
-          "file": "éval TST poste XA N.pdf",
-          "page": 3
-        }
-      ],
-      "page_count": 1,
-      "output_file": "hab81523_v2.pdf",
-      "version": 2
+      "output_file": "hab84071_v3.pdf",
+      "version": 3
     }
   ],
   "review_queue": [
@@ -2273,639 +2130,7 @@
       "pdf_file": "06 HABILITATIONS ELECTRIQUES  XJ.pdf",
       "page_num": 4,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
-      "matricule": null
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "81293"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['78849', '81293']",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 6,
-      "reason": "Multiple candidates: ['83172', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 6,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 7,
-      "reason": "Multiple candidates: ['83172', '74615']",
-      "confidence": 53.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 7,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 10,
-      "reason": "Multiple candidates: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 10,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 11,
-      "reason": "Multiple candidates: ['81155P', '74615']",
-      "confidence": 53.0,
-      "matricule": "81155P"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 11,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "81155P"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 14,
-      "reason": "Multiple candidates: ['82306', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 14,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 15,
-      "reason": "Multiple candidates: ['82306', '74615']",
-      "confidence": 53.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 15,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 18,
-      "reason": "Multiple candidates: ['83628', '74615']",
-      "confidence": 53.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 18,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 19,
-      "reason": "Multiple candidates: ['83628', '79205', '78464']",
-      "confidence": 53.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 19,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 22,
-      "reason": "Multiple candidates: ['85941P', '76988']",
-      "confidence": 53.0,
-      "matricule": "85941P"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 22,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "85941P"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 23,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 25,
-      "reason": "Multiple candidates: ['85978U', '76988']",
-      "confidence": 53.0,
-      "matricule": "85978U"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 25,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "85978U"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 26,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 28,
-      "reason": "Multiple candidates: ['85863', '76988']",
-      "confidence": 53.0,
-      "matricule": "85863"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 28,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "85863"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 29,
-      "reason": "Multiple candidates: ['78849', '85863']",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 29,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 31,
-      "reason": "Multiple candidates: ['85939M', '76988']",
-      "confidence": 53.0,
-      "matricule": "85939M"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 31,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "85939M"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 32,
-      "reason": "Multiple candidates: ['78849', '85939M']",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 32,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 34,
-      "reason": "Multiple candidates: ['85865K', '76988']",
-      "confidence": 53.0,
-      "matricule": "85865K"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 34,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "85865K"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 35,
-      "reason": "Multiple candidates: ['78849', '85865K']",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 35,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 37,
-      "reason": "Multiple candidates: ['85872J', '76988']",
-      "confidence": 53.0,
-      "matricule": "85872J"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 37,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "85872J"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 38,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 40,
-      "reason": "Multiple candidates: ['85887', '76988']",
-      "confidence": 53.0,
-      "matricule": "85887"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 40,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "85887"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 41,
-      "reason": "Multiple candidates: ['78849', '85887']",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 41,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20240718100118.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20240718100118.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20240718100118.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['85024', '78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "85024"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20240718100118.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "85024"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250108103124.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250108103124.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['84881', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250108103124.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 4,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 4,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 5,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 5,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['82743', '78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "82743"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "82743"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 4,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 4,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 5,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 5,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 1,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 2,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 3,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 4,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 5,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 6,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 7,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 8,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -2913,7 +2138,7 @@
       "pdf_file": "20250714134319.pdf",
       "page_num": 2,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -2921,7 +2146,7 @@
       "pdf_file": "20250714134319.pdf",
       "page_num": 5,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -2929,247 +2154,15 @@
       "pdf_file": "20250714134319.pdf",
       "page_num": 11,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 131.0,
+      "confidence": 70.0,
       "matricule": null
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250901100316.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 39",
-      "confidence": 39.0,
-      "matricule": "81165"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250901100316.pdf",
-      "page_num": 5,
-      "reason": "Multiple candidates: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250901100316.pdf",
-      "page_num": 5,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250901100316.pdf",
-      "page_num": 6,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "77162"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250901100439.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['81155P', '76988']",
-      "confidence": 50.0,
-      "matricule": "81155P"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250901100439.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "81155P"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250901100522.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "77152"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250901100522.pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['78464', '78205']",
-      "confidence": 50.0,
-      "matricule": "78205"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250901100522.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "78205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250901100618.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['83628', '75988']",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250901100618.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250901100618.pdf",
-      "page_num": 4,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 39.0,
-      "matricule": null
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250901100818.pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['82308', '76988']",
-      "confidence": 50.0,
-      "matricule": "82308"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "20250901100818.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "82308"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "AOUAD-FALLOUSS.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "AOUAD-FALLOUSS.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "AOUAD-FALLOUSS.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['85024', '78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "85024"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "AOUAD-FALLOUSS.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "85024"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 4,
-      "reason": "Multiple candidates: ['83628', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 4,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "F E formation TST postes XJ 2024.pdf AGENT NAAMY.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['84881', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "F E formation TST postes XJ 2024.pdf AGENT NAAMY.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "HAE XJ 10 2025.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 54",
-      "confidence": 54.0,
-      "matricule": "80922"
     },
     {
       "type": "no_matricule",
       "pdf_file": "HAE XJ 10 2025.pdf",
       "page_num": 14,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -3177,7 +2170,7 @@
       "pdf_file": "Habilitatioins éléctriques XA.pdf",
       "page_num": 2,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -3185,7 +2178,7 @@
       "pdf_file": "Habilitatioins éléctriques XA.pdf",
       "page_num": 3,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -3193,7 +2186,7 @@
       "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
       "page_num": 5,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -3201,7 +2194,7 @@
       "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
       "page_num": 14,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 141.0,
+      "confidence": 80.0,
       "matricule": null
     },
     {
@@ -3209,7 +2202,7 @@
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
       "page_num": 6,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 159.0,
+      "confidence": 100.0,
       "matricule": null
     },
     {
@@ -3217,7 +2210,7 @@
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
       "page_num": 5,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -3225,7 +2218,7 @@
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
       "page_num": 26,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -3233,159 +2226,15 @@
       "pdf_file": "titres HAE XA 120326.pdf",
       "page_num": 7,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 154.0,
+      "confidence": 100.0,
       "matricule": null
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['78849', '84949']",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 7,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 131.0,
-      "matricule": null
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 9,
-      "reason": "Multiple candidates: ['78849', '79876F']",
-      "confidence": 31.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 9,
-      "reason": "Low confidence score: 31",
-      "confidence": 31.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 15,
-      "reason": "Multiple candidates: ['78849', '84683']",
-      "confidence": 31.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 15,
-      "reason": "Low confidence score: 31",
-      "confidence": 31.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 17,
-      "reason": "Low confidence score: 43",
-      "confidence": 43.0,
-      "matricule": "84683"
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 21,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 31.0,
-      "matricule": null
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 27,
-      "reason": "Multiple candidates: ['78849', '81582']",
-      "confidence": 61.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 33,
-      "reason": "Multiple candidates: ['78849', '84073K']",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 33,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 39,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 45,
-      "reason": "Multiple candidates: ['78849', '81632M']",
-      "confidence": 31.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 45,
-      "reason": "Low confidence score: 31",
-      "confidence": 31.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 47,
-      "reason": "Low confidence score: 43",
-      "confidence": 43.0,
-      "matricule": "81632"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 51,
-      "reason": "Low confidence score: 56",
-      "confidence": 56.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 63,
-      "reason": "Low confidence score: 36",
-      "confidence": 36.0,
-      "matricule": "78849"
     },
     {
       "type": "no_matricule",
       "pdf_file": "titres HAE XJ 130426.pdf",
       "page_num": 6,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 149.0,
+      "confidence": 90.0,
       "matricule": null
     },
     {
@@ -3393,264 +2242,8 @@
       "pdf_file": "titres HAE XJ 130426.pdf",
       "page_num": 7,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 154.0,
+      "confidence": 100.0,
       "matricule": null
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['83172', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 4,
-      "reason": "Multiple candidates: ['83628', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 4,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['83172', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 4,
-      "reason": "Multiple candidates: ['83628', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 4,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xc-ligne.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xc-ligne.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xc-ligne.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['84923', '78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "84923"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xc-ligne.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 53",
-      "confidence": 53.0,
-      "matricule": "84923"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xj-poste.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['84881', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "xj-poste.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 1,
-      "reason": "Multiple candidates: ['83172', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 1,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 2,
-      "reason": "Multiple candidates: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 2,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 3,
-      "reason": "Multiple candidates: ['81523', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81523"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 3,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "81523"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 4,
-      "reason": "Multiple candidates: ['83628', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 4,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 5,
-      "reason": "Multiple candidates: ['82306', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "uncertain",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 5,
-      "reason": "Low confidence score: 50",
-      "confidence": 50.0,
-      "matricule": "82306"
     }
   ]
 }
