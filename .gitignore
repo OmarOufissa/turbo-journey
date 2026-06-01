@@ -31,3 +31,4 @@ dist-ssr
 *.db
 *.sql
 uploads/
+raw-pdfs/
