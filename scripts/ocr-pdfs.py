@@ -41,11 +41,17 @@ def extract_matricule(text: str) -> str | None:
             m = re.search(r'\b(\d{5})\b', line)
             if m:
                 return m.group(1)
-            # Check the next line (OCR sometimes splits label from value)
-            if i + 1 < len(lines):
-                m = re.search(r'^\s*(\d{5})\b', lines[i + 1])
+            # Check up to 3 next lines (OCR sometimes inserts blank lines between label and value)
+            for j in range(1, 4):
+                if i + j >= len(lines):
+                    break
+                next_line = lines[i + j].strip()
+                if not next_line:
+                    continue  # skip blank lines
+                m = re.search(r'\b(\d{5})\b', next_line)
                 if m:
                     return m.group(1)
+                break  # stop if we hit a non-blank line with no number
     return None
 
 def is_habilitation_certificate(text: str) -> bool:

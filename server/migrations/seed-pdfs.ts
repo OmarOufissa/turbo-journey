@@ -7,9 +7,9 @@ import { logger } from "../utils/logger";
 
 // Seeded PDF entries — OCR-extracted from 51 batch PDFs, June 2026.
 // Matricule read ONLY from the "Matricule :" label line on each certificate.
-// 106 unique habilitation certificates matched. Employees not in DB are skipped at runtime.
-// 12 matricules not in official Excel (possibly other divisions): 72682, 76964, 77168,
-//   78939, 80335, 81867, 82615, 82925, 84165, 84583, 84959, 85910 — kept, skipped if no match.
+// 114 unique habilitation certificates matched. Employees not in DB are skipped at runtime.
+// 13 matricules not in official Excel (possibly other divisions): 72682, 76964, 77168,
+//   78939, 80335, 81867, 82615, 82925, 84165, 84583, 84959, 85910, 81014 — kept, skipped if no match.
 const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "72682", filename: "hab72682_seed.pdf" },
   { matricule: "76759", filename: "hab76759_seed.pdf" },
@@ -28,9 +28,11 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "80335", filename: "hab80335_seed.pdf" },
   { matricule: "80491", filename: "hab80491_seed.pdf" },
   { matricule: "80559", filename: "hab80559_seed.pdf" },
+  { matricule: "80793", filename: "hab80793_seed.pdf" },
   { matricule: "80922", filename: "hab80922_seed.pdf" },
   { matricule: "80924", filename: "hab80924_seed.pdf" },
   { matricule: "80925", filename: "hab80925_seed.pdf" },
+  { matricule: "81014", filename: "hab81014_seed.pdf" },
   { matricule: "81107", filename: "hab81107_seed.pdf" },
   { matricule: "81123", filename: "hab81123_seed.pdf" },
   { matricule: "81130", filename: "hab81130_seed.pdf" },
@@ -44,9 +46,12 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "81582", filename: "hab81582_seed.pdf" },
   { matricule: "81594", filename: "hab81594_seed.pdf" },
   { matricule: "81632", filename: "hab81632_seed.pdf" },
+  { matricule: "81657", filename: "hab81657_seed.pdf" },
   { matricule: "81867", filename: "hab81867_seed.pdf" },
   { matricule: "81913", filename: "hab81913_seed.pdf" },
+  { matricule: "81914", filename: "hab81914_seed.pdf" },
   { matricule: "81920", filename: "hab81920_seed.pdf" },
+  { matricule: "81999", filename: "hab81999_seed.pdf" },
   { matricule: "82019", filename: "hab82019_seed.pdf" },
   { matricule: "82094", filename: "hab82094_seed.pdf" },
   { matricule: "82302", filename: "hab82302_seed.pdf" },
@@ -65,6 +70,7 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "82637", filename: "hab82637_seed.pdf" },
   { matricule: "82641", filename: "hab82641_seed.pdf" },
   { matricule: "82649", filename: "hab82649_seed.pdf" },
+  { matricule: "82743", filename: "hab82743_seed.pdf" },
   { matricule: "82790", filename: "hab82790_seed.pdf" },
   { matricule: "82925", filename: "hab82925_seed.pdf" },
   { matricule: "83172", filename: "hab83172_seed.pdf" },
@@ -81,6 +87,7 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "83781", filename: "hab83781_seed.pdf" },
   { matricule: "83878", filename: "hab83878_seed.pdf" },
   { matricule: "83945", filename: "hab83945_seed.pdf" },
+  { matricule: "84002", filename: "hab84002_seed.pdf" },
   { matricule: "84004", filename: "hab84004_seed.pdf" },
   { matricule: "84005", filename: "hab84005_seed.pdf" },
   { matricule: "84063", filename: "hab84063_seed.pdf" },
@@ -104,6 +111,7 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
   { matricule: "84959", filename: "hab84959_seed.pdf" },
   { matricule: "85024", filename: "hab85024_seed.pdf" },
   { matricule: "85031", filename: "hab85031_seed.pdf" },
+  { matricule: "85045", filename: "hab85045_seed.pdf" },
   { matricule: "85072", filename: "hab85072_seed.pdf" },
   { matricule: "85083", filename: "hab85083_seed.pdf" },
   { matricule: "85495", filename: "hab85495_seed.pdf" },
