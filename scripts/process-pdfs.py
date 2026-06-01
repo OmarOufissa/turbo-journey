@@ -178,19 +178,39 @@ def classify_page(text: str) -> tuple[float, list[str]]:
     """
     Returns (confidence_score, review_reasons).
     confidence >= CERT_CONFIDENCE_THRESHOLD → habilitation cert.
+
+    A real certificate MUST have:
+      - "Titre d'habilitation" as a title/header
+      - "Nom et Prénom" (employee name section)
+      - "Matricule" (employee ID field)
+    Without all three, it is NOT a certificate regardless of other content.
     """
     text_lower = text.lower()
-    score = 0.0
     reasons = []
 
-    for pattern, weight in CERT_KEYWORDS:
-        if re.search(pattern, text_lower):
-            score += weight
+    # Hard requirements — all three must be present
+    has_title = bool(re.search(r"titre\s+d.habilitation|titre\s+d\s+habilitation", text_lower))
+    has_nom = bool(re.search(r"nom\s+et\s+pr.nom", text_lower))
+    has_mat = bool(re.search(r"\bmatricule\b|\bmatr?\b|\bmle\b", text_lower))
 
+    if not (has_title and has_nom and has_mat):
+        return 0.0, reasons
+
+    # Soft scoring for confidence
+    score = 70.0  # base: all three hard requirements met
+
+    if re.search(r"champ\s+d.application|domaine\s+de\s+tension", text_lower):
+        score += 10
+    if re.search(r"date\s+de\s+d.livrance|valable\s+jusqu", text_lower):
+        score += 10
+    if re.search(r"symbole\s+d.habilitation|personnel\s+d.habilitation", text_lower):
+        score += 10
+
+    # Anti-keywords
     for pattern, weight in ANTI_KEYWORDS:
         if re.search(pattern, text_lower):
-            score += weight  # weight is negative
-            reasons.append(f"Anti-keyword matched: {pattern}")
+            score += weight
+            reasons.append(f"Anti-keyword: {pattern}")
 
     return score, reasons
 
@@ -435,12 +455,7 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
                 page.confidence = score
                 page.review_reasons = anti_reasons
 
-                # AVIS pages look like certs (contain "Titre d'habilitation")
-                # but are actually the legal-notice back page — treat as back page
-                if is_avis_page(text):
-                    page.is_habilitation = False
-                    page.review_reasons.append("avis_back_page")
-                elif score >= CERT_CONFIDENCE_THRESHOLD:
+                if score >= CERT_CONFIDENCE_THRESHOLD:
                     page.is_habilitation = True
                 elif score >= UNCERTAIN_THRESHOLD:
                     # Uncertain — check for matricule anyway
