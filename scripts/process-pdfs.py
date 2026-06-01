@@ -28,8 +28,9 @@ from PIL import Image, ImageFilter, ImageEnhance
 BASE_DIR = Path(__file__).parent.parent
 RAW_DIR = BASE_DIR / "raw-pdfs"
 UPLOADS_DIR = BASE_DIR / "uploads" / "pdfs"
-REPORT_PATH = UPLOADS_DIR / "process-report.json"
-REVIEW_PATH = UPLOADS_DIR / "review-queue.json"
+REPORTS_DIR = BASE_DIR / "reports"        # tracked by git
+REPORT_PATH = UPLOADS_DIR / "process-report.json"   # consumed by import-pdfs.ts
+REVIEW_PATH = REPORTS_DIR / "review-queue.json"      # viewable on GitHub
 
 # ---------------------------------------------------------------------------
 # Thresholds
@@ -159,6 +160,19 @@ BACK_PAGE_KEYWORDS = [
     r"annexe\b",
 ]
 
+AVIS_PATTERNS = [
+    r"le\s+pr.sent\s+titre\s+d.habilitation\s+est\s+.tabli",
+    r"ce\s+titre\s+est\s+strictement\s+personnel",
+    r"titulaire\s+doit\s+.tre\s+porteur",
+    r"perte\s+.ventuelle\s+de\s+ce\s+titre",
+]
+
+def is_avis_page(text: str) -> bool:
+    """Detect the standard AVIS/legal-notice back page that accompanies each certificate."""
+    text_lower = text.lower()
+    matches = sum(1 for p in AVIS_PATTERNS if re.search(p, text_lower))
+    return matches >= 2
+
 
 def classify_page(text: str) -> tuple[float, list[str]]:
     """
@@ -214,63 +228,73 @@ def normalize_raw(raw: str) -> str:
 def extract_matricule(text: str) -> tuple[Optional[str], Optional[str], list[str]]:
     """
     Returns (normalized_matricule, raw_text, all_candidates).
-    Searches each line and the line after (handles OCR line breaks).
+
+    Strategy: find every occurrence of a 'Matricule' label in the text, then
+    search a 400-character window AFTER it for a 5-digit number.  This handles
+    the common two-column layout where the label and value are separated by
+    many lines (Direction, logo noise, etc.).
+
+    We then pick the candidate closest in character distance to 'Nom et Prénom'
+    (the employee header) to avoid picking up numbers from the certifying-
+    officer or other sections.
     """
-    lines = text.splitlines()
-    candidates: dict[str, str] = {}  # normalized → raw
+    # Build a flat version of the text with multiple spaces collapsed
+    flat = re.sub(r'\s+', ' ', text)
 
-    for i, line in enumerate(lines):
-        # Try patterns on current line
-        for pattern in MATRICULE_PATTERNS:
-            m = re.search(pattern, line, re.IGNORECASE)
-            if m:
-                raw = m.group(1).strip()
-                normalized = normalize_raw(raw)
-                if re.match(r'^\d{5}[A-Z]?$', normalized):
-                    candidates[normalized] = raw
+    candidates: dict[str, tuple[str, int]] = {}  # normalized → (raw, char_pos_in_flat)
 
-        # If a matricule pattern label is found but no number on this line,
-        # look ahead up to 3 lines (handling OCR line breaks)
-        if re.search(r'matricule\s*:?|matr?\s*:|mle\s*:', line, re.IGNORECASE):
-            if not any(re.search(p, line, re.IGNORECASE) and re.search(r'\d{4,6}', line)
-                       for p in MATRICULE_PATTERNS):
-                for j in range(1, 4):
-                    if i + j >= len(lines):
-                        break
-                    next_line = lines[i + j].strip()
-                    if not next_line:
-                        continue
-                    m = re.search(r'\b([0-9OIl]{5}[A-Z]?)\b', next_line)
-                    if m:
-                        raw = m.group(1).strip()
-                        normalized = normalize_raw(raw)
-                        if re.match(r'^\d{5}[A-Z]?$', normalized):
-                            candidates[normalized] = raw
-                    break  # only look past blank lines
+    # 1) Try inline patterns first (Matricule : 83192 on same logical line)
+    for pattern in MATRICULE_PATTERNS:
+        for m in re.finditer(pattern, flat, re.IGNORECASE):
+            raw = m.group(1).strip()
+            normalized = normalize_raw(raw)
+            if re.match(r'^\d{5}[A-Z]?$', normalized) and normalized not in candidates:
+                candidates[normalized] = (raw, m.start())
+
+    # 2) Window search: for every "Matricule" label not already caught, search
+    #    the next 400 characters for a 5-digit number.
+    for lm in re.finditer(r'matricule\s*[:\-]?', flat, re.IGNORECASE):
+        window_start = lm.end()
+        window = flat[window_start: window_start + 400]
+        # Skip if we already captured a candidate starting very close
+        already = any(abs(pos - window_start) < 50 for _, (_, pos) in candidates.items()
+                      if pos >= window_start)
+        if already:
+            continue
+        nm = re.search(r'\b([0-9OIl]{5}[A-Z]?)\b', window)
+        if nm:
+            raw = nm.group(1).strip()
+            normalized = normalize_raw(raw)
+            if re.match(r'^\d{5}[A-Z]?$', normalized) and normalized not in candidates:
+                candidates[normalized] = (raw, window_start + nm.start())
 
     if not candidates:
         return None, None, []
+
+    all_normalized = list(candidates.keys())
+
     if len(candidates) == 1:
-        norm, raw = next(iter(candidates.items()))
-        return norm, raw, [norm]
+        norm, (raw, _) = next(iter(candidates.items()))
+        return norm, raw, all_normalized
 
-    # Multiple candidates — prefer the one near "Nom et Prénom" (employee section)
-    # Find the line number of "Nom et Prénom" and pick the closest match
-    nom_line = next((i for i, l in enumerate(lines)
-                     if re.search(r"nom\s+et\s+pr.nom", l, re.IGNORECASE)), None)
-    if nom_line is not None:
-        for i, line in enumerate(lines):
-            for pattern in MATRICULE_PATTERNS:
-                m = re.search(pattern, line, re.IGNORECASE)
-                if m:
-                    raw = m.group(1).strip()
-                    normalized = normalize_raw(raw)
-                    if normalized in candidates and abs(i - nom_line) <= 3:
-                        return normalized, raw, list(candidates.keys())
+    # Multiple candidates: pick the one whose position in the flat text is
+    # closest to the "Nom et Prénom" anchor (employee header section).
+    nom_pos = None
+    nm2 = re.search(r'nom\s+et\s+pr.nom', flat, re.IGNORECASE)
+    if nm2:
+        nom_pos = nm2.start()
 
-    # Fallback: first candidate
-    norm, raw = next(iter(candidates.items()))
-    return norm, raw, list(candidates.keys())
+    if nom_pos is not None:
+        # Prefer candidate whose char position is close to (and after) nom_pos
+        best = min(candidates.items(),
+                   key=lambda kv: abs(kv[1][1] - nom_pos))
+        norm, (raw, _) = best
+        return norm, raw, all_normalized
+
+    # Fallback: earliest in the document
+    best = min(candidates.items(), key=lambda kv: kv[1][1])
+    norm, (raw, _) = best
+    return norm, raw, all_normalized
 
 
 # ---------------------------------------------------------------------------
@@ -411,7 +435,12 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
                 page.confidence = score
                 page.review_reasons = anti_reasons
 
-                if score >= CERT_CONFIDENCE_THRESHOLD:
+                # AVIS pages look like certs (contain "Titre d'habilitation")
+                # but are actually the legal-notice back page — treat as back page
+                if is_avis_page(text):
+                    page.is_habilitation = False
+                    page.review_reasons.append("avis_back_page")
+                elif score >= CERT_CONFIDENCE_THRESHOLD:
                     page.is_habilitation = True
                 elif score >= UNCERTAIN_THRESHOLD:
                     # Uncertain — check for matricule anyway
@@ -440,12 +469,14 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
                 # This page is a cert — collect its pages
                 cert_pages = [{"file": pdf_name, "page": page.page_num}]
 
-                # Peek at next page for possible back
+                # Peek at next page for possible back (AVIS or general back page)
                 if i + 1 < len(file_pages):
                     nxt = file_pages[i + 1]
                     if not nxt.is_habilitation and not nxt.is_photo:
-                        is_back, back_conf = detect_back_page(page, nxt)
-                        if is_back:
+                        # AVIS page is always the back of the preceding cert
+                        is_avis = "avis_back_page" in nxt.review_reasons
+                        is_back, _ = detect_back_page(page, nxt)
+                        if is_avis or is_back:
                             cert_pages.append({"file": pdf_name, "page": nxt.page_num})
                             i += 1  # consume back page
 
@@ -586,11 +617,25 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
         ],
     }
 
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     with open(REPORT_PATH, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
-
+    # Copy report to tracked reports/ dir (without full text excerpts to keep size down)
+    slim_report = {k: v for k, v in report.items() if k != "review_queue"}
+    slim_report["review_queue"] = [
+        {k: v for k, v in r.items() if k != "text_excerpt"}
+        for r in report["review_queue"]
+    ]
+    with open(REPORTS_DIR / "process-report.json", "w", encoding="utf-8") as f:
+        json.dump(slim_report, f, ensure_ascii=False, indent=2)
     with open(REVIEW_PATH, "w", encoding="utf-8") as f:
-        json.dump({"review_queue": report["review_queue"]}, f, ensure_ascii=False, indent=2)
+        json.dump(
+            {"review_queue": [
+                {k: v for k, v in r.items() if k != "text_excerpt"}
+                for r in report["review_queue"]
+            ]},
+            f, ensure_ascii=False, indent=2
+        )
 
     # ── Print summary ────────────────────────────────────────────────────
     s = report["stats"]
@@ -607,7 +652,8 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
     print(f"OCR failures             : {s['ocr_failures']}")
     print(f"Review queue items       : {s['review_items']}")
     print(f"\nReport written to       : {REPORT_PATH}")
-    print(f"Review queue written to : {REVIEW_PATH}")
+    print(f"                        : {REPORTS_DIR / 'process-report.json'} (git-tracked)")
+    print(f"Review queue written to : {REVIEW_PATH} (git-tracked)")
 
     if review_queue:
         print(f"\n{'─'*60}")
@@ -630,6 +676,7 @@ if __name__ == "__main__":
     RAW_DIR = args.raw_dir
     UPLOADS_DIR = args.uploads_dir
     REPORT_PATH = UPLOADS_DIR / "process-report.json"
-    REVIEW_PATH = UPLOADS_DIR / "review-queue.json"
+    REPORTS_DIR = args.uploads_dir.parent.parent / "reports"
+    REVIEW_PATH = REPORTS_DIR / "review-queue.json"
 
     run_pipeline(RAW_DIR, UPLOADS_DIR)

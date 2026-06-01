@@ -1,0 +1,1388 @@
+{
+  "review_queue": [
+    {
+      "type": "no_matricule",
+      "pdf_file": "06 HABILITATIONS ELECTRIQUES  XJ.pdf",
+      "page_num": 4,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "81293"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['78849', '81293']",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 6,
+      "reason": "Multiple candidates: ['83172', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 6,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 7,
+      "reason": "Multiple candidates: ['83172', '74615']",
+      "confidence": 53.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 7,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 10,
+      "reason": "Multiple candidates: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 10,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 11,
+      "reason": "Multiple candidates: ['81155P', '74615']",
+      "confidence": 53.0,
+      "matricule": "81155P"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 11,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "81155P"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 14,
+      "reason": "Multiple candidates: ['82306', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "82306"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 14,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "82306"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 15,
+      "reason": "Multiple candidates: ['82306', '74615']",
+      "confidence": 53.0,
+      "matricule": "82306"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 15,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "82306"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 18,
+      "reason": "Multiple candidates: ['83628', '74615']",
+      "confidence": 53.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 18,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 19,
+      "reason": "Multiple candidates: ['83628', '79205', '78464']",
+      "confidence": 53.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 19,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 22,
+      "reason": "Multiple candidates: ['85941P', '76988']",
+      "confidence": 53.0,
+      "matricule": "85941P"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 22,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "85941P"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 23,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 25,
+      "reason": "Multiple candidates: ['85978U', '76988']",
+      "confidence": 53.0,
+      "matricule": "85978U"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 25,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "85978U"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 26,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 28,
+      "reason": "Multiple candidates: ['85863', '76988']",
+      "confidence": 53.0,
+      "matricule": "85863"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 28,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "85863"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 29,
+      "reason": "Multiple candidates: ['78849', '85863']",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 29,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 31,
+      "reason": "Multiple candidates: ['85939M', '76988']",
+      "confidence": 53.0,
+      "matricule": "85939M"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 31,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "85939M"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 32,
+      "reason": "Multiple candidates: ['78849', '85939M']",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 32,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 34,
+      "reason": "Multiple candidates: ['85865K', '76988']",
+      "confidence": 53.0,
+      "matricule": "85865K"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 34,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "85865K"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 35,
+      "reason": "Multiple candidates: ['78849', '85865K']",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 35,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 37,
+      "reason": "Multiple candidates: ['85872J', '76988']",
+      "confidence": 53.0,
+      "matricule": "85872J"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 37,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "85872J"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 38,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 40,
+      "reason": "Multiple candidates: ['85887', '76988']",
+      "confidence": 53.0,
+      "matricule": "85887"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 40,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "85887"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 41,
+      "reason": "Multiple candidates: ['78849', '85887']",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 41,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20240718100118.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20240718100118.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20240718100118.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['85024', '78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "85024"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20240718100118.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "85024"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250108103124.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "79205"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250108103124.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['84881', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "84881"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250108103124.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "84881"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 4,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 4,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 5,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162352.pdf",
+      "page_num": 5,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['82743', '78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "82743"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "82743"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 4,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 4,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 5,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 5,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 1,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 2,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 3,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 4,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 5,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 6,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 7,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 8,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250714134319.pdf",
+      "page_num": 2,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250714134319.pdf",
+      "page_num": 5,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250714134319.pdf",
+      "page_num": 11,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 131.0,
+      "matricule": null
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250901100316.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 39",
+      "confidence": 39.0,
+      "matricule": "81165"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250901100316.pdf",
+      "page_num": 5,
+      "reason": "Multiple candidates: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250901100316.pdf",
+      "page_num": 5,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250901100316.pdf",
+      "page_num": 6,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "77162"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250901100439.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['81155P', '76988']",
+      "confidence": 50.0,
+      "matricule": "81155P"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250901100439.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "81155P"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250901100522.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "77152"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250901100522.pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['78464', '78205']",
+      "confidence": 50.0,
+      "matricule": "78205"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250901100522.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "78205"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250901100618.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['83628', '75988']",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250901100618.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250901100618.pdf",
+      "page_num": 4,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 39.0,
+      "matricule": null
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250901100818.pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['82308', '76988']",
+      "confidence": 50.0,
+      "matricule": "82308"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "20250901100818.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "82308"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "AOUAD-FALLOUSS.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "AOUAD-FALLOUSS.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "AOUAD-FALLOUSS.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['85024', '78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "85024"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "AOUAD-FALLOUSS.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "85024"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "79205"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "79205"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "79205"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "79205"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 4,
+      "reason": "Multiple candidates: ['83628', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 4,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "F E formation TST postes XJ 2024.pdf AGENT NAAMY.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['84881', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "84881"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "F E formation TST postes XJ 2024.pdf AGENT NAAMY.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "84881"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "HAE XJ 10 2025.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 54",
+      "confidence": 54.0,
+      "matricule": "80922"
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "HAE XJ 10 2025.pdf",
+      "page_num": 14,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "Habilitatioins éléctriques XA.pdf",
+      "page_num": 2,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "Habilitatioins éléctriques XA.pdf",
+      "page_num": 3,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
+      "page_num": 5,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
+      "page_num": 14,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 141.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
+      "page_num": 6,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 159.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
+      "page_num": 5,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
+      "page_num": 26,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "titres HAE XA 120326.pdf",
+      "page_num": 7,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 154.0,
+      "matricule": null
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['78849', '84949']",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 7,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 131.0,
+      "matricule": null
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 9,
+      "reason": "Multiple candidates: ['78849', '79876F']",
+      "confidence": 31.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 9,
+      "reason": "Low confidence score: 31",
+      "confidence": 31.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 15,
+      "reason": "Multiple candidates: ['78849', '84683']",
+      "confidence": 31.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 15,
+      "reason": "Low confidence score: 31",
+      "confidence": 31.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 17,
+      "reason": "Low confidence score: 43",
+      "confidence": 43.0,
+      "matricule": "84683"
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 21,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 31.0,
+      "matricule": null
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 27,
+      "reason": "Multiple candidates: ['78849', '81582']",
+      "confidence": 61.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 33,
+      "reason": "Multiple candidates: ['78849', '84073K']",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 33,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 39,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 45,
+      "reason": "Multiple candidates: ['78849', '81632M']",
+      "confidence": 31.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 45,
+      "reason": "Low confidence score: 31",
+      "confidence": 31.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 47,
+      "reason": "Low confidence score: 43",
+      "confidence": 43.0,
+      "matricule": "81632"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 51,
+      "reason": "Low confidence score: 56",
+      "confidence": 56.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 63,
+      "reason": "Low confidence score: 36",
+      "confidence": 36.0,
+      "matricule": "78849"
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "titres HAE XJ 130426.pdf",
+      "page_num": 6,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "titres HAE XJ 130426.pdf",
+      "page_num": 7,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 154.0,
+      "matricule": null
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['83172', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "79205"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "79205"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 4,
+      "reason": "Multiple candidates: ['83628', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 4,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['83172', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "79205"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "79205"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 4,
+      "reason": "Multiple candidates: ['83628', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 4,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xc-ligne.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xc-ligne.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "78936"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xc-ligne.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['84923', '78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "84923"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xc-ligne.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 53",
+      "confidence": 53.0,
+      "matricule": "84923"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xj-poste.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['84881', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "84881"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "xj-poste.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "84881"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 1,
+      "reason": "Multiple candidates: ['83172', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 1,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 2,
+      "reason": "Multiple candidates: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 2,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 3,
+      "reason": "Multiple candidates: ['81523', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81523"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 3,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "81523"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 4,
+      "reason": "Multiple candidates: ['83628', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 4,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 5,
+      "reason": "Multiple candidates: ['82306', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "82306"
+    },
+    {
+      "type": "uncertain",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 5,
+      "reason": "Low confidence score: 50",
+      "confidence": 50.0,
+      "matricule": "82306"
+    }
+  ]
+}
