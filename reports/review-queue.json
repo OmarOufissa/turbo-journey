@@ -5,7 +5,127 @@
       "pdf_file": "06 HABILITATIONS ELECTRIQUES  XJ.pdf",
       "page_num": 4,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 6,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['83172', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 10,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 14,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['82306', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "82306"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
+      "page_num": 19,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
+      "confidence": 53.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20240718100118.pdf",
+      "page_num": 2,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['85024', '78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "85024"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250108103124.pdf",
+      "page_num": 2,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['84881', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "84881"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250212162450.pdf",
+      "page_num": 2,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['82743', '78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "82743"
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 1,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 2,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 3,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 4,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 5,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 6,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 7,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250428171604.pdf",
+      "page_num": 8,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 36.0,
       "matricule": null
     },
     {
@@ -13,7 +133,7 @@
       "pdf_file": "20250714134319.pdf",
       "page_num": 2,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
       "matricule": null
     },
     {
@@ -21,7 +141,7 @@
       "pdf_file": "20250714134319.pdf",
       "page_num": 5,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
       "matricule": null
     },
     {
@@ -29,15 +149,63 @@
       "pdf_file": "20250714134319.pdf",
       "page_num": 11,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 70.0,
+      "confidence": 131.0,
       "matricule": null
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "20250901100316.pdf",
+      "page_num": 5,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "20250901100618.pdf",
+      "page_num": 4,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 39.0,
+      "matricule": null
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "AOUAD-FALLOUSS.pdf",
+      "page_num": 2,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['85024', '78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "85024"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 2,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "F E formation TST postes XAf 2024.pdf",
+      "page_num": 4,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "F E formation TST postes XJ 2024.pdf AGENT NAAMY.pdf",
+      "page_num": 1,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['84881', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "84881"
     },
     {
       "type": "no_matricule",
       "pdf_file": "HAE XJ 10 2025.pdf",
       "page_num": 14,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
       "matricule": null
     },
     {
@@ -45,7 +213,7 @@
       "pdf_file": "Habilitatioins éléctriques XA.pdf",
       "page_num": 2,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
       "matricule": null
     },
     {
@@ -53,7 +221,95 @@
       "pdf_file": "Habilitatioins éléctriques XA.pdf",
       "page_num": 3,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 2,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 126.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 4,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 123.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 6,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 123.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 8,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 123.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 10,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 126.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 12,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 123.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 14,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 123.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 16,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 126.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 18,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 126.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 20,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 126.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "TITRES TST  2026.pdf",
+      "page_num": 22,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 123.0,
       "matricule": null
     },
     {
@@ -61,7 +317,7 @@
       "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
       "page_num": 5,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
       "matricule": null
     },
     {
@@ -69,7 +325,7 @@
       "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
       "page_num": 14,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 80.0,
+      "confidence": 141.0,
       "matricule": null
     },
     {
@@ -77,7 +333,7 @@
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
       "page_num": 6,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 100.0,
+      "confidence": 159.0,
       "matricule": null
     },
     {
@@ -85,7 +341,7 @@
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
       "page_num": 5,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
       "matricule": null
     },
     {
@@ -93,7 +349,7 @@
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
       "page_num": 26,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
       "matricule": null
     },
     {
@@ -101,7 +357,23 @@
       "pdf_file": "titres HAE XA 120326.pdf",
       "page_num": 7,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 100.0,
+      "confidence": 154.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 7,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 131.0,
+      "matricule": null
+    },
+    {
+      "type": "no_matricule",
+      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
+      "page_num": 21,
+      "reason": "Certificate detected but no matricule found",
+      "confidence": 31.0,
       "matricule": null
     },
     {
@@ -109,7 +381,7 @@
       "pdf_file": "titres HAE XJ 130426.pdf",
       "page_num": 6,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 90.0,
+      "confidence": 149.0,
       "matricule": null
     },
     {
@@ -117,8 +389,112 @@
       "pdf_file": "titres HAE XJ 130426.pdf",
       "page_num": 7,
       "reason": "Certificate detected but no matricule found",
-      "confidence": 100.0,
+      "confidence": 154.0,
       "matricule": null
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 1,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 2,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['83172', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste T.pdf",
+      "page_num": 4,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 1,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 2,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['83172', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xaf-poste.pdf",
+      "page_num": 4,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xc-ligne.pdf",
+      "page_num": 2,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['84923', '78936', '78464']",
+      "confidence": 53.0,
+      "matricule": "84923"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "xj-poste.pdf",
+      "page_num": 1,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['84881', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "84881"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 1,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['83172', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83172"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 2,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81155"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 3,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['81523', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "81523"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 4,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "83628"
+    },
+    {
+      "type": "multiple_matricules",
+      "pdf_file": "éval TST poste XA N.pdf",
+      "page_num": 5,
+      "reason": "Many candidates, using closest to Nom/Prénom: ['82306', '79205', '78464']",
+      "confidence": 50.0,
+      "matricule": "82306"
     }
   ]
 }

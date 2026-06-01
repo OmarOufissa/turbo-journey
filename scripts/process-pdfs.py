@@ -178,35 +178,15 @@ def classify_page(text: str) -> tuple[float, list[str]]:
     """
     Returns (confidence_score, review_reasons).
     confidence >= CERT_CONFIDENCE_THRESHOLD → habilitation cert.
-
-    A real certificate MUST have:
-      - "Titre d'habilitation" as a title/header
-      - "Nom et Prénom" (employee name section)
-      - "Matricule" (employee ID field)
-    Without all three, it is NOT a certificate regardless of other content.
     """
     text_lower = text.lower()
+    score = 0.0
     reasons = []
 
-    # Hard requirements — all three must be present
-    has_title = bool(re.search(r"titre\s+d.habilitation|titre\s+d\s+habilitation", text_lower))
-    has_nom = bool(re.search(r"nom\s+et\s+pr.nom", text_lower))
-    has_mat = bool(re.search(r"\bmatricule\b|\bmatr?\b|\bmle\b", text_lower))
+    for pattern, weight in CERT_KEYWORDS:
+        if re.search(pattern, text_lower):
+            score += weight
 
-    if not (has_title and has_nom and has_mat):
-        return 0.0, reasons
-
-    # Soft scoring for confidence
-    score = 70.0  # base: all three hard requirements met
-
-    if re.search(r"champ\s+d.application|domaine\s+de\s+tension", text_lower):
-        score += 10
-    if re.search(r"date\s+de\s+d.livrance|valable\s+jusqu", text_lower):
-        score += 10
-    if re.search(r"symbole\s+d.habilitation|personnel\s+d.habilitation", text_lower):
-        score += 10
-
-    # Anti-keywords
     for pattern, weight in ANTI_KEYWORDS:
         if re.search(pattern, text_lower):
             score += weight
@@ -455,12 +435,8 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
                 page.confidence = score
                 page.review_reasons = anti_reasons
 
-                if score >= CERT_CONFIDENCE_THRESHOLD:
+                if score >= UNCERTAIN_THRESHOLD:
                     page.is_habilitation = True
-                elif score >= UNCERTAIN_THRESHOLD:
-                    # Uncertain — check for matricule anyway
-                    page.is_habilitation = True
-                    page.review_reasons.append(f"uncertain_confidence:{score:.0f}")
 
                 # ── Step 3: Extract matricule ───────────────────────────
                 if page.is_habilitation:
@@ -515,23 +491,14 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
                     i += 1
                     continue
 
-                if len(page.candidate_matricules) > 1:
+                # Only flag multiple candidates if disambiguation truly failed
+                # (i.e. the best pick is uncertain — more than 2 very different candidates)
+                if len(page.candidate_matricules) > 2:
                     review_queue.append(ReviewItem(
                         review_type="multiple_matricules",
                         pdf_file=pdf_name,
                         page_num=page.page_num,
-                        reason=f"Multiple candidates: {page.candidate_matricules}",
-                        confidence=page.confidence,
-                        matricule=mat,
-                        text_excerpt=page.text_excerpt[:500],
-                    ))
-
-                if "uncertain_confidence" in " ".join(review_reasons):
-                    review_queue.append(ReviewItem(
-                        review_type="uncertain",
-                        pdf_file=pdf_name,
-                        page_num=page.page_num,
-                        reason=f"Low confidence score: {page.confidence:.0f}",
+                        reason=f"Many candidates, using closest to Nom/Prénom: {page.candidate_matricules}",
                         confidence=page.confidence,
                         matricule=mat,
                         text_excerpt=page.text_excerpt[:500],
