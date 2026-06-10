@@ -67,7 +67,7 @@ class Certificate:
 
 @dataclass
 class ReviewItem:
-    review_type: str        # no_matricule | multiple_matricules | uncertain | no_match | ambiguous_pair
+    review_type: str        # no_matricule | multiple_matricules | duplicate_matricule | uncertain | no_match | ambiguous_pair
     pdf_file: str
     page_num: int
     reason: str
@@ -378,7 +378,7 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
     all_pages: list[PageInfo] = []
     certificates: list[Certificate] = []
     review_queue: list[ReviewItem] = []
-    seen_matricules: set[str] = set()
+    seen_matricules: dict[str, dict] = {}
 
     total_pages = 0
     ocr_failures = 0
@@ -504,9 +504,25 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
                         text_excerpt=page.text_excerpt[:500],
                     ))
 
-                # Duplicate check
+                # Duplicate check — keep the first occurrence as the certificate,
+                # but flag every subsequent occurrence for manual review instead
+                # of silently dropping it (could be a renewal/newer version).
                 if mat in seen_matricules:
-                    print(f"  p{page.page_num}: DUPLICATE mat={mat}")
+                    first = seen_matricules[mat]
+                    review_queue.append(ReviewItem(
+                        review_type="duplicate_matricule",
+                        pdf_file=pdf_name,
+                        page_num=page.page_num,
+                        reason=(
+                            f"Matricule {mat} already used for a certificate from "
+                            f"{first['file']} p{first['page']}; this page was not used "
+                            f"— review to check if it's a newer/older version"
+                        ),
+                        confidence=page.confidence,
+                        matricule=mat,
+                        text_excerpt=page.text_excerpt[:500],
+                    ))
+                    print(f"  p{page.page_num}: DUPLICATE mat={mat} (first: {first['file']} p{first['page']})")
                     i += 1
                     continue
 
@@ -529,7 +545,7 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
 
                 if ok and page_pdfs:
                     if merge_pages(page_pdfs, str(out_path)):
-                        seen_matricules.add(mat)
+                        seen_matricules[mat] = {"file": pdf_name, "page": page.page_num}
                         cert = Certificate(
                             matricule=mat,
                             matricule_raw=mat_raw,
