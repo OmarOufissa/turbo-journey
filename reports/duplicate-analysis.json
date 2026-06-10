@@ -1,0 +1,3589 @@
+{
+  "results": [
+    {
+      "claimed_matricule": "82649",
+      "canonical_name": "BENZAZAA Yassine",
+      "canonical_titre": "DTC/XJ 186_04/25",
+      "first": {
+        "file": "03 Titres d_habilitations electriques XJ .pdf",
+        "page": 1,
+        "titre": "DTC/XJ 186 04/25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "03 Titres d_habilitations electriques XJ_.pdf",
+        "page": 1,
+        "titre": "DTC/XJ 186 04/25",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 82649 (BENZAZAA Yassine), same N° de titre 'DTC/XJ 186 04/25' == 'DTC/XJ 186 04/25' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84084",
+      "canonical_name": "BABA Ayoub",
+      "canonical_titre": "DTCXJ 195_04/25",
+      "first": {
+        "file": "03 Titres d_habilitations electriques XJ .pdf",
+        "page": 2,
+        "titre": "DTC/XJ 195 04/25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "03 Titres d_habilitations electriques XJ_.pdf",
+        "page": 2,
+        "titre": "DTC/XJ 195 04/25",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 84084 (BABA Ayoub), same N° de titre 'DTC/XJ 195 04/25' == 'DTC/XJ 195 04/25' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82513",
+      "canonical_name": "EL HAJJI Outmane",
+      "canonical_titre": "DTC/XJ 171_02/25",
+      "first": {
+        "file": "03 Titres d_habilitations electriques XJ .pdf",
+        "page": 3,
+        "titre": "DTC/XJ 171_02/25",
+        "name_match": "3/3"
+      },
+      "duplicate": {
+        "file": "03 Titres d_habilitations electriques XJ_.pdf",
+        "page": 3,
+        "titre": "DTC/XJ 171_02/25",
+        "name_match": "3/3"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 82513 (EL HAJJI Outmane), same N° de titre 'DTC/XJ 171_02/25' == 'DTC/XJ 171_02/25' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82649",
+      "canonical_name": "BENZAZAA Yassine",
+      "canonical_titre": "DTC/XJ 186_04/25",
+      "first": {
+        "file": "03 Titres d_habilitations electriques XJ .pdf",
+        "page": 1,
+        "titre": "DTC/XJ 186 04/25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+        "page": 7,
+        "titre": "DTC/XJ 186 _04/25",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 82649 (BENZAZAA Yassine), same N° de titre 'DTC/XJ 186 04/25' == 'DTC/XJ 186 _04/25' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84084",
+      "canonical_name": "BABA Ayoub",
+      "canonical_titre": "DTCXJ 195_04/25",
+      "first": {
+        "file": "03 Titres d_habilitations electriques XJ .pdf",
+        "page": 2,
+        "titre": "DTC/XJ 195 04/25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+        "page": 8,
+        "titre": "DTC/XJ 195 04/25",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 84084 (BABA Ayoub), same N° de titre 'DTC/XJ 195 04/25' == 'DTC/XJ 195 04/25' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82513",
+      "canonical_name": "EL HAJJI Outmane",
+      "canonical_titre": "DTC/XJ 171_02/25",
+      "first": {
+        "file": "03 Titres d_habilitations electriques XJ .pdf",
+        "page": 3,
+        "titre": "DTC/XJ 171_02/25",
+        "name_match": "3/3"
+      },
+      "duplicate": {
+        "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+        "page": 9,
+        "titre": "DTC/XJ 171_02/25",
+        "name_match": "3/3"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 82513 (EL HAJJI Outmane), same N° de titre 'DTC/XJ 171_02/25' == 'DTC/XJ 171_02/25' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81293",
+      "canonical_name": "DAHAOUI YOUNESS",
+      "canonical_titre": "DTC/XA/336/01/24",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 1,
+        "titre": "DTC/XA/336/01/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (DAHAOUI YOUNESS), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/336/01/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 5,
+        "titre": "DTC/XA/ 064 _05/24",
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') matches the DUPLICATE page but NOT the first/kept page — the FIRST/kept certificate may itself be misassigned. Needs review of the kept certificate too.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 6,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') matches the DUPLICATE page but NOT the first/kept page — the FIRST/kept certificate may itself be misassigned. Needs review of the kept certificate too.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 7,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') matches the DUPLICATE page but NOT the first/kept page — the FIRST/kept certificate may itself be misassigned. Needs review of the kept certificate too.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 8,
+        "titre": "064_05/23",
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') matches the DUPLICATE page but NOT the first/kept page — the FIRST/kept certificate may itself be misassigned. Needs review of the kept certificate too.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 10,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KACIMI Naoufel), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 068_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 12,
+        "titre": "068_03/23",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee KACIMI Naoufel (matricule 81155), but different N° de titre: first='DTC/XA/ 068_04/24' vs duplicate='068_03/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 14,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (ERRADI Othmane), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 074 04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 15,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (ERRADI Othmane), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 074 04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 16,
+        "titre": "074_03/23",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee ERRADI Othmane (matricule 82306), but different N° de titre: first='DTC/XA/ 074 04/24' vs duplicate='074_03/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 18,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (OUAZA Driss), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 072_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 19,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (OUAZA Driss), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 072_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 20,
+        "titre": "072_03/23",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUAZA Driss (matricule 83628), but different N° de titre: first='DTC/XA/ 072_04/24' vs duplicate='072_03/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 23,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85978U",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 24,
+        "titre": "DTC/XA/334/01/24",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 25,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 85978U not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 26,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85863",
+      "canonical_name": "AHMICHE ABDELLATIF",
+      "canonical_titre": "DTC/XA/330/01/24",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 27,
+        "titre": "DTC/XA/330/01/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 28,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (AHMICHE ABDELLATIF), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/330/01/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 29,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85939M",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 30,
+        "titre": "DTC/XA/332/01/24",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 31,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 85939M not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 32,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85865K",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 33,
+        "titre": "DTC/XA/331/01/24",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 34,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 85865K not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 35,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85872J",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 36,
+        "titre": "DTC/XA/335/01/24",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 37,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 85872J not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 38,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85887",
+      "canonical_name": "LATRACHE MOHAMED",
+      "canonical_titre": "DTC/XA/329/01/24",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 39,
+        "titre": "DTC/XA/329/01/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 40,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (LATRACHE MOHAMED), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/329/01/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 41,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81293",
+      "canonical_name": "DAHAOUI YOUNESS",
+      "canonical_titre": "DTC/XA/336/01/24",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 1,
+        "titre": "DTC/XA/336/01/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 1,
+        "titre": "DTC/XA/336/01/24",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 81293 (DAHAOUI YOUNESS), same N° de titre 'DTC/XA/336/01/24' == 'DTC/XA/336/01/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85941",
+      "canonical_name": "OURCHID MOHAMMED",
+      "canonical_titre": "DTC/XA/333/01/24",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 21,
+        "titre": "DTC/XA/333/01/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 2,
+        "titre": "DTC/XA/333/01/24",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 85941 (OURCHID MOHAMMED), same N° de titre 'DTC/XA/333/01/24' == 'DTC/XA/333/01/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85978U",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 24,
+        "titre": "DTC/XA/334/01/24",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 3,
+        "titre": "DTC/XA/334/01/24",
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 85978U not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85872J",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 36,
+        "titre": "DTC/XA/335/01/24",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 4,
+        "titre": "DTC/XA/335/01/24",
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 85872J not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 5,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 83628 (OUAZA Driss), same N° de titre 'DTC/XA/ 072_04/24' == 'DTC/XA/ 072_04/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 6,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 82306 (ERRADI Othmane), same N° de titre 'DTC/XA/ 074 04/24' == 'DTC/XA/ 074 04/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 7,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 81155 (KACIMI Naoufel), same N° de titre 'DTC/XA/ 068_04/24' == 'DTC/XA/ 068_04/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 8,
+        "titre": "DTC/XA/ 064 05/24",
+        "name_match": "0/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') was not clearly found on either page (OCR quality) — cannot confirm identity for either page.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85863",
+      "canonical_name": "AHMICHE ABDELLATIF",
+      "canonical_titre": "DTC/XA/330/01/24",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 27,
+        "titre": "DTC/XA/330/01/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/330/01/24",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 85863 (AHMICHE ABDELLATIF), same N° de titre 'DTC/XA/330/01/24' == 'DTC/XA/330/01/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85887",
+      "canonical_name": "LATRACHE MOHAMED",
+      "canonical_titre": "DTC/XA/329/01/24",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 39,
+        "titre": "DTC/XA/329/01/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 10,
+        "titre": "DTC/XA/329/01/24",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 85887 (LATRACHE MOHAMED), same N° de titre 'DTC/XA/329/01/24' == 'DTC/XA/329/01/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85865K",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 33,
+        "titre": "DTC/XA/331/01/24",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 11,
+        "titre": "DTC/XA/331/01/24",
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 85865K not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85939M",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 30,
+        "titre": "DTC/XA/332/01/24",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "12 titres d_habilitations XA .pdf",
+        "page": 12,
+        "titre": "DTC/XA/332/01/24",
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 85939M not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84881",
+      "canonical_name": "NAAMY Said",
+      "canonical_titre": "076_01/23",
+      "first": {
+        "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+        "page": 1,
+        "titre": "HEJP84881ST25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "20250108103124.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NAAMY Said), but N° de titre could not be reliably read on one or both pages (first='HEJP84881ST25', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250212162352.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250212162352.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250212162352.pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250212162352.pdf",
+        "page": 4,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250212162352.pdf",
+        "page": 5,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250212162450.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82743",
+      "canonical_name": "ITBANE Abdelqodouss",
+      "canonical_titre": "DTC/XJ 181_04/25",
+      "first": {
+        "file": "06 HABILITATIONS ELECTRIQUES  XJ.pdf",
+        "page": 5,
+        "titre": "ITBANE ABDELQOUDOUSS",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250212162450.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (ITBANE Abdelqodouss), but N° de titre could not be reliably read on one or both pages (first='ITBANE ABDELQOUDOUSS', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250212162450.pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250212162450.pdf",
+        "page": 4,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250212162450.pdf",
+        "page": 5,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85939",
+      "canonical_name": "OUALLAL AMINE",
+      "canonical_titre": "DTC/XA/332/01/24",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 3,
+        "titre": "HEAL8593925ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "20250714134319.pdf",
+        "page": 4,
+        "titre": "HEAL8593925HT",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUALLAL AMINE (matricule 85939), but different N° de titre: first='HEAL8593925ST' vs duplicate='HEAL8593925HT' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82316",
+      "canonical_name": "GHAZI Hassan",
+      "canonical_titre": "HEAL823165HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 7,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "20250714134319.pdf",
+        "page": 8,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (GHAZI Hassan), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82637",
+      "canonical_name": "SAIDI Khalid",
+      "canonical_titre": "HEAL8263725HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 9,
+        "titre": "HEAL8263725ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "20250714134319.pdf",
+        "page": 10,
+        "titre": "HEAL8263725HT",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee SAIDI Khalid (matricule 82637), but different N° de titre: first='HEAL8263725ST' vs duplicate='HEAL8263725HT' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100316.pdf",
+        "page": 1,
+        "titre": "HEAP81155ST25",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee KACIMI Naoufel (matricule 81155), but different N° de titre: first='DTC/XA/ 068_04/24' vs duplicate='HEAP81155ST25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100316.pdf",
+        "page": 4,
+        "titre": "068_03/23",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee KACIMI Naoufel (matricule 81155), but different N° de titre: first='DTC/XA/ 068_04/24' vs duplicate='068_03/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100316.pdf",
+        "page": 5,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KACIMI Naoufel), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 068_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100439.pdf",
+        "page": 1,
+        "titre": "HEAP81155HT25",
+        "name_match": "0/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 81155 ('KACIMI Naoufel') matches the FIRST page but NOT the duplicate page — the duplicate page likely belongs to a different employee whose matricule was misread.",
+      "suggested_matricule": "81155"
+    },
+    {
+      "claimed_matricule": "81155P",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 11,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250901100439.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 81155P not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100439.pdf",
+        "page": 3,
+        "titre": "DTC/XA/ 068 _04/24",
+        "name_match": "1/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 81155 (KACIMI Naoufel), same N° de titre 'DTC/XA/ 068_04/24' == 'DTC/XA/ 068 _04/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100522.pdf",
+        "page": 1,
+        "titre": "HEAP83628ST25",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUAZA Driss (matricule 83628), but different N° de titre: first='DTC/XA/ 072_04/24' vs duplicate='HEAP83628ST25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100618.pdf",
+        "page": 1,
+        "titre": "HEAP83628HT25",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUAZA Driss (matricule 83628), but different N° de titre: first='DTC/XA/ 072_04/24' vs duplicate='HEAP83628HT25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100618.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (OUAZA Driss), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 072_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100618.pdf",
+        "page": 3,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 83628 (OUAZA Driss), same N° de titre 'DTC/XA/ 072_04/24' == 'DTC/XA/ 072_04/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100618.pdf",
+        "page": 5,
+        "titre": "072 03/23",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUAZA Driss (matricule 83628), but different N° de titre: first='DTC/XA/ 072_04/24' vs duplicate='072 03/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901100618.pdf",
+        "page": 7,
+        "titre": "403 01/19",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUAZA Driss (matricule 83628), but different N° de titre: first='DTC/XA/ 072_04/24' vs duplicate='403 01/19' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "20250901100714.pdf",
+        "page": 1,
+        "titre": "HEAP82306ST25",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee ERRADI Othmane (matricule 82306), but different N° de titre: first='DTC/XA/ 074 04/24' vs duplicate='HEAP82306ST25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82308",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20250901100714.pdf",
+        "page": 5,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250901100714.pdf",
+        "page": 6,
+        "titre": "074 03/23",
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 82308 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "20250901100818.pdf",
+        "page": 1,
+        "titre": "HEAP82306HT25",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee ERRADI Othmane (matricule 82306), but different N° de titre: first='DTC/XA/ 074 04/24' vs duplicate='HEAP82306HT25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "20250901100818.pdf",
+        "page": 2,
+        "titre": "DTC/XA/ 074 _04/24",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 82306 (ERRADI Othmane), same N° de titre 'DTC/XA/ 074 04/24' == 'DTC/XA/ 074 _04/24' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82308",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20250901100714.pdf",
+        "page": 5,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "20250901100818.pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 82308 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "20250901102145.pdf",
+        "page": 1,
+        "titre": "HEAP82306HT25",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee ERRADI Othmane (matricule 82306), but different N° de titre: first='DTC/XA/ 074 04/24' vs duplicate='HEAP82306HT25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "20250901102145.pdf",
+        "page": 2,
+        "titre": "HEAP82306ST25",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee ERRADI Othmane (matricule 82306), but different N° de titre: first='DTC/XA/ 074 04/24' vs duplicate='HEAP82306ST25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901102145.pdf",
+        "page": 3,
+        "titre": "HEAP83628HT25",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUAZA Driss (matricule 83628), but different N° de titre: first='DTC/XA/ 072_04/24' vs duplicate='HEAP83628HT25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901102145.pdf",
+        "page": 4,
+        "titre": "HEAP83628ST25",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUAZA Driss (matricule 83628), but different N° de titre: first='DTC/XA/ 072_04/24' vs duplicate='HEAP83628ST25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901102145.pdf",
+        "page": 5,
+        "titre": "HEAP81155ST25",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee KACIMI Naoufel (matricule 81155), but different N° de titre: first='DTC/XA/ 068_04/24' vs duplicate='HEAP81155ST25' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "20250901102145.pdf",
+        "page": 6,
+        "titre": "HEAP81155HT25",
+        "name_match": "0/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 81155 ('KACIMI Naoufel') matches the FIRST page but NOT the duplicate page — the duplicate page likely belongs to a different employee whose matricule was misread.",
+      "suggested_matricule": "81155"
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "AOUAD-FALLOUSS.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85024",
+      "canonical_name": "FALOUSS BASSAM",
+      "canonical_titre": "HECL85024HT25",
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "AOUAD-FALLOUSS.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (FALOUSS BASSAM), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81135",
+      "canonical_name": "BOUZOUGAGH Momamed",
+      "canonical_titre": "DTC/XA/206/06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 6,
+        "titre": "DTC/XA/206_06/25",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "BOUZOUGAGH MOHAMED Mle 81135.pdf",
+        "page": 1,
+        "titre": "206_05/24",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee BOUZOUGAGH Momamed (matricule 81135), but different N° de titre: first='DTC/XA/206_06/25' vs duplicate='206_05/24' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84881",
+      "canonical_name": "NAAMY Said",
+      "canonical_titre": "076_01/23",
+      "first": {
+        "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+        "page": 1,
+        "titre": "HEJP84881ST25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "CamScanner 05-11-2024 09.34.pdf",
+        "page": 1,
+        "titre": "076_01/23",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee NAAMY Said (matricule 84881), but different N° de titre: first='HEJP84881ST25' vs duplicate='076_01/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79205",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20250108103124.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "F E formation TST postes XAf 2024.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 79205 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "F E formation TST postes XAf 2024.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KACIMI Naoufel), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 068_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79205",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20250108103124.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "F E formation TST postes XAf 2024.pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 79205 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "F E formation TST postes XAf 2024.pdf",
+        "page": 4,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (OUAZA Driss), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 072_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84881",
+      "canonical_name": "NAAMY Said",
+      "canonical_titre": "076_01/23",
+      "first": {
+        "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+        "page": 1,
+        "titre": "HEJP84881ST25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "F E formation TST postes XJ 2024.pdf AGENT NAAMY.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NAAMY Said), but N° de titre could not be reliably read on one or both pages (first='HEJP84881ST25', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84072",
+      "canonical_name": "ELMAKHLOUFY ABDEJALIL",
+      "canonical_titre": "284_03/24",
+      "first": {
+        "file": "HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC (2).pdf",
+        "page": 1,
+        "titre": "DTC/XC 425 03/25",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC.pdf",
+        "page": 1,
+        "titre": "DTC/XC 425 03/25",
+        "name_match": "1/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 84072 (ELMAKHLOUFY ABDEJALIL), same N° de titre 'DTC/XC 425 03/25' == 'DTC/XC 425 03/25' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81594",
+      "canonical_name": "BOUKHRISS MOHAMED",
+      "canonical_titre": "DTC/XC 229_05/25",
+      "first": {
+        "file": "HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC (2).pdf",
+        "page": 2,
+        "titre": "DTC/XC 229 05/25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC.pdf",
+        "page": 2,
+        "titre": "DTC/XC 229 05/25",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 81594 (BOUKHRISS MOHAMED), same N° de titre 'DTC/XC 229 05/25' == 'DTC/XC 229 05/25' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "80922",
+      "canonical_name": "CHIBANE ZAKARIA",
+      "canonical_titre": "HEJP80922HT25",
+      "first": {
+        "file": "HAE XJ 10 2025.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "HAE XJ 10 2025.pdf",
+        "page": 5,
+        "titre": "164 03/22",
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (CHIBANE ZAKARIA), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='164 03/22') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81914",
+      "canonical_name": "AKRIM AMINE",
+      "canonical_titre": "HEJL81914HT25",
+      "first": {
+        "file": "HAE XJ 10 2025.pdf",
+        "page": 6,
+        "titre": "HEJL81914HT25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "HAE XJ 10 2025.pdf",
+        "page": 10,
+        "titre": "287_03/22",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee AKRIM AMINE (matricule 81914), but different N° de titre: first='HEJL81914HT25' vs duplicate='287_03/22' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "80793",
+      "canonical_name": "BOULGHAIT Mohamed",
+      "canonical_titre": "HEJP80793HT25",
+      "first": {
+        "file": "HAE XJ 10 2025.pdf",
+        "page": 15,
+        "titre": "HEJP80793HT25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "HAE XJ 10 2025.pdf",
+        "page": 18,
+        "titre": "166 04/22",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee BOULGHAIT Mohamed (matricule 80793), but different N° de titre: first='HEJP80793HT25' vs duplicate='166 04/22' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79919",
+      "canonical_name": "CHAOUKI Yassine",
+      "canonical_titre": "090_05/24",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 1,
+        "titre": "HEAL7991925ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 1,
+        "titre": "HEAL79919ST26",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee CHAOUKI Yassine (matricule 79919), but different N° de titre: first='HEAL7991925ST' vs duplicate='HEAL79919ST26' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81581",
+      "canonical_name": "KEBDANI Charaf",
+      "canonical_titre": "HEAL8158125HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 6,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 3,
+        "titre": "HEAL81581ST26",
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KEBDANI Charaf), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='HEAL81581ST26') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82316",
+      "canonical_name": "GHAZI Hassan",
+      "canonical_titre": "HEAL823165HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 7,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 5,
+        "titre": "HEAL82316ST26",
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (GHAZI Hassan), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='HEAL82316ST26') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82637",
+      "canonical_name": "SAIDI Khalid",
+      "canonical_titre": "HEAL8263725HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 9,
+        "titre": "HEAL8263725ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 7,
+        "titre": "HEAL82637ST26",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee SAIDI Khalid (matricule 82637), but different N° de titre: first='HEAL8263725ST' vs duplicate='HEAL82637ST26' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85083",
+      "canonical_name": "OUASSIRI Said",
+      "canonical_titre": "232_01/23",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 12,
+        "titre": "HEAL8508325HT",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 9,
+        "titre": "HEAL85083ST26",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUASSIRI Said (matricule 85083), but different N° de titre: first='HEAL8508325HT' vs duplicate='HEAL85083ST26' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85939",
+      "canonical_name": "OUALLAL AMINE",
+      "canonical_titre": "DTC/XA/332/01/24",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 3,
+        "titre": "HEAL8593925ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 11,
+        "titre": "HEAL85939ST26",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUALLAL AMINE (matricule 85939), but different N° de titre: first='HEAL8593925ST' vs duplicate='HEAL85939ST26' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 13,
+        "titre": "HEAP83628ST26",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUAZA Driss (matricule 83628), but different N° de titre: first='DTC/XA/ 072_04/24' vs duplicate='HEAP83628ST26' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 15,
+        "titre": "HEAP82306ST26",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee ERRADI Othmane (matricule 82306), but different N° de titre: first='DTC/XA/ 074 04/24' vs duplicate='HEAP82306ST26' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 17,
+        "titre": "HEAP83172ST26",
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') matches the DUPLICATE page but NOT the first/kept page — the FIRST/kept certificate may itself be misassigned. Needs review of the kept certificate too.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85024",
+      "canonical_name": "FALOUSS BASSAM",
+      "canonical_titre": "HECL85024HT25",
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "TITRES TST  2026.pdf",
+        "page": 19,
+        "titre": "HECL85024ST26",
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (FALOUSS BASSAM), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='HECL85024ST26') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "80335",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "Habilitatioins éléctriques XA.pdf",
+        "page": 4,
+        "titre": "HEAL8033525HT",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 2,
+        "titre": "HEAL8033525HT",
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 80335 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81371",
+      "canonical_name": "BOURAKBA Issam",
+      "canonical_titre": "105_03/24",
+      "first": {
+        "file": "Habilitatioins éléctriques XA.pdf",
+        "page": 5,
+        "titre": "HEAX8137125HT",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 4,
+        "titre": "HEAX8137125HT",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 81371 (BOURAKBA Issam), same N° de titre 'HEAX8137125HT' == 'HEAX8137125HT' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85939",
+      "canonical_name": "OUALLAL AMINE",
+      "canonical_titre": "DTC/XA/332/01/24",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 3,
+        "titre": "HEAL8593925ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 6,
+        "titre": "HEAL8593925HT",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUALLAL AMINE (matricule 85939), but different N° de titre: first='HEAL8593925ST' vs duplicate='HEAL8593925HT' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85939",
+      "canonical_name": "OUALLAL AMINE",
+      "canonical_titre": "DTC/XA/332/01/24",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 3,
+        "titre": "HEAL8593925ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 7,
+        "titre": "HEAL8593925ST",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 85939 (OUALLAL AMINE), same N° de titre 'HEAL8593925ST' == 'HEAL8593925ST' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82316",
+      "canonical_name": "GHAZI Hassan",
+      "canonical_titre": "HEAL823165HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 7,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 8,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (GHAZI Hassan), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82316",
+      "canonical_name": "GHAZI Hassan",
+      "canonical_titre": "HEAL823165HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 7,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 9,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (GHAZI Hassan), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85083",
+      "canonical_name": "OUASSIRI Said",
+      "canonical_titre": "232_01/23",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 12,
+        "titre": "HEAL8508325HT",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 10,
+        "titre": "HEAL8508325ST",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUASSIRI Said (matricule 85083), but different N° de titre: first='HEAL8508325HT' vs duplicate='HEAL8508325ST' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85083",
+      "canonical_name": "OUASSIRI Said",
+      "canonical_titre": "232_01/23",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 12,
+        "titre": "HEAL8508325HT",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 11,
+        "titre": "HEAL8508325HT",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 85083 (OUASSIRI Said), same N° de titre 'HEAL8508325HT' == 'HEAL8508325HT' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81581",
+      "canonical_name": "KEBDANI Charaf",
+      "canonical_titre": "HEAL8158125HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 6,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 12,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KEBDANI Charaf), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81581",
+      "canonical_name": "KEBDANI Charaf",
+      "canonical_titre": "HEAL8158125HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 6,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 13,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KEBDANI Charaf), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82637",
+      "canonical_name": "SAIDI Khalid",
+      "canonical_titre": "HEAL8263725HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 9,
+        "titre": "HEAL8263725ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 15,
+        "titre": "HEAL8263725HT",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee SAIDI Khalid (matricule 82637), but different N° de titre: first='HEAL8263725ST' vs duplicate='HEAL8263725HT' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79919",
+      "canonical_name": "CHAOUKI Yassine",
+      "canonical_titre": "090_05/24",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 1,
+        "titre": "HEAL7991925ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 16,
+        "titre": "HEAL7991925ST",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 79919 (CHAOUKI Yassine), same N° de titre 'HEAL7991925ST' == 'HEAL7991925ST' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79919",
+      "canonical_name": "CHAOUKI Yassine",
+      "canonical_titre": "090_05/24",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 1,
+        "titre": "HEAL7991925ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique délivrées.pdf",
+        "page": 17,
+        "titre": "HEAL7991925HT",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee CHAOUKI Yassine (matricule 79919), but different N° de titre: first='HEAL7991925ST' vs duplicate='HEAL7991925HT' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79919",
+      "canonical_name": "CHAOUKI Yassine",
+      "canonical_titre": "090_05/24",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 1,
+        "titre": "HEAL7991925ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique retirées.pdf",
+        "page": 1,
+        "titre": "090_ 05/24",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee CHAOUKI Yassine (matricule 79919), but different N° de titre: first='HEAL7991925ST' vs duplicate='090_ 05/24' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82316",
+      "canonical_name": "GHAZI Hassan",
+      "canonical_titre": "HEAL823165HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 7,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique retirées.pdf",
+        "page": 2,
+        "titre": "102 03/22",
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (GHAZI Hassan), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='102 03/22') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81581",
+      "canonical_name": "KEBDANI Charaf",
+      "canonical_titre": "HEAL8158125HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 6,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique retirées.pdf",
+        "page": 3,
+        "titre": "107_03/20",
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KEBDANI Charaf), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='107_03/20') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85083",
+      "canonical_name": "OUASSIRI Said",
+      "canonical_titre": "232_01/23",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 12,
+        "titre": "HEAL8508325HT",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique retirées.pdf",
+        "page": 4,
+        "titre": "232_01/23",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OUASSIRI Said (matricule 85083), but different N° de titre: first='HEAL8508325HT' vs duplicate='232_01/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82637",
+      "canonical_name": "SAIDI Khalid",
+      "canonical_titre": "HEAL8263725HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 9,
+        "titre": "HEAL8263725ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique retirées.pdf",
+        "page": 5,
+        "titre": "101_05/22",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee SAIDI Khalid (matricule 82637), but different N° de titre: first='HEAL8263725ST' vs duplicate='101_05/22' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82637",
+      "canonical_name": "SAIDI Khalid",
+      "canonical_titre": "HEAL8263725HT",
+      "first": {
+        "file": "20250714134319.pdf",
+        "page": 9,
+        "titre": "HEAL8263725ST",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique retirées.pdf",
+        "page": 6,
+        "titre": "101_04/23",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee SAIDI Khalid (matricule 82637), but different N° de titre: first='HEAL8263725ST' vs duplicate='101_04/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85939M",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 30,
+        "titre": "DTC/XA/332/01/24",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitation électrique retirées.pdf",
+        "page": 7,
+        "titre": "DTC/XA/332/01/24",
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 85939M not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85024",
+      "canonical_name": "FALOUSS BASSAM",
+      "canonical_titre": "HECL85024HT25",
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
+        "page": 4,
+        "titre": "DTC/XC/37/02/24",
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (FALOUSS BASSAM), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='DTC/XC/37/02/24') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84072",
+      "canonical_name": "ELMAKHLOUFY ABDEJALIL",
+      "canonical_titre": "284_03/24",
+      "first": {
+        "file": "HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC (2).pdf",
+        "page": 1,
+        "titre": "DTC/XC 425 03/25",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
+        "page": 9,
+        "titre": "425 02/24",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee ELMAKHLOUFY ABDEJALIL (matricule 84072), but different N° de titre: first='DTC/XC 425 03/25' vs duplicate='425 02/24' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83635",
+      "canonical_name": "AMZIL KAMAL",
+      "canonical_titre": "HECL83635HT25",
+      "first": {
+        "file": "20250625130821.pdf",
+        "page": 1,
+        "titre": "HECL83635HT25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
+        "page": 27,
+        "titre": "298 03/24",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee AMZIL KAMAL (matricule 83635), but different N° de titre: first='HECL83635HT25' vs duplicate='298 03/24' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "80559",
+      "canonical_name": "RAKI BRAHIM",
+      "canonical_titre": "DTC/XC/329/01/24",
+      "first": {
+        "file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
+        "page": 1,
+        "titre": "DTC/XCI 329_01/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
+        "page": 42,
+        "titre": "DTC/XC/ 329_01/24",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee RAKI BRAHIM (matricule 80559), but different N° de titre: first='DTC/XCI 329_01/24' vs duplicate='DTC/XC/ 329_01/24' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84959",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "Habilitatioins éléctriques XA.pdf",
+        "page": 1,
+        "titre": "HEAX8495925HT",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 11,
+        "titre": "HEAX84959HT26",
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 84959 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') matches the DUPLICATE page but NOT the first/kept page — the FIRST/kept certificate may itself be misassigned. Needs review of the kept certificate too.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84959",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "Habilitatioins éléctriques XA.pdf",
+        "page": 1,
+        "titre": "HEAX8495925HT",
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 2,
+        "titre": "HEAX84959HT26",
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 84959 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79876",
+      "canonical_name": "CHEGDALI Mohamed",
+      "canonical_titre": "077_06/24",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 10,
+        "titre": "HEAP79876HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 8,
+        "titre": "HEAP79876HT26",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 79876 (CHEGDALI Mohamed), same N° de titre 'HEAP79876HT26' == 'HEAP79876HT26' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 9,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84683",
+      "canonical_name": "BAKHOUYA MOHAMED",
+      "canonical_titre": "284_01/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 9,
+        "titre": "HEAL84683HT26",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 14,
+        "titre": "HEAL84683HT26",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 84683 (BAKHOUYA MOHAMED), same N° de titre 'HEAL84683HT26' == 'HEAL84683HT26' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 15,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84683",
+      "canonical_name": "BAKHOUYA MOHAMED",
+      "canonical_titre": "284_01/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 9,
+        "titre": "HEAL84683HT26",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 17,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (BAKHOUYA MOHAMED), but N° de titre could not be reliably read on one or both pages (first='HEAL84683HT26', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79411",
+      "canonical_name": "AIT OULAID BRAHIM",
+      "canonical_titre": "176_01/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 8,
+        "titre": "HEAX79411HT26",
+        "name_match": "3/3"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 20,
+        "titre": "HEAX79411HT26",
+        "name_match": "3/3"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 79411 (AIT OULAID BRAHIM), same N° de titre 'HEAX79411HT26' == 'HEAX79411HT26' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79411",
+      "canonical_name": "AIT OULAID BRAHIM",
+      "canonical_titre": "176_01/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 8,
+        "titre": "HEAX79411HT26",
+        "name_match": "3/3"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 25,
+        "titre": "176_01/23",
+        "name_match": "3/3"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee AIT OULAID BRAHIM (matricule 79411), but different N° de titre: first='HEAX79411HT26' vs duplicate='176_01/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 27,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81582",
+      "canonical_name": "ELMEKAOUI Mohamed",
+      "canonical_titre": "099_03/23",
+      "first": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 26,
+        "titre": "HEAL81582HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 31,
+        "titre": "099_03/23",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee ELMEKAOUI Mohamed (matricule 81582), but different N° de titre: first='HEAL81582HT26' vs duplicate='099_03/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84073",
+      "canonical_name": "RACHIDI SAID",
+      "canonical_titre": "089_03/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 6,
+        "titre": "HEAC 84073HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 32,
+        "titre": "HEAC 84073HT26",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 84073 (RACHIDI SAID), same N° de titre 'HEAC 84073HT26' == 'HEAC 84073HT26' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 33,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83630",
+      "canonical_name": "AHTTAB BRAHIM",
+      "canonical_titre": "086_03/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 5,
+        "titre": "HEAC83630HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 38,
+        "titre": "HEAC83630HT26",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 83630 (AHTTAB BRAHIM), same N° de titre 'HEAC83630HT26' == 'HEAC83630HT26' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 39,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83630",
+      "canonical_name": "AHTTAB BRAHIM",
+      "canonical_titre": "086_03/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 5,
+        "titre": "HEAC83630HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 43,
+        "titre": "086_03/23",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee AHTTAB BRAHIM (matricule 83630), but different N° de titre: first='HEAC83630HT26' vs duplicate='086_03/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81632",
+      "canonical_name": "OBBIBA Ouadyae",
+      "canonical_titre": "108_04/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 4,
+        "titre": "HEAL81632HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 44,
+        "titre": "HEAL81632HT26",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 81632 (OBBIBA Ouadyae), same N° de titre 'HEAL81632HT26' == 'HEAL81632HT26' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 45,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81632",
+      "canonical_name": "OBBIBA Ouadyae",
+      "canonical_titre": "108_04/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 4,
+        "titre": "HEAL81632HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 47,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (OBBIBA Ouadyae), but N° de titre could not be reliably read on one or both pages (first='HEAL81632HT26', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81632",
+      "canonical_name": "OBBIBA Ouadyae",
+      "canonical_titre": "108_04/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 4,
+        "titre": "HEAL81632HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 49,
+        "titre": "108_04/23",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee OBBIBA Ouadyae (matricule 81632), but different N° de titre: first='HEAL81632HT26' vs duplicate='108_04/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82790",
+      "canonical_name": "EL-MAAKOUL ABDELGHANI",
+      "canonical_titre": "HEAX82790HT26",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 3,
+        "titre": "HEAX82790HT26",
+        "name_match": "3/3"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 50,
+        "titre": "HEAX82790HT26",
+        "name_match": "3/3"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 82790 (EL-MAAKOUL ABDELGHANI), same N° de titre 'HEAX82790HT26' == 'HEAX82790HT26' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 51,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82790",
+      "canonical_name": "EL-MAAKOUL ABDELGHANI",
+      "canonical_titre": "HEAX82790HT26",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 3,
+        "titre": "HEAX82790HT26",
+        "name_match": "3/3"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 53,
+        "titre": "202582790010703",
+        "name_match": "2/3"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee EL-MAAKOUL ABDELGHANI (matricule 82790), but different N° de titre: first='HEAX82790HT26' vs duplicate='202582790010703' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83878",
+      "canonical_name": "JNAIKH AMINE",
+      "canonical_titre": "HEAX83878HT26",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 2,
+        "titre": "HEAX83878HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 55,
+        "titre": "HEAX83878HT26",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 83878 (JNAIKH AMINE), same N° de titre 'HEAX83878HT26' == 'HEAX83878HT26' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83878",
+      "canonical_name": "JNAIKH AMINE",
+      "canonical_titre": "HEAX83878HT26",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 2,
+        "titre": "HEAX83878HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 58,
+        "titre": "202183878100707",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee JNAIKH AMINE (matricule 83878), but different N° de titre: first='HEAX83878HT26' vs duplicate='202183878100707' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79868",
+      "canonical_name": "TALIB HICHAM",
+      "canonical_titre": "088_04/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 1,
+        "titre": "HEAC 79868HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 62,
+        "titre": "HEAC 79868HT26",
+        "name_match": "2/2"
+      },
+      "decision": "TRUE_DUPLICATE",
+      "reason": "Same matricule 79868 (TALIB HICHAM), same N° de titre 'HEAC 79868HT26' == 'HEAC 79868HT26' on both pages — same document scanned twice.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78849",
+      "canonical_name": "NABILI Moubarik",
+      "canonical_titre": "049-03/23",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 63,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NABILI Moubarik), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79868",
+      "canonical_name": "TALIB HICHAM",
+      "canonical_titre": "088_04/23",
+      "first": {
+        "file": "titres HAE XA 120326.pdf",
+        "page": 1,
+        "titre": "HEAC 79868HT26",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XA 130326 dossier complet.pdf",
+        "page": 67,
+        "titre": "088_04/23",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee TALIB HICHAM (matricule 79868), but different N° de titre: first='HEAC 79868HT26' vs duplicate='088_04/23' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84881",
+      "canonical_name": "NAAMY Said",
+      "canonical_titre": "076_01/23",
+      "first": {
+        "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+        "page": 1,
+        "titre": "HEJP84881ST25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XJ 060426.pdf",
+        "page": 4,
+        "titre": "HEJP84881HT26",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee NAAMY Said (matricule 84881), but different N° de titre: first='HEJP84881ST25' vs duplicate='HEJP84881HT26' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85908",
+      "canonical_name": "KOUNINE RIDA",
+      "canonical_titre": "HEJX85908HT26",
+      "first": {
+        "file": "Habilitation éléctrique KOUNINE RIDA-GOUAL YASSINE  DTC-XJ.pdf",
+        "page": 1,
+        "titre": "DTC/XJ 350 01/25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XJ pratique 0426.pdf",
+        "page": 2,
+        "titre": "HEJX85908HT26",
+        "name_match": "2/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee KOUNINE RIDA (matricule 85908), but different N° de titre: first='DTC/XJ 350 01/25' vs duplicate='HEJX85908HT26' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "85031",
+      "canonical_name": "ESSAIF Hamza",
+      "canonical_titre": "HEJL85031HT26",
+      "first": {
+        "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+        "page": 10,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XJ pratique 0426.pdf",
+        "page": 4,
+        "titre": "HEJL85031HT26",
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (ESSAIF Hamza), but N° de titre could not be reliably read on one or both pages (first='None', duplicate='HEJL85031HT26') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83300",
+      "canonical_name": "EL HRYCHY OUSSAMA",
+      "canonical_titre": "173_01/23",
+      "first": {
+        "file": "titres HAE XJ 130426.pdf",
+        "page": 8,
+        "titre": "HEJL83300HT26",
+        "name_match": "3/3"
+      },
+      "duplicate": {
+        "file": "titres HAE XJ pratique 0426.pdf",
+        "page": 5,
+        "titre": "HEJC83524HT 26",
+        "name_match": "1/3"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83300 ('EL HRYCHY OUSSAMA') matches the FIRST page but NOT the duplicate page — the duplicate page likely belongs to a different employee whose matricule was misread. N° de titre 'HEJC83524HT 26' on the duplicate page matches matricule 83524 (GOUHNA  ABDESSAMAD) in employees.xlsx, and that name appears on the duplicate page — likely belongs to 83524, not 83300.",
+      "suggested_matricule": "83524"
+    },
+    {
+      "claimed_matricule": "78953",
+      "canonical_name": "SADIK ABDERRAHMANE",
+      "canonical_titre": "HEJT78953HT26",
+      "first": {
+        "file": "HAE XJ 10 2025.pdf",
+        "page": 19,
+        "titre": "HEJT78953HT25",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "titres HAE XJ pratique 0426.pdf",
+        "page": 7,
+        "titre": "HEJT78953HT 26",
+        "name_match": "1/2"
+      },
+      "decision": "DIFFERENT_CERTIFICATE",
+      "reason": "Same employee SADIK ABDERRAHMANE (matricule 78953), but different N° de titre: first='HEJT78953HT25' vs duplicate='HEJT78953HT 26' — appears to be an additional/renewal certificate, not a duplicate.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "xaf-poste T.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KACIMI Naoufel), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 068_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "xaf-poste T.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') matches the DUPLICATE page but NOT the first/kept page — the FIRST/kept certificate may itself be misassigned. Needs review of the kept certificate too.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79205",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20250108103124.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "xaf-poste T.pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 79205 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "xaf-poste T.pdf",
+        "page": 4,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (OUAZA Driss), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 072_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "xaf-poste.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KACIMI Naoufel), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 068_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "xaf-poste.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') matches the DUPLICATE page but NOT the first/kept page — the FIRST/kept certificate may itself be misassigned. Needs review of the kept certificate too.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "79205",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20250108103124.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "xaf-poste.pdf",
+        "page": 3,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 79205 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "xaf-poste.pdf",
+        "page": 4,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (OUAZA Driss), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 072_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "78936",
+      "canonical_name": null,
+      "canonical_titre": null,
+      "first": {
+        "file": "20240718100118.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "duplicate": {
+        "file": "xc-ligne.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "0/0"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Matricule 78936 not found in employees.xlsx — cannot verify identity",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84923",
+      "canonical_name": "AOUAD MOUAD",
+      "canonical_titre": "HECL84923HT25",
+      "first": {
+        "file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
+        "page": 5,
+        "titre": "DTC/XC/39/02/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "xc-ligne.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (AOUAD MOUAD), but N° de titre could not be reliably read on one or both pages (first='DTC/XC/39/02/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "84881",
+      "canonical_name": "NAAMY Said",
+      "canonical_titre": "076_01/23",
+      "first": {
+        "file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
+        "page": 1,
+        "titre": "HEJP84881ST25",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "xj-poste.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (NAAMY Said), but N° de titre could not be reliably read on one or both pages (first='HEJP84881ST25', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83172",
+      "canonical_name": "LAAOUEJ Mohamed",
+      "canonical_titre": "DTC/XA/064_06/25",
+      "first": {
+        "file": "08 Titres d_habilitations DTC-XA AFOURER.pdf",
+        "page": 4,
+        "titre": "DTC/XA/064_06/25",
+        "name_match": "0/2"
+      },
+      "duplicate": {
+        "file": "éval TST poste XA N.pdf",
+        "page": 1,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Canonical name for matricule 83172 ('LAAOUEJ Mohamed') matches the DUPLICATE page but NOT the first/kept page — the FIRST/kept certificate may itself be misassigned. Needs review of the kept certificate too.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "81155",
+      "canonical_name": "KACIMI Naoufel",
+      "canonical_titre": "HEAP81155HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 9,
+        "titre": "DTC/XA/ 068_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "éval TST poste XA N.pdf",
+        "page": 2,
+        "titre": null,
+        "name_match": "1/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (KACIMI Naoufel), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 068_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "83628",
+      "canonical_name": "OUAZA Driss",
+      "canonical_titre": "HEAP83628HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 17,
+        "titre": "DTC/XA/ 072_04/24",
+        "name_match": "1/2"
+      },
+      "duplicate": {
+        "file": "éval TST poste XA N.pdf",
+        "page": 4,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (OUAZA Driss), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 072_04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    },
+    {
+      "claimed_matricule": "82306",
+      "canonical_name": "ERRADI Othmane",
+      "canonical_titre": "HEAP82306HT25",
+      "first": {
+        "file": "12 TITRES HABILITATIONs XA .pdf",
+        "page": 13,
+        "titre": "DTC/XA/ 074 04/24",
+        "name_match": "2/2"
+      },
+      "duplicate": {
+        "file": "éval TST poste XA N.pdf",
+        "page": 5,
+        "titre": null,
+        "name_match": "2/2"
+      },
+      "decision": "REQUIRES_MANUAL_REVIEW",
+      "reason": "Same employee name found on both pages (ERRADI Othmane), but N° de titre could not be reliably read on one or both pages (first='DTC/XA/ 074 04/24', duplicate='None') — cannot confirm same document.",
+      "suggested_matricule": null
+    }
+  ],
+  "summary": {
+    "TRUE_DUPLICATE": 31,
+    "REQUIRES_MANUAL_REVIEW": 99,
+    "DIFFERENT_CERTIFICATE": 49
+  }
+}

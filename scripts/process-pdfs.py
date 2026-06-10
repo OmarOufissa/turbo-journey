@@ -151,6 +151,7 @@ ANTI_KEYWORDS = [
     (r"r.sultat\s+de\s+l.examen|.preuves?\s+.crites?", -50),
     (r"bulletin\s+de\s+salaire|fiche\s+de\s+paie", -100),
     (r"contrat\s+de\s+travail", -100),
+    (r"fiche\s+d.\s*.valuation|commission\s+d.examen", -100),
 ]
 
 BACK_PAGE_KEYWORDS = [
