@@ -59,41 +59,9 @@
     {
       "type": "duplicate_matricule",
       "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 2,
-      "reason": "Matricule 81293 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "81293"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
       "page_num": 5,
       "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
       "confidence": 154.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 6,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['83172', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 6,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 7,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
       "matricule": "83172"
     },
     {
@@ -105,22 +73,6 @@
       "matricule": "83172"
     },
     {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 10,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 10,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
       "type": "duplicate_matricule",
       "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
       "page_num": 12,
@@ -129,60 +81,12 @@
       "matricule": "81155"
     },
     {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 14,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['82306', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 14,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 15,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "82306"
-    },
-    {
       "type": "duplicate_matricule",
       "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
       "page_num": 16,
       "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
       "confidence": 154.0,
       "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 18,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 19,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
-      "confidence": 53.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 19,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "83628"
     },
     {
       "type": "duplicate_matricule",
@@ -203,26 +107,10 @@
     {
       "type": "duplicate_matricule",
       "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 25,
-      "reason": "Matricule 85978U already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p24; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "85978U"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
       "page_num": 26,
       "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
       "confidence": 36.0,
       "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 28,
-      "reason": "Matricule 85863 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p27; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "85863"
     },
     {
       "type": "duplicate_matricule",
@@ -235,26 +123,10 @@
     {
       "type": "duplicate_matricule",
       "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 31,
-      "reason": "Matricule 85939M already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p30; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "85939M"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
       "page_num": 32,
       "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
       "confidence": 36.0,
       "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 34,
-      "reason": "Matricule 85865K already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p33; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "85865K"
     },
     {
       "type": "duplicate_matricule",
@@ -267,26 +139,10 @@
     {
       "type": "duplicate_matricule",
       "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 37,
-      "reason": "Matricule 85872J already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p36; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "85872J"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
       "page_num": 38,
       "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
       "confidence": 36.0,
       "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 40,
-      "reason": "Matricule 85887 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p39; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "85887"
     },
     {
       "type": "duplicate_matricule",
@@ -391,118 +247,6 @@
       "reason": "Matricule 85939M already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p30; this page was not used — review to check if it's a newer/older version",
       "confidence": 149.0,
       "matricule": "85939M"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20240718100118.pdf",
-      "page_num": 2,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['85024', '78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "85024"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250108103124.pdf",
-      "page_num": 2,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['84881', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250108103124.pdf",
-      "page_num": 2,
-      "reason": "Matricule 84881 already used for a certificate from 09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 1,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 2,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 3,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 4,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162352.pdf",
-      "page_num": 5,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 1,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 2,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['82743', '78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "82743"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 2,
-      "reason": "Matricule 82743 already used for a certificate from 06 HABILITATIONS ELECTRIQUES  XJ.pdf p5; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "82743"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 3,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 4,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250212162450.pdf",
-      "page_num": 5,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
     },
     {
       "type": "no_matricule",
@@ -633,36 +377,12 @@
       "matricule": "81155"
     },
     {
-      "type": "multiple_matricules",
-      "pdf_file": "20250901100316.pdf",
-      "page_num": 5,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100316.pdf",
-      "page_num": 5,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
       "type": "duplicate_matricule",
       "pdf_file": "20250901100439.pdf",
       "page_num": 1,
       "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
       "confidence": 149.0,
       "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100439.pdf",
-      "page_num": 2,
-      "reason": "Matricule 81155P already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p11; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "81155P"
     },
     {
       "type": "duplicate_matricule",
@@ -686,14 +406,6 @@
       "page_num": 1,
       "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
       "confidence": 149.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100618.pdf",
-      "page_num": 2,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
       "matricule": "83628"
     },
     {
@@ -762,14 +474,6 @@
     },
     {
       "type": "duplicate_matricule",
-      "pdf_file": "20250901100818.pdf",
-      "page_num": 3,
-      "reason": "Matricule 82308 already used for a certificate from 20250901100714.pdf p5; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "82308"
-    },
-    {
-      "type": "duplicate_matricule",
       "pdf_file": "20250901102145.pdf",
       "page_num": 1,
       "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
@@ -818,30 +522,6 @@
     },
     {
       "type": "duplicate_matricule",
-      "pdf_file": "AOUAD-FALLOUSS.pdf",
-      "page_num": 1,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "AOUAD-FALLOUSS.pdf",
-      "page_num": 2,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['85024', '78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "85024"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "AOUAD-FALLOUSS.pdf",
-      "page_num": 2,
-      "reason": "Matricule 85024 already used for a certificate from 20240718100118.pdf p2; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "85024"
-    },
-    {
-      "type": "duplicate_matricule",
       "pdf_file": "BOUZOUGAGH MOHAMED Mle 81135.pdf",
       "page_num": 1,
       "reason": "Matricule 81135 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p6; this page was not used — review to check if it's a newer/older version",
@@ -854,70 +534,6 @@
       "page_num": 1,
       "reason": "Matricule 84881 already used for a certificate from 09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf p1; this page was not used — review to check if it's a newer/older version",
       "confidence": 154.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 1,
-      "reason": "Matricule 79205 already used for a certificate from 20250108103124.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 2,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 2,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 3,
-      "reason": "Matricule 79205 already used for a certificate from 20250108103124.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 4,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "F E formation TST postes XAf 2024.pdf",
-      "page_num": 4,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "F E formation TST postes XJ 2024.pdf AGENT NAAMY.pdf",
-      "page_num": 1,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['84881', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "F E formation TST postes XJ 2024.pdf AGENT NAAMY.pdf",
-      "page_num": 1,
-      "reason": "Matricule 84881 already used for a certificate from 09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
       "matricule": "84881"
     },
     {
@@ -1129,14 +745,6 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 19,
-      "reason": "Matricule 85024 already used for a certificate from 20240718100118.pdf p2; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "85024"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "TITRES TST  2026.pdf",
       "page_num": 20,
@@ -1332,7 +940,7 @@
       "type": "duplicate_matricule",
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
       "page_num": 4,
-      "reason": "Matricule 85024 already used for a certificate from 20240718100118.pdf p2; this page was not used — review to check if it's a newer/older version",
+      "reason": "Matricule 85024 already used for a certificate from TITRES TST  2026.pdf p19; this page was not used — review to check if it's a newer/older version",
       "confidence": 159.0,
       "matricule": "85024"
     },
@@ -1703,230 +1311,6 @@
       "reason": "Matricule 78953 already used for a certificate from HAE XJ 10 2025.pdf p19; this page was not used — review to check if it's a newer/older version",
       "confidence": 144.0,
       "matricule": "78953"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 1,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 1,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 2,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['83172', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 2,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 3,
-      "reason": "Matricule 79205 already used for a certificate from 20250108103124.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 4,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xaf-poste T.pdf",
-      "page_num": 4,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 1,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 1,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 2,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['83172', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 2,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 3,
-      "reason": "Matricule 79205 already used for a certificate from 20250108103124.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "79205"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 4,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xaf-poste.pdf",
-      "page_num": 4,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xc-ligne.pdf",
-      "page_num": 1,
-      "reason": "Matricule 78936 already used for a certificate from 20240718100118.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "78936"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xc-ligne.pdf",
-      "page_num": 2,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['84923', '78936', '78464']",
-      "confidence": 53.0,
-      "matricule": "84923"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xc-ligne.pdf",
-      "page_num": 2,
-      "reason": "Matricule 84923 already used for a certificate from Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf p5; this page was not used — review to check if it's a newer/older version",
-      "confidence": 53.0,
-      "matricule": "84923"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "xj-poste.pdf",
-      "page_num": 1,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['84881', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "xj-poste.pdf",
-      "page_num": 1,
-      "reason": "Matricule 84881 already used for a certificate from 09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 1,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['83172', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 1,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 2,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['81155', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 2,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 3,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['81523', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "81523"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 4,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['83628', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 4,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "multiple_matricules",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 5,
-      "reason": "Many candidates, using closest to Nom/Prénom: ['82306', '79205', '78464']",
-      "confidence": 50.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "éval TST poste XA N.pdf",
-      "page_num": 5,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 50.0,
-      "matricule": "82306"
     }
   ]
 }
