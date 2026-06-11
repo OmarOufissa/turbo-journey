@@ -4,7 +4,7 @@ import { inArray } from "drizzle-orm";
 import { logger } from "../utils/logger";
 
 // Exact list of 309 matricules from the official Excel (Tableau d'Habilitations.xlsx, sheet HAE DTC)
-const VALID_MATRICULES = new Set([
+export const VALID_MATRICULES = new Set([
   "74200","74206","74210","74338","74608","75447","75451","75453","75537","75949",
   "75980","76432","76509","76759","76888","76988","77687","77889","78005","78040",
   "78234","78286","78402","78782","78849","78934","78935","78952","78954","78955",

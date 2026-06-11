@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { logger } from "../utils/logger";
 import { parseExcelData } from "../seed-pg";
 import { calculateExpirationDate } from "../org-structure";
+import { VALID_MATRICULES } from "./remove-demo-employees";
 
 export async function addMissingEmployees(): Promise<void> {
   try {
@@ -24,6 +25,8 @@ export async function addMissingEmployees(): Promise<void> {
 
     for (const emp of excelEmployees) {
       try {
+        if (!VALID_MATRICULES.has(emp.matricule)) { skipped++; continue; }
+
         const existing = await db.select({ id: schema.employees.id })
           .from(schema.employees)
           .where(eq(schema.employees.matricule, emp.matricule))
