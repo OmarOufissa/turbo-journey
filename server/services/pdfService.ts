@@ -19,8 +19,18 @@ export interface VersionSnapshot {
   dateExpiration: string;
 }
 
-const TEMPLATE_PATH = process.env.PDF_TEMPLATE_PATH
-  ?? path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'seeds', 'data', 'titre_HAE_vierge.pdf');
+function resolveTemplatePath(): string {
+  const dir = path.dirname(new URL(import.meta.url).pathname);
+  // Bundled build places this chunk in dist/server/, alongside seeds/data/.
+  // In dev, this file lives in server/services/, with seeds/data/ one level up.
+  const candidates = [
+    path.join(dir, 'seeds', 'data', 'titre_HAE_vierge.pdf'),
+    path.join(dir, '..', 'seeds', 'data', 'titre_HAE_vierge.pdf'),
+  ];
+  return candidates.find(p => fs.existsSync(p)) ?? candidates[1];
+}
+
+const TEMPLATE_PATH = process.env.PDF_TEMPLATE_PATH ?? resolveTemplatePath();
 const UPLOAD_DIR = process.env.UPLOADS_DIR
   ?? path.join(process.cwd(), 'uploads', 'pdfs');
 
