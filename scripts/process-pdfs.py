@@ -379,7 +379,6 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
     all_pages: list[PageInfo] = []
     certificates: list[Certificate] = []
     review_queue: list[ReviewItem] = []
-    seen_matricules: dict[str, dict] = {}
 
     total_pages = 0
     ocr_failures = 0
@@ -505,27 +504,11 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
                         text_excerpt=page.text_excerpt[:500],
                     ))
 
-                # Duplicate check — keep the first occurrence as the certificate,
-                # but flag every subsequent occurrence for manual review instead
-                # of silently dropping it (could be a renewal/newer version).
-                if mat in seen_matricules:
-                    first = seen_matricules[mat]
-                    review_queue.append(ReviewItem(
-                        review_type="duplicate_matricule",
-                        pdf_file=pdf_name,
-                        page_num=page.page_num,
-                        reason=(
-                            f"Matricule {mat} already used for a certificate from "
-                            f"{first['file']} p{first['page']}; this page was not used "
-                            f"— review to check if it's a newer/older version"
-                        ),
-                        confidence=page.confidence,
-                        matricule=mat,
-                        text_excerpt=page.text_excerpt[:500],
-                    ))
-                    print(f"  p{page.page_num}: DUPLICATE mat={mat} (first: {first['file']} p{first['page']})")
-                    i += 1
-                    continue
+                # Note: repeat matricules are NOT skipped — every occurrence becomes
+                # its own version (hab{MAT}_v{N}.pdf). A re-scan of the same document
+                # just produces a near-identical extra version (harmless); a renewal
+                # or different-domain certificate becomes a real, additional version.
+                # Nothing is silently dropped.
 
                 # ── Steps 6-7: Version + generate PDF ───────────────────
                 version = get_next_version(mat, uploads_dir)
@@ -546,7 +529,6 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
 
                 if ok and page_pdfs:
                     if merge_pages(page_pdfs, str(out_path)):
-                        seen_matricules[mat] = {"file": pdf_name, "page": page.page_num}
                         cert = Certificate(
                             matricule=mat,
                             matricule_raw=mat_raw,

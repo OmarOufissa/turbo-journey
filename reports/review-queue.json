@@ -1,30 +1,6 @@
 {
   "review_queue": [
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "03 Titres d_habilitations electriques XJ_.pdf",
-      "page_num": 1,
-      "reason": "Matricule 82649 already used for a certificate from 03 Titres d_habilitations electriques XJ .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82649"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "03 Titres d_habilitations electriques XJ_.pdf",
-      "page_num": 2,
-      "reason": "Matricule 84084 already used for a certificate from 03 Titres d_habilitations electriques XJ .pdf p2; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "84084"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "03 Titres d_habilitations electriques XJ_.pdf",
-      "page_num": 3,
-      "reason": "Matricule 82513 already used for a certificate from 03 Titres d_habilitations electriques XJ .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82513"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "06 HABILITATIONS ELECTRIQUES  XJ.pdf",
       "page_num": 4,
@@ -33,222 +9,6 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
-      "page_num": 7,
-      "reason": "Matricule 82649 already used for a certificate from 03 Titres d_habilitations electriques XJ .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82649"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
-      "page_num": 8,
-      "reason": "Matricule 84084 already used for a certificate from 03 Titres d_habilitations electriques XJ .pdf p2; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "84084"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf",
-      "page_num": 9,
-      "reason": "Matricule 82513 already used for a certificate from 03 Titres d_habilitations electriques XJ .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82513"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 5,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 8,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 12,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 16,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 20,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 144.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 23,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 26,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 29,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 32,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 35,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 38,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 TITRES HABILITATIONs XA .pdf",
-      "page_num": 41,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 1,
-      "reason": "Matricule 81293 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "81293"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 2,
-      "reason": "Matricule 85941 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p21; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85941"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 3,
-      "reason": "Matricule 85978U already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p24; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85978U"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 4,
-      "reason": "Matricule 85872J already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p36; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85872J"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 5,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 6,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 7,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 8,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 9,
-      "reason": "Matricule 85863 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p27; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "85863"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 10,
-      "reason": "Matricule 85887 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p39; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85887"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 11,
-      "reason": "Matricule 85865K already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p33; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85865K"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "12 titres d_habilitations XA .pdf",
-      "page_num": 12,
-      "reason": "Matricule 85939M already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p30; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85939M"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "20250428171604.pdf",
       "page_num": 1,
@@ -321,36 +81,12 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250714134319.pdf",
-      "page_num": 4,
-      "reason": "Matricule 85939 already used for a certificate from 20250714134319.pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 139.0,
-      "matricule": "85939"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "20250714134319.pdf",
       "page_num": 5,
       "reason": "Certificate detected but no matricule found",
       "confidence": 149.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250714134319.pdf",
-      "page_num": 8,
-      "reason": "Matricule 82316 already used for a certificate from 20250714134319.pdf p7; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82316"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250714134319.pdf",
-      "page_num": 10,
-      "reason": "Matricule 82637 already used for a certificate from 20250714134319.pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82637"
     },
     {
       "type": "no_matricule",
@@ -361,212 +97,12 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100316.pdf",
-      "page_num": 1,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100316.pdf",
-      "page_num": 4,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 146.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100439.pdf",
-      "page_num": 1,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100439.pdf",
-      "page_num": 3,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100522.pdf",
-      "page_num": 1,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100618.pdf",
-      "page_num": 1,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100618.pdf",
-      "page_num": 3,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "83628"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "20250901100618.pdf",
       "page_num": 4,
       "reason": "Certificate detected but no matricule found",
       "confidence": 39.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100618.pdf",
-      "page_num": 5,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 139.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100618.pdf",
-      "page_num": 7,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100714.pdf",
-      "page_num": 1,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100714.pdf",
-      "page_num": 6,
-      "reason": "Matricule 82308 already used for a certificate from 20250901100714.pdf p5; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82308"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100818.pdf",
-      "page_num": 1,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901100818.pdf",
-      "page_num": 2,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901102145.pdf",
-      "page_num": 1,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901102145.pdf",
-      "page_num": 2,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82306"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901102145.pdf",
-      "page_num": 3,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901102145.pdf",
-      "page_num": 4,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "83628"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901102145.pdf",
-      "page_num": 5,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "20250901102145.pdf",
-      "page_num": 6,
-      "reason": "Matricule 81155 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81155"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "BOUZOUGAGH MOHAMED Mle 81135.pdf",
-      "page_num": 1,
-      "reason": "Matricule 81135 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p6; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81135"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "CamScanner 05-11-2024 09.34.pdf",
-      "page_num": 1,
-      "reason": "Matricule 84881 already used for a certificate from 09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "84881"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC.pdf",
-      "page_num": 1,
-      "reason": "Matricule 84072 already used for a certificate from HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC (2).pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "84072"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC.pdf",
-      "page_num": 2,
-      "reason": "Matricule 81594 already used for a certificate from HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC (2).pdf p2; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81594"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "HAE XJ 10 2025.pdf",
-      "page_num": 5,
-      "reason": "Matricule 80922 already used for a certificate from HAE XJ 10 2025.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "80922"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "HAE XJ 10 2025.pdf",
-      "page_num": 10,
-      "reason": "Matricule 81914 already used for a certificate from HAE XJ 10 2025.pdf p6; this page was not used — review to check if it's a newer/older version",
-      "confidence": 139.0,
-      "matricule": "81914"
     },
     {
       "type": "no_matricule",
@@ -577,14 +113,6 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "HAE XJ 10 2025.pdf",
-      "page_num": 18,
-      "reason": "Matricule 80793 already used for a certificate from HAE XJ 10 2025.pdf p15; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "80793"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "Habilitatioins éléctriques XA.pdf",
       "page_num": 2,
@@ -599,14 +127,6 @@
       "reason": "Certificate detected but no matricule found",
       "confidence": 149.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 1,
-      "reason": "Matricule 79919 already used for a certificate from 20250714134319.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "79919"
     },
     {
       "type": "no_matricule",
@@ -617,14 +137,6 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 3,
-      "reason": "Matricule 81581 already used for a certificate from 20250714134319.pdf p6; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81581"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "TITRES TST  2026.pdf",
       "page_num": 4,
@@ -633,28 +145,12 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 5,
-      "reason": "Matricule 82316 already used for a certificate from 20250714134319.pdf p7; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "82316"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "TITRES TST  2026.pdf",
       "page_num": 6,
       "reason": "Certificate detected but no matricule found",
       "confidence": 123.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 7,
-      "reason": "Matricule 82637 already used for a certificate from 20250714134319.pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82637"
     },
     {
       "type": "no_matricule",
@@ -665,28 +161,12 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 9,
-      "reason": "Matricule 85083 already used for a certificate from 20250714134319.pdf p12; this page was not used — review to check if it's a newer/older version",
-      "confidence": 141.0,
-      "matricule": "85083"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "TITRES TST  2026.pdf",
       "page_num": 10,
       "reason": "Certificate detected but no matricule found",
       "confidence": 126.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 11,
-      "reason": "Matricule 85939 already used for a certificate from 20250714134319.pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85939"
     },
     {
       "type": "no_matricule",
@@ -697,14 +177,6 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 13,
-      "reason": "Matricule 83628 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p17; this page was not used — review to check if it's a newer/older version",
-      "confidence": 141.0,
-      "matricule": "83628"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "TITRES TST  2026.pdf",
       "page_num": 14,
@@ -713,28 +185,12 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 15,
-      "reason": "Matricule 82306 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p13; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82306"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "TITRES TST  2026.pdf",
       "page_num": 16,
       "reason": "Certificate detected but no matricule found",
       "confidence": 126.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 17,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 141.0,
-      "matricule": "83172"
     },
     {
       "type": "no_matricule",
@@ -761,92 +217,12 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 2,
-      "reason": "Matricule 80335 already used for a certificate from Habilitatioins éléctriques XA.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "80335"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 4,
-      "reason": "Matricule 81371 already used for a certificate from Habilitatioins éléctriques XA.pdf p5; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81371"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
       "page_num": 5,
       "reason": "Certificate detected but no matricule found",
       "confidence": 149.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 6,
-      "reason": "Matricule 85939 already used for a certificate from 20250714134319.pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 141.0,
-      "matricule": "85939"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 7,
-      "reason": "Matricule 85939 already used for a certificate from 20250714134319.pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85939"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 8,
-      "reason": "Matricule 82316 already used for a certificate from 20250714134319.pdf p7; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82316"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 9,
-      "reason": "Matricule 82316 already used for a certificate from 20250714134319.pdf p7; this page was not used — review to check if it's a newer/older version",
-      "confidence": 141.0,
-      "matricule": "82316"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 10,
-      "reason": "Matricule 85083 already used for a certificate from 20250714134319.pdf p12; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85083"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 11,
-      "reason": "Matricule 85083 already used for a certificate from 20250714134319.pdf p12; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85083"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 12,
-      "reason": "Matricule 81581 already used for a certificate from 20250714134319.pdf p6; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "81581"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 13,
-      "reason": "Matricule 81581 already used for a certificate from 20250714134319.pdf p6; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81581"
     },
     {
       "type": "no_matricule",
@@ -857,94 +233,6 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 15,
-      "reason": "Matricule 82637 already used for a certificate from 20250714134319.pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82637"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 16,
-      "reason": "Matricule 79919 already used for a certificate from 20250714134319.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "79919"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
-      "page_num": 17,
-      "reason": "Matricule 79919 already used for a certificate from 20250714134319.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "79919"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique retirées.pdf",
-      "page_num": 1,
-      "reason": "Matricule 79919 already used for a certificate from 20250714134319.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "79919"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique retirées.pdf",
-      "page_num": 2,
-      "reason": "Matricule 82316 already used for a certificate from 20250714134319.pdf p7; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82316"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique retirées.pdf",
-      "page_num": 3,
-      "reason": "Matricule 81581 already used for a certificate from 20250714134319.pdf p6; this page was not used — review to check if it's a newer/older version",
-      "confidence": 159.0,
-      "matricule": "81581"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique retirées.pdf",
-      "page_num": 4,
-      "reason": "Matricule 85083 already used for a certificate from 20250714134319.pdf p12; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "85083"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique retirées.pdf",
-      "page_num": 5,
-      "reason": "Matricule 82637 already used for a certificate from 20250714134319.pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 159.0,
-      "matricule": "82637"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique retirées.pdf",
-      "page_num": 6,
-      "reason": "Matricule 82637 already used for a certificate from 20250714134319.pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82637"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitation électrique retirées.pdf",
-      "page_num": 7,
-      "reason": "Matricule 85939M already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p30; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85939M"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
-      "page_num": 4,
-      "reason": "Matricule 85024 already used for a certificate from TITRES TST  2026.pdf p19; this page was not used — review to check if it's a newer/older version",
-      "confidence": 159.0,
-      "matricule": "85024"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
       "page_num": 6,
@@ -959,14 +247,6 @@
       "reason": "Certificate detected but no matricule found",
       "confidence": 149.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
-      "page_num": 9,
-      "reason": "Matricule 84072 already used for a certificate from HABILITATIONS EL MAKHLOUFY ET BOUKHRISS XC (2).pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "84072"
     },
     {
       "type": "no_matricule",
@@ -977,60 +257,12 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
-      "page_num": 27,
-      "reason": "Matricule 83635 already used for a certificate from 20250625130821.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "83635"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
-      "page_num": 42,
-      "reason": "Matricule 80559 already used for a certificate from Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "80559"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "titres HAE XA 120326.pdf",
       "page_num": 7,
       "reason": "Certificate detected but no matricule found",
       "confidence": 154.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 120326.pdf",
-      "page_num": 11,
-      "reason": "Matricule 84959 already used for a certificate from Habilitatioins éléctriques XA.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "84959"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 1,
-      "reason": "Matricule 83172 already used for a certificate from 08 Titres d_habilitations DTC-XA AFOURER.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 61.0,
-      "matricule": "83172"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 2,
-      "reason": "Matricule 84959 already used for a certificate from Habilitatioins éléctriques XA.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "84959"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 3,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
     },
     {
       "type": "no_matricule",
@@ -1041,228 +273,12 @@
       "matricule": null
     },
     {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 8,
-      "reason": "Matricule 79876 already used for a certificate from titres HAE XA 120326.pdf p10; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "79876"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 9,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 31.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 14,
-      "reason": "Matricule 84683 already used for a certificate from titres HAE XA 120326.pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "84683"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 15,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 31.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 17,
-      "reason": "Matricule 84683 already used for a certificate from titres HAE XA 120326.pdf p9; this page was not used — review to check if it's a newer/older version",
-      "confidence": 43.0,
-      "matricule": "84683"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 20,
-      "reason": "Matricule 79411 already used for a certificate from titres HAE XA 120326.pdf p8; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "79411"
-    },
-    {
       "type": "no_matricule",
       "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
       "page_num": 21,
       "reason": "Certificate detected but no matricule found",
       "confidence": 31.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 25,
-      "reason": "Matricule 79411 already used for a certificate from titres HAE XA 120326.pdf p8; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "79411"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 27,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 61.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 31,
-      "reason": "Matricule 81582 already used for a certificate from titres HAE XA 130326 dossier complet.pdf p26; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81582"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 32,
-      "reason": "Matricule 84073 already used for a certificate from titres HAE XA 120326.pdf p6; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "84073"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 33,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 38,
-      "reason": "Matricule 83630 already used for a certificate from titres HAE XA 120326.pdf p5; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "83630"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 39,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 43,
-      "reason": "Matricule 83630 already used for a certificate from titres HAE XA 120326.pdf p5; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "83630"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 44,
-      "reason": "Matricule 81632 already used for a certificate from titres HAE XA 120326.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "81632"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 45,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 31.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 47,
-      "reason": "Matricule 81632 already used for a certificate from titres HAE XA 120326.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 43.0,
-      "matricule": "81632"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 49,
-      "reason": "Matricule 81632 already used for a certificate from titres HAE XA 120326.pdf p4; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "81632"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 50,
-      "reason": "Matricule 82790 already used for a certificate from titres HAE XA 120326.pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "82790"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 51,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 56.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 53,
-      "reason": "Matricule 82790 already used for a certificate from titres HAE XA 120326.pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 139.0,
-      "matricule": "82790"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 55,
-      "reason": "Matricule 83878 already used for a certificate from titres HAE XA 120326.pdf p2; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "83878"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 58,
-      "reason": "Matricule 83878 already used for a certificate from titres HAE XA 120326.pdf p2; this page was not used — review to check if it's a newer/older version",
-      "confidence": 154.0,
-      "matricule": "83878"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 62,
-      "reason": "Matricule 79868 already used for a certificate from titres HAE XA 120326.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "79868"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 63,
-      "reason": "Matricule 78849 already used for a certificate from 12 TITRES HABILITATIONs XA .pdf p3; this page was not used — review to check if it's a newer/older version",
-      "confidence": 36.0,
-      "matricule": "78849"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 67,
-      "reason": "Matricule 79868 already used for a certificate from titres HAE XA 120326.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "79868"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XJ 060426.pdf",
-      "page_num": 4,
-      "reason": "Matricule 84881 already used for a certificate from 09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "84881"
     },
     {
       "type": "no_matricule",
@@ -1279,38 +295,6 @@
       "reason": "Certificate detected but no matricule found",
       "confidence": 154.0,
       "matricule": null
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XJ pratique 0426.pdf",
-      "page_num": 2,
-      "reason": "Matricule 85908 already used for a certificate from Habilitation éléctrique KOUNINE RIDA-GOUAL YASSINE  DTC-XJ.pdf p1; this page was not used — review to check if it's a newer/older version",
-      "confidence": 141.0,
-      "matricule": "85908"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XJ pratique 0426.pdf",
-      "page_num": 4,
-      "reason": "Matricule 85031 already used for a certificate from 09 titres HE XJ + 01 titre CVL de M.ESSAIF HAMZA XJ .pdf p10; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "85031"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XJ pratique 0426.pdf",
-      "page_num": 5,
-      "reason": "Matricule 83300 already used for a certificate from titres HAE XJ 130426.pdf p8; this page was not used — review to check if it's a newer/older version",
-      "confidence": 149.0,
-      "matricule": "83300"
-    },
-    {
-      "type": "duplicate_matricule",
-      "pdf_file": "titres HAE XJ pratique 0426.pdf",
-      "page_num": 7,
-      "reason": "Matricule 78953 already used for a certificate from HAE XJ 10 2025.pdf p19; this page was not used — review to check if it's a newer/older version",
-      "confidence": 144.0,
-      "matricule": "78953"
     }
   ]
 }
