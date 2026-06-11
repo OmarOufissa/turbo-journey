@@ -1,100 +1,36 @@
 {
   "review_queue": [
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "06 HABILITATIONS ELECTRIQUES  XJ.pdf",
       "page_num": 4,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 83511",
       "confidence": 149.0,
-      "matricule": null
+      "matricule": "83511"
     },
     {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 1,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 2,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 3,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 4,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 5,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 6,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 7,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "20250428171604.pdf",
-      "page_num": 8,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 36.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "20250714134319.pdf",
       "page_num": 2,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 79919",
       "confidence": 149.0,
-      "matricule": null
+      "matricule": "79919"
     },
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "20250714134319.pdf",
       "page_num": 5,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 81581",
       "confidence": 149.0,
-      "matricule": null
+      "matricule": "81581"
     },
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "20250714134319.pdf",
       "page_num": 11,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 85083",
       "confidence": 131.0,
-      "matricule": null
+      "matricule": "85083"
     },
     {
       "type": "no_matricule",
@@ -105,12 +41,12 @@
       "matricule": null
     },
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "HAE XJ 10 2025.pdf",
       "page_num": 14,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 80045",
       "confidence": 149.0,
-      "matricule": null
+      "matricule": "80045"
     },
     {
       "type": "no_matricule",
@@ -121,124 +57,36 @@
       "matricule": null
     },
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "Habilitatioins éléctriques XA.pdf",
       "page_num": 3,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 84851",
       "confidence": 149.0,
-      "matricule": null
+      "matricule": "84851"
     },
     {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 2,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 126.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 4,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 123.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 6,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 123.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 8,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 123.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 10,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 126.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 12,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 123.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 14,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 123.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 16,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 126.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 18,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 126.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 20,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 126.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "TITRES TST  2026.pdf",
-      "page_num": 22,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 123.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
       "page_num": 5,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 84775",
       "confidence": 149.0,
-      "matricule": null
+      "matricule": "84775"
     },
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "Titres d_habilitation électrique délivrées.pdf",
       "page_num": 14,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 82637",
       "confidence": 141.0,
-      "matricule": null
+      "matricule": "82637"
     },
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024 partie 2 .pdf",
       "page_num": 6,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 80489",
       "confidence": 159.0,
-      "matricule": null
+      "matricule": "80489"
     },
     {
       "type": "no_matricule",
@@ -249,36 +97,28 @@
       "matricule": null
     },
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "Titres d_habilitations DTC-XC  AOUT 2024.pdf",
       "page_num": 26,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 83601",
       "confidence": 149.0,
-      "matricule": null
+      "matricule": "83601"
     },
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "titres HAE XA 120326.pdf",
       "page_num": 7,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 81582",
       "confidence": 154.0,
-      "matricule": null
+      "matricule": "81582"
     },
     {
-      "type": "no_matricule",
+      "type": "name_matched_matricule",
       "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
       "page_num": 7,
-      "reason": "Certificate detected but no matricule found",
+      "reason": "No 'Matricule' label found; resolved via unique name match to 84949",
       "confidence": 131.0,
-      "matricule": null
-    },
-    {
-      "type": "no_matricule",
-      "pdf_file": "titres HAE XA 130326 dossier complet.pdf",
-      "page_num": 21,
-      "reason": "Certificate detected but no matricule found",
-      "confidence": 31.0,
-      "matricule": null
+      "matricule": "84949"
     },
     {
       "type": "no_matricule",

@@ -16,11 +16,13 @@ import shutil
 import subprocess
 import tempfile
 import argparse
+import unicodedata
 from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from typing import Optional
 from datetime import datetime, timezone
 from PIL import Image, ImageFilter, ImageEnhance
+import openpyxl
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -31,6 +33,7 @@ UPLOADS_DIR = BASE_DIR / "uploads" / "pdfs"
 REPORTS_DIR = BASE_DIR / "reports"        # tracked by git
 REPORT_PATH = UPLOADS_DIR / "process-report.json"   # consumed by import-pdfs.ts
 REVIEW_PATH = REPORTS_DIR / "review-queue.json"      # viewable on GitHub
+EMPLOYEES_XLSX_PATH = BASE_DIR / "server" / "seeds" / "data" / "employees.xlsx"
 
 # ---------------------------------------------------------------------------
 # Thresholds
@@ -67,7 +70,7 @@ class Certificate:
 
 @dataclass
 class ReviewItem:
-    review_type: str        # no_matricule | multiple_matricules | duplicate_matricule | uncertain | no_match | ambiguous_pair
+    review_type: str        # no_matricule | multiple_matricules | name_matched_matricule | duplicate_matricule | uncertain | no_match | ambiguous_pair
     pdf_file: str
     page_num: int
     reason: str
@@ -152,6 +155,8 @@ ANTI_KEYWORDS = [
     (r"bulletin\s+de\s+salaire|fiche\s+de\s+paie", -100),
     (r"contrat\s+de\s+travail", -100),
     (r"fiche\s+d.\s*.valuation|commission\s+d.examen", -100),
+    (r"demande\s+d.\s*habilitation", -100),
+    (r".tabli\s+et\s+sign.\s+par\s+l.employeur", -100),
 ]
 
 BACK_PAGE_KEYWORDS = [
@@ -217,6 +222,14 @@ MATRICULE_PATTERNS = [
 OCR_CORRECTIONS = str.maketrans({
     'O': '0', 'I': '1', 'l': '1',
 })
+
+# Known source-document errors: the printed "Matricule :" value on these
+# specific pages doesn't match the employee identified by name + N° de titre
+# in employees.xlsx. Confirmed by manual cross-check, not an OCR misread.
+MATRICULE_OVERRIDES = {
+    ("titres HAE XJ pratique 0426.pdf", 5): "83524",  # printed "83300" but
+    # name (GOUHNA ABDESSAMAD) and titre (HEJC83524HT26) match 83524
+}
 
 
 def normalize_raw(raw: str) -> str:
@@ -296,6 +309,76 @@ def extract_matricule(text: str) -> tuple[Optional[str], Optional[str], list[str
     best = min(candidates.items(), key=lambda kv: kv[1][1])
     norm, (raw, _) = best
     return norm, raw, all_normalized
+
+
+# ---------------------------------------------------------------------------
+# Step 3b: Name-based matricule fallback (when no "Matricule" label is found)
+# ---------------------------------------------------------------------------
+NAME_MATCH_WINDOW = 200  # chars on either side of the "Nom et Prénom" anchor
+
+
+def normalize_name_text(s: str) -> str:
+    """NFKD-fold accents and uppercase, for name comparison."""
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return s.upper()
+
+
+def collapse_repeats(s: str) -> str:
+    """Collapse runs of the same letter to one (handles OCR doubling, e.g.
+    'MOHAMMED' -> 'MOHAMED', 'AITALLA' -> 'AITALA')."""
+    return re.sub(r'(.)\1+', r'\1', s)
+
+
+def name_tokens(name: str) -> list[str]:
+    return [t for t in re.split(r"[^A-Z]+", normalize_name_text(name)) if len(t) >= 3]
+
+
+def load_employee_names() -> list[dict]:
+    """Load matricule + name tokens from the employees.xlsx ground truth."""
+    wb = openpyxl.load_workbook(EMPLOYEES_XLSX_PATH)
+    ws = wb.active
+    headers = [c.value for c in ws[1]]
+    idx = {h: i for i, h in enumerate(headers)}
+    employees = []
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        m = row[idx["MATRICULE"]]
+        if not m:
+            continue
+        name = (row[idx["Nom & Prénom "]] or "").strip()
+        toks = name_tokens(name)
+        if toks:
+            employees.append({"matricule": str(m).strip(), "name": name, "tokens": toks})
+    return employees
+
+
+def resolve_matricule_by_name(text: str, employees: list[dict]) -> Optional[str]:
+    """
+    When the 'Matricule' label can't be located, fall back to matching the
+    employee name printed near the 'Nom et Prénom' field against
+    employees.xlsx. Only returns a matricule when exactly one employee's
+    name tokens ALL match within the window — anything less certain is left
+    for manual review.
+    """
+    flat = re.sub(r'\s+', ' ', text)
+    nflat = normalize_name_text(flat)
+
+    m = re.search(r'NOM ET PR.NOM', nflat)
+    if not m:
+        return None
+
+    start = max(0, m.start() - NAME_MATCH_WINDOW)
+    end = m.start() + NAME_MATCH_WINDOW
+    window = collapse_repeats(nflat[start:end])
+
+    matches = []
+    for emp in employees:
+        if all(collapse_repeats(tok) in window for tok in emp["tokens"]):
+            matches.append(emp)
+
+    if len(matches) == 1:
+        return matches[0]["matricule"]
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -379,6 +462,7 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
     all_pages: list[PageInfo] = []
     certificates: list[Certificate] = []
     review_queue: list[ReviewItem] = []
+    employees = load_employee_names()
 
     total_pages = 0
     ocr_failures = 0
@@ -441,6 +525,18 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
                 # ── Step 3: Extract matricule ───────────────────────────
                 if page.is_habilitation:
                     mat, mat_raw, candidates = extract_matricule(text)
+                    override = MATRICULE_OVERRIDES.get((pdf_name, page_num))
+                    if override:
+                        mat = override
+                    if not mat:
+                        # No "Matricule" label found at all — fall back to
+                        # matching the printed employee name against
+                        # employees.xlsx (only if exactly one employee matches).
+                        name_mat = resolve_matricule_by_name(text, employees)
+                        if name_mat:
+                            mat = name_mat
+                            mat_raw = f"name-match:{name_mat}"
+                            page.review_reasons.append(f"Matricule resolved via name match: {name_mat}")
                     page.matricule = mat
                     page.matricule_raw = mat_raw
                     page.candidate_matricules = candidates
@@ -499,6 +595,17 @@ def run_pipeline(raw_dir: Path, uploads_dir: Path) -> dict:
                         pdf_file=pdf_name,
                         page_num=page.page_num,
                         reason=f"Many candidates, using closest to Nom/Prénom: {page.candidate_matricules}",
+                        confidence=page.confidence,
+                        matricule=mat,
+                        text_excerpt=page.text_excerpt[:500],
+                    ))
+
+                if mat_raw.startswith("name-match:"):
+                    review_queue.append(ReviewItem(
+                        review_type="name_matched_matricule",
+                        pdf_file=pdf_name,
+                        page_num=page.page_num,
+                        reason=f"No 'Matricule' label found; resolved via unique name match to {mat}",
                         confidence=page.confidence,
                         matricule=mat,
                         text_excerpt=page.text_excerpt[:500],
