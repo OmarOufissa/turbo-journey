@@ -340,6 +340,7 @@ export async function seedDatabasePG() {
         .limit(1);
 
       let employeeId: number;
+      let versionNumber = 1;
 
       if (existing.length === 0) {
         const [empResult] = await db.insert(schema.employees)
@@ -362,6 +363,13 @@ export async function seedDatabasePG() {
             .set({ fonction: empData.fonction })
             .where(eq(schema.employeeVersions.employeeId, employeeId));
         }
+
+        const existingVersions = await db.select({ versionNumber: schema.employeeVersions.versionNumber })
+          .from(schema.employeeVersions)
+          .where(eq(schema.employeeVersions.employeeId, employeeId));
+        if (existingVersions.length > 0) {
+          versionNumber = Math.max(...existingVersions.map(v => v.versionNumber)) + 1;
+        }
       }
 
       const dateExp = empData.dateExpiration || calculateExpirationDate(empData.dateValidation, "HT");
@@ -372,7 +380,7 @@ export async function seedDatabasePG() {
       const [ver] = await db.insert(schema.employeeVersions)
         .values({
           employeeId,
-          versionNumber: 1,
+          versionNumber,
           stCodes,
           htCodes,
           nDeTitre,
