@@ -3,6 +3,7 @@ import * as schema from "../schema";
 import { eq } from "drizzle-orm";
 import { logger } from "../utils/logger";
 import { parseExcelData } from "../seed-pg";
+import { calculateExpirationDate } from "../org-structure";
 
 export async function addMissingEmployees(): Promise<void> {
   try {
@@ -54,7 +55,7 @@ export async function addMissingEmployees(): Promise<void> {
             serviceId,
             equipeId,
             dateValidation: emp.dateValidation,
-            dateExpiration: emp.dateExpiration ?? null,
+            dateExpiration: emp.dateExpiration || calculateExpirationDate(emp.dateValidation, "HT"),
           })
           .returning({ id: schema.employeeVersions.id });
 
