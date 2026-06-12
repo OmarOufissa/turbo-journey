@@ -350,6 +350,11 @@ export function createServer() {
           send({ generated, failed, total, current: row.matricule, finished: false });
         }
 
+        if (generated > 0) {
+          const { logAuditActionSafe } = await import("./services/auditService");
+          await logAuditActionSafe(null, "GENERATE_PDF", 0, null, { generated, failed, total });
+        }
+
         send({ generated, failed, total, finished: true, errors });
         res.end();
       } catch (err) {
@@ -436,6 +441,9 @@ export function createServer() {
 
         await db.update(schema.employeeVersions).set({ pdfPath: filename }).where(eq(schema.employeeVersions.id, ver.id));
 
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "UPLOAD_PDF", employeeId, null, { pdfPath: filename, versionId: ver.id, versionNumber: ver.versionNumber });
+
         return res.json({ success: true, data: { pdfPath: filename } });
       } catch (err: any) {
         logger.error("app", "upload-pdf error", { error: String(err) });
@@ -484,6 +492,10 @@ export function createServer() {
         const { name } = req.body;
         if (!name?.trim()) return res.status(400).json({ success: false, error: "Nom requis", data: null });
         const [div] = await db.insert(schema.divisions).values({ name: name.trim() }).returning();
+
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "CREATE_DIVISION", div.id, null, div as any);
+
         res.json({ success: true, data: div, error: null });
       } catch (err: any) {
         res.status(500).json({ success: false, error: err.message, data: null });
@@ -504,7 +516,12 @@ export function createServer() {
         if (Number(total) > 0) {
           return res.status(409).json({ success: false, error: `Impossible de supprimer: cette division contient ${total} service(s). Supprimez d'abord les services.`, data: null });
         }
+        const [div] = await db.select().from(schema.divisions).where(eq(schema.divisions.id, divId));
         await db.delete(schema.divisions).where(eq(schema.divisions.id, divId));
+
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "DELETE_DIVISION", divId, div as any, null);
+
         res.json({ success: true, data: { deleted: true }, error: null });
       } catch (err: any) {
         res.status(500).json({ success: false, error: err.message, data: null });
@@ -521,6 +538,10 @@ export function createServer() {
         const { name, divisionId } = req.body;
         if (!name?.trim() || !divisionId) return res.status(400).json({ success: false, error: "Nom et division requis", data: null });
         const [svc] = await db.insert(schema.services).values({ name: name.trim(), divisionId: parseInt(divisionId) }).returning();
+
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "CREATE_SERVICE", svc.id, null, svc as any);
+
         res.json({ success: true, data: svc, error: null });
       } catch (err: any) {
         res.status(500).json({ success: false, error: err.message, data: null });
@@ -541,7 +562,12 @@ export function createServer() {
         if (Number(total) > 0) {
           return res.status(409).json({ success: false, error: `Impossible de supprimer: ce service contient ${total} équipe(s). Supprimez d'abord les équipes.`, data: null });
         }
+        const [svc] = await db.select().from(schema.services).where(eq(schema.services.id, svcId));
         await db.delete(schema.services).where(eq(schema.services.id, svcId));
+
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "DELETE_SERVICE", svcId, svc as any, null);
+
         res.json({ success: true, data: { deleted: true }, error: null });
       } catch (err: any) {
         res.status(500).json({ success: false, error: err.message, data: null });
@@ -558,6 +584,10 @@ export function createServer() {
         const { name, serviceId } = req.body;
         if (!name?.trim() || !serviceId) return res.status(400).json({ success: false, error: "Nom et service requis", data: null });
         const [eq_] = await db.insert(schema.equipes).values({ name: name.trim(), serviceId: parseInt(serviceId) }).returning();
+
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "CREATE_EQUIPE", eq_.id, null, eq_ as any);
+
         res.json({ success: true, data: eq_, error: null });
       } catch (err: any) {
         res.status(500).json({ success: false, error: err.message, data: null });
@@ -581,7 +611,12 @@ export function createServer() {
         if (Number(total) > 0) {
           return res.status(409).json({ success: false, error: `Impossible de supprimer: ${total} version(s) d'employé référence(nt) cette équipe.`, data: null });
         }
+        const [eq_] = await db.select().from(schema.equipes).where(eq(schema.equipes.id, equipeId));
         await db.delete(schema.equipes).where(eq(schema.equipes.id, equipeId));
+
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "DELETE_EQUIPE", equipeId, eq_ as any, null);
+
         res.json({ success: true, data: { deleted: true }, error: null });
       } catch (err: any) {
         res.status(500).json({ success: false, error: err.message, data: null });
@@ -861,6 +896,10 @@ export function createServer() {
         }, ver.versionNumber);
 
         await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath }).where(eq(schema.employeeVersions.id, ver.id));
+
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, versionId: ver.id, versionNumber: ver.versionNumber });
+
         res.json({ success: true, data: result, error: null });
       } catch (err) {
         console.error("PDF generation error:", err);
@@ -910,6 +949,10 @@ export function createServer() {
         }, ver.versionNumber);
 
         await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath }).where(eq(schema.employeeVersions.id, verId));
+
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, versionId: verId, versionNumber: ver.versionNumber });
+
         res.json({ success: true, data: result, error: null });
       } catch (err) {
         console.error("Version PDF generation error:", err);

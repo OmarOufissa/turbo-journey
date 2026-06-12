@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { dbGet, dbRun } from "../db";
+import { logAuditActionSafe } from "../services/auditService";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "your-refresh-secret-key";
@@ -59,6 +60,8 @@ export const handleLogin: RequestHandler = async (req, res) => {
       expiresIn: "7d",
     });
 
+    await logAuditActionSafe(user.id, "LOGIN", user.id);
+
     res.json({
       token,
       refreshToken,
@@ -75,7 +78,18 @@ export const handleLogin: RequestHandler = async (req, res) => {
   }
 };
 
-export const handleLogout: RequestHandler = (_req, res) => {
+export const handleLogout: RequestHandler = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : undefined;
+  if (token) {
+    const user = verifyToken(token);
+    if (user) {
+      await logAuditActionSafe(user.id, "LOGOUT", user.id);
+    }
+  }
+
   res.json({
     message: "Déconnecté",
   });

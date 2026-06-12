@@ -3,6 +3,7 @@ import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq, desc, asc, sql } from "drizzle-orm";
 import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
+import { logAuditActionSafe } from "../services/auditService";
 
 // POST /api/renewals — store snapshot for pending renewal
 export const createPendingRenewal: RequestHandler = async (req, res) => {
@@ -26,6 +27,9 @@ export const createPendingRenewal: RequestHandler = async (req, res) => {
       employeeId: empIdInt,
       snapshot,
     }).returning();
+
+    const userId = (req as any).user?.id ?? null;
+    await logAuditActionSafe(userId, "CREATE_RENEWAL", empIdInt, null, { renewalId: renewal.id, snapshot });
 
     res.status(201).json({ success: true, data: renewal, error: null });
   } catch (err) {

@@ -13,9 +13,19 @@ export type AuditAction =
   | "ACTIVATE_RENEWAL"
   | "CANCEL_RENEWAL"
   | "UPLOAD_PDF"
+  | "GENERATE_PDF"
   | "DELETE_PDF"
   | "EXPORT_EMPLOYEES"
-  | "RESTORE_DATABASE";
+  | "RESTORE_DATABASE"
+  | "LOGIN"
+  | "LOGOUT"
+  | "CREATE_RENEWAL"
+  | "CREATE_DIVISION"
+  | "DELETE_DIVISION"
+  | "CREATE_SERVICE"
+  | "DELETE_SERVICE"
+  | "CREATE_EQUIPE"
+  | "DELETE_EQUIPE";
 
 export async function logAuditActionSafe(
   userId: number | null,
