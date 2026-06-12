@@ -578,6 +578,10 @@ export const permanentDeleteEmployee: RequestHandler = async (req, res) => {
       return res.status(400).json({ success: false, data: null, error: "Matricule de confirmation incorrect" });
     }
 
+    const versions = await db.select({ pdfPath: schema.employeeVersions.pdfPath })
+      .from(schema.employeeVersions)
+      .where(eq(schema.employeeVersions.employeeId, id));
+
     await db.transaction(async (tx) => {
       await tx.insert(schema.auditLogs).values({
         action: "PERMANENT_DELETE_EMPLOYEE",
@@ -587,6 +591,11 @@ export const permanentDeleteEmployee: RequestHandler = async (req, res) => {
       });
       await tx.delete(schema.employees).where(eq(schema.employees.id, id));
     });
+
+    const { deletePdf } = await import("../services/pdfService");
+    for (const v of versions) {
+      if (v.pdfPath) deletePdf(v.pdfPath);
+    }
 
     res.json({ success: true, data: { deleted: true }, error: null });
   } catch (err) {

@@ -92,7 +92,7 @@ export const pendingRenewals = sqliteTable("pending_renewals", {
   snapshot: text("snapshot", { mode: "json" }).notNull(),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 }, (table) => ({
-  employeeIdx: index("pending_renewals_employee_id_idx").on(table.employeeId),
+  employeeIdx: uniqueIndex("pending_renewals_employee_id_idx").on(table.employeeId),
 }));
 
 export const notificationLogs = sqliteTable("notification_logs", {

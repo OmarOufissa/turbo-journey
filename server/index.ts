@@ -502,6 +502,11 @@ export function createServer() {
         if (Number(total) > 0) {
           return res.status(409).json({ success: false, error: `Impossible de supprimer: cette division contient ${total} service(s). Supprimez d'abord les services.`, data: null });
         }
+        // Reference check: no historical employee_versions reference this division
+        const [{ total: verTotal }] = await db.select({ total: count() }).from(schema.employeeVersions).where(eq(schema.employeeVersions.divisionId, divId));
+        if (Number(verTotal) > 0) {
+          return res.status(409).json({ success: false, error: `Impossible de supprimer: ${verTotal} version(s) d'employé référence(nt) cette division.`, data: null });
+        }
         const [div] = await db.select().from(schema.divisions).where(eq(schema.divisions.id, divId));
         await db.delete(schema.divisions).where(eq(schema.divisions.id, divId));
 
@@ -547,6 +552,11 @@ export function createServer() {
         const [{ total }] = await db.select({ total: count() }).from(schema.equipes).where(eq(schema.equipes.serviceId, svcId));
         if (Number(total) > 0) {
           return res.status(409).json({ success: false, error: `Impossible de supprimer: ce service contient ${total} équipe(s). Supprimez d'abord les équipes.`, data: null });
+        }
+        // Reference check: no historical employee_versions reference this service
+        const [{ total: verTotal }] = await db.select({ total: count() }).from(schema.employeeVersions).where(eq(schema.employeeVersions.serviceId, svcId));
+        if (Number(verTotal) > 0) {
+          return res.status(409).json({ success: false, error: `Impossible de supprimer: ${verTotal} version(s) d'employé référence(nt) ce service.`, data: null });
         }
         const [svc] = await db.select().from(schema.services).where(eq(schema.services.id, svcId));
         await db.delete(schema.services).where(eq(schema.services.id, svcId));

@@ -109,7 +109,7 @@ async function createTablesIfNotExist() {
     `CREATE INDEX IF NOT EXISTS idx_emp_versions_emp ON employee_versions(employee_id)`,
     `CREATE INDEX IF NOT EXISTS idx_expiration ON employee_versions(date_expiration)`,
     `CREATE UNIQUE INDEX IF NOT EXISTS employee_versions_employee_version_idx ON employee_versions(employee_id, version_number)`,
-    `CREATE INDEX IF NOT EXISTS pending_renewals_employee_id_idx ON pending_renewals(employee_id)`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS pending_renewals_employee_id_idx ON pending_renewals(employee_id)`,
     `CREATE INDEX IF NOT EXISTS audit_logs_entity_idx ON audit_logs(entity_id)`,
     `CREATE INDEX IF NOT EXISTS audit_logs_action_idx ON audit_logs(action)`,
     `CREATE INDEX IF NOT EXISTS audit_logs_created_at_idx ON audit_logs(created_at)`,
@@ -128,6 +128,28 @@ async function createTablesIfNotExist() {
   }
 
   await addEmployeesCurrentVersionForeignKey();
+  await uniquifyPendingRenewalsIndex();
+}
+
+// pending_renewals_employee_id_idx was originally created as a non-unique index;
+// CREATE UNIQUE INDEX IF NOT EXISTS above is a no-op on existing DBs since the
+// name already exists, so drop and recreate it explicitly once duplicates (if any)
+// are resolved by keeping only the most recent pending renewal per employee.
+async function uniquifyPendingRenewalsIndex() {
+  const { rows } = await client.execute(
+    `SELECT name, sql FROM sqlite_master WHERE type='index' AND name='pending_renewals_employee_id_idx'`
+  );
+  const sql = (rows[0] as any)?.sql as string | undefined;
+  if (sql && /UNIQUE/i.test(sql)) return;
+
+  await client.execute(`
+    DELETE FROM pending_renewals
+    WHERE id NOT IN (
+      SELECT MAX(id) FROM pending_renewals GROUP BY employee_id
+    )
+  `);
+  await client.execute(`DROP INDEX IF EXISTS pending_renewals_employee_id_idx`);
+  await client.execute(`CREATE UNIQUE INDEX pending_renewals_employee_id_idx ON pending_renewals(employee_id)`);
 }
 
 // employees.current_version_id had no FK constraint in databases created before this

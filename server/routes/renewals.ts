@@ -4,6 +4,7 @@ import * as schema from "../schema";
 import { eq, desc, asc, sql } from "drizzle-orm";
 import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
 import { logAuditActionSafe } from "../services/auditService";
+import { getUserIdFromRequest } from "../utils/authHelpers";
 
 // POST /api/renewals — store snapshot for pending renewal
 export const createPendingRenewal: RequestHandler = async (req, res) => {
@@ -28,11 +29,16 @@ export const createPendingRenewal: RequestHandler = async (req, res) => {
       snapshot,
     }).returning();
 
-    const userId = (req as any).user?.id ?? null;
+    const userId = getUserIdFromRequest(req);
     await logAuditActionSafe(userId, "CREATE_RENEWAL", empIdInt, null, { renewalId: renewal.id, snapshot });
 
     res.status(201).json({ success: true, data: renewal, error: null });
-  } catch (err) {
+  } catch (err: any) {
+    // Unique index on pending_renewals.employee_id catches the race the
+    // existence check above can miss between two concurrent requests.
+    if (err?.code === "SQLITE_CONSTRAINT" || /UNIQUE constraint failed/i.test(err?.message ?? "")) {
+      return res.status(409).json({ success: false, data: null, error: "Un renouvellement est déjà en attente pour cet employé" });
+    }
     console.error("createPendingRenewal error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
@@ -96,6 +102,8 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
     const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, renewal.employeeId));
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
 
+    const userId = getUserIdFromRequest(req);
+
     const result = await db.transaction(async (tx) => {
       const [{ maxVer }] = await tx
         .select({ maxVer: sql<number>`coalesce(max(version_number), 0)` })
@@ -123,6 +131,7 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
       const [auditLog] = await tx.insert(schema.auditLogs).values({
         action: "ACTIVATE_RENEWAL",
         entityId: renewal.employeeId,
+        userId,
         snapshotOld: { renewalId, snapshot: snap } as any,
         snapshotNew: { versionId: version.id, versionNumber: version.versionNumber } as any,
       }).returning();
@@ -150,10 +159,13 @@ export const deletePendingRenewal: RequestHandler = async (req, res) => {
     const [renewal] = await db.select().from(schema.pendingRenewals).where(eq(schema.pendingRenewals.id, renewalId));
     if (!renewal) return res.status(404).json({ success: false, data: null, error: "Renouvellement non trouvé" });
 
+    const userId = getUserIdFromRequest(req);
+
     await db.transaction(async (tx) => {
       await tx.insert(schema.auditLogs).values({
         action: "CANCEL_RENEWAL",
         entityId: renewal.employeeId,
+        userId,
         snapshotOld: { renewalId, snapshot: renewal.snapshot } as any,
         snapshotNew: null,
       });
