@@ -4,6 +4,7 @@ import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq } from "drizzle-orm";
 import { logger } from "../utils/logger";
+import { buildPdfFilename } from "../utils/pathUtils";
 
 interface CertEntry {
   matricule: string;
@@ -71,8 +72,16 @@ export async function runPdfImportMigration(): Promise<void> {
       // Don't overwrite manually uploaded PDFs; do replace old seed files
       if (ver.pdfPath && !ver.pdfPath.endsWith("_seed.pdf")) { skipped++; continue; }
 
+      // Rename the linked file to match the DB's actual version number,
+      // so the on-disk `_vN` suffix never desyncs from `version_number`.
+      const targetFilename = buildPdfFilename(emp.matricule, ver.versionNumber);
+      if (targetFilename !== cert.output_file) {
+        const targetPath = path.join(uploadsDir, targetFilename);
+        fs.renameSync(filePath, targetPath);
+      }
+
       await db.update(schema.employeeVersions)
-        .set({ pdfPath: cert.output_file })
+        .set({ pdfPath: targetFilename })
         .where(eq(schema.employeeVersions.id, ver.id));
 
       linked++;

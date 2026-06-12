@@ -174,6 +174,11 @@ export async function autoActivateRenewalsJob(): Promise<{ activated: number; er
 }
 
 export async function initializeNotificationJobs(): Promise<{ initialized: boolean; jobsCount: number }> {
+  // Startup catch-up: the embedded server only runs while the desktop app is open,
+  // so the daily cron schedule may be missed for days. Run once immediately.
+  await autoActivateRenewalsJob();
+  await dailyExpirationCheckJob();
+
   let cron: any;
   try {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
