@@ -36,6 +36,12 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { format } from "date-fns";
 import { ChevronDown, ChevronUp, RotateCcw, Download } from "lucide-react";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -239,13 +245,14 @@ export default function AuditLog() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (format: "json" | "csv") => {
     try {
       const params = new URLSearchParams();
       if (filters.action) params.append("action", filters.action);
       if (filters.entityType) params.append("entityType", filters.entityType);
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
+      params.append("format", format);
 
       const response = await fetch(`/api/audit-logs/export?${params}`, {
         headers: {
@@ -259,7 +266,7 @@ export default function AuditLog() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `audit-logs-${new Date().toISOString().split("T")[0]}.json`;
+      a.download = `audit-logs-${new Date().toISOString().split("T")[0]}.${format}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -313,10 +320,18 @@ export default function AuditLog() {
               Historique complet de tous les changements
             </p>
           </div>
-          <Button variant="outline" className="gap-2" onClick={handleExport}>
-            <Download className="w-4 h-4" />
-            Exporter
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="w-4 h-4" />
+                Exporter
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("json")}>Exporter en JSON</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("csv")}>Exporter en CSV</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Filters */}

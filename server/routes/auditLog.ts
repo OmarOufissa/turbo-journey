@@ -43,9 +43,27 @@ function selectWithMatricule() {
       snapshotNew: schema.auditLogs.snapshotNew,
       createdAt: schema.auditLogs.createdAt,
       matricule: schema.employees.matricule,
+      nom: schema.employees.nom,
+      prenom: schema.employees.prenom,
     })
     .from(schema.auditLogs)
     .leftJoin(schema.employees, eq(schema.employees.id, schema.auditLogs.entityId));
+}
+
+function csvEscape(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  const str = typeof value === "string" ? value : JSON.stringify(value);
+  if (/[",\n]/.test(str)) return `"${str.replace(/"/g, '""')}"`;
+  return str;
+}
+
+function toCsv(rows: Record<string, any>[]): string {
+  const columns = ["id", "createdAt", "action", "entityType", "entityId", "matricule", "nom", "prenom", "userId", "snapshotOld", "snapshotNew"];
+  const lines = [columns.join(",")];
+  for (const row of rows) {
+    lines.push(columns.map((c) => csvEscape(row[c])).join(","));
+  }
+  return lines.join("\n");
 }
 
 function withEntityType<T extends { action: string }>(rows: T[]) {
@@ -97,10 +115,19 @@ export const exportAuditLogs_Handler: RequestHandler = async (req, res) => {
     if (conditions.length) query = query.where(and(...conditions));
 
     const rows = await query.orderBy(desc(schema.auditLogs.createdAt)).limit(10000);
+    const data = withEntityType(rows);
+    const dateStamp = new Date().toISOString().split("T")[0];
+
+    if (req.query.format === "csv") {
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="audit-logs-${dateStamp}.csv"`);
+      res.send(toCsv(data));
+      return;
+    }
 
     res.setHeader("Content-Type", "application/json");
-    res.setHeader("Content-Disposition", `attachment; filename="audit-logs-${new Date().toISOString().split("T")[0]}.json"`);
-    res.send(JSON.stringify(withEntityType(rows), null, 2));
+    res.setHeader("Content-Disposition", `attachment; filename="audit-logs-${dateStamp}.json"`);
+    res.send(JSON.stringify(data, null, 2));
   } catch (err) {
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
