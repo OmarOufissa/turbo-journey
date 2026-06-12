@@ -12,9 +12,13 @@ import { Employee } from "@/types/employee";
 import { getEmployees, restoreEmployee, permanentDeleteEmployee } from "@/api/employees";
 import { setLastAction } from "@/components/UndoButton";
 
+const PAGE_SIZE = 50;
+
 export default function Trash() {
   const { toast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -22,13 +26,16 @@ export default function Trash() {
   const [pendingPermanentDelete, setPendingPermanentDelete] = useState<{ id: number; matricule: string } | null>(null);
   const [confirmInput, setConfirmInput] = useState("");
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [page]);
 
   async function fetchData() {
     setIsLoading(true);
     try {
-      const res = await getEmployees({ deleted: true, limit: 100 });
-      if (res.success) setEmployees(res.data.employees);
+      const res = await getEmployees({ deleted: true, limit: PAGE_SIZE, page });
+      if (res.success) {
+        setEmployees(res.data.employees);
+        setTotal(res.data.total);
+      }
     } catch {
       toast({ title: "Erreur", description: "Impossible de charger la corbeille", variant: "destructive" });
     } finally {
@@ -78,7 +85,7 @@ export default function Trash() {
           <Button variant="ghost" size="sm" asChild>
             <Link to="/employees"><ArrowLeft className="w-4 h-4" /></Link>
           </Button>
-          <h1 className="text-2xl font-bold">Corbeille ({employees.length})</h1>
+          <h1 className="text-2xl font-bold">Corbeille ({total})</h1>
         </div>
 
         <Input
@@ -129,6 +136,20 @@ export default function Trash() {
               ))}
             </TableBody>
           </Table>
+        )}
+
+        {total > PAGE_SIZE && (
+          <div className="flex items-center justify-between">
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+              Précédent
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {page} / {Math.ceil(total / PAGE_SIZE)}
+            </span>
+            <Button variant="outline" size="sm" disabled={page >= Math.ceil(total / PAGE_SIZE)} onClick={() => setPage(p => p + 1)}>
+              Suivant
+            </Button>
+          </div>
         )}
 
         {/* 2-step permanent delete confirmation */}
