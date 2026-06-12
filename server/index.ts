@@ -338,7 +338,7 @@ export function createServer() {
 
         if (generated > 0) {
           const { logAuditActionSafe } = await import("./services/auditService");
-          await logAuditActionSafe(null, "GENERATE_PDF", 0, null, { generated, failed, total });
+          await logAuditActionSafe(null, "GENERATE_PDF", null, null, { generated, failed, total });
         }
 
         send({ generated, failed, total, finished: true, errors });

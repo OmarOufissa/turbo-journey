@@ -93,7 +93,7 @@ async function createTablesIfNotExist() {
     `CREATE TABLE IF NOT EXISTS audit_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       action TEXT NOT NULL,
-      entity_id INTEGER NOT NULL,
+      entity_id INTEGER,
       user_id INTEGER REFERENCES users(id),
       snapshot_old TEXT,
       snapshot_new TEXT,
@@ -129,6 +129,7 @@ async function createTablesIfNotExist() {
 
   await addEmployeesCurrentVersionForeignKey();
   await uniquifyPendingRenewalsIndex();
+  await makeAuditLogsEntityIdNullable();
 }
 
 // pending_renewals_employee_id_idx was originally created as a non-unique index;
@@ -187,6 +188,34 @@ async function addEmployeesCurrentVersionForeignKey() {
   } finally {
     await client.execute("PRAGMA foreign_keys=ON");
   }
+}
+
+// audit_logs.entity_id was NOT NULL with 0 used as a "no entity" sentinel in
+// databases created before this migration. SQLite can't ALTER a column's
+// constraints, so rebuild the table with a nullable entity_id.
+async function makeAuditLogsEntityIdNullable() {
+  const { rows } = await client.execute(`PRAGMA table_info(audit_logs)`);
+  const entityIdCol = rows.find((r: any) => r.name === "entity_id") as any;
+  if (!entityIdCol || entityIdCol.notnull === 0) return;
+
+  await client.batch([
+    `CREATE TABLE audit_logs_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      action TEXT NOT NULL,
+      entity_id INTEGER,
+      user_id INTEGER REFERENCES users(id),
+      snapshot_old TEXT,
+      snapshot_new TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `INSERT INTO audit_logs_new (id, action, entity_id, user_id, snapshot_old, snapshot_new, created_at)
+     SELECT id, action, NULLIF(entity_id, 0), user_id, snapshot_old, snapshot_new, created_at FROM audit_logs`,
+    `DROP TABLE audit_logs`,
+    `ALTER TABLE audit_logs_new RENAME TO audit_logs`,
+    `CREATE INDEX IF NOT EXISTS audit_logs_entity_idx ON audit_logs(entity_id)`,
+    `CREATE INDEX IF NOT EXISTS audit_logs_action_idx ON audit_logs(action)`,
+    `CREATE INDEX IF NOT EXISTS audit_logs_created_at_idx ON audit_logs(created_at)`,
+  ], "write");
 }
 
 export { createTablesIfNotExist };

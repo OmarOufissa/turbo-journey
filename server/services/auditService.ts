@@ -35,7 +35,7 @@ export async function logAuditActionSafe(
 ): Promise<number> {
   const [result] = await db.insert(schema.auditLogs).values({
     action,
-    entityId: entityId ?? 0,
+    entityId,
     userId,
     snapshotOld: snapshotOld ?? null,
     snapshotNew: snapshotNew ?? null,

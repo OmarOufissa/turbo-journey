@@ -108,7 +108,7 @@ export const notificationLogs = sqliteTable("notification_logs", {
 export const auditLogs = sqliteTable("audit_logs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   action: text("action").notNull(),
-  entityId: integer("entity_id").notNull(),
+  entityId: integer("entity_id"),
   userId: integer("user_id").references(() => users.id),
   snapshotOld: text("snapshot_old", { mode: "json" }),
   snapshotNew: text("snapshot_new", { mode: "json" }),
