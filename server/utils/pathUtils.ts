@@ -14,11 +14,10 @@ export const UPLOADS_DIR = process.env.UPLOADS_BASE_DIR
 export const PDFS_DIR = path.join(UPLOADS_DIR, "pdfs");
 export const BACKUPS_DIR = path.join(UPLOADS_DIR, "backups");
 export const TEMP_DIR = path.join(UPLOADS_DIR, "temp");
-export const IMPORTS_DIR = path.join(UPLOADS_DIR, "imports");
 export const LOGS_DIR = path.resolve(process.cwd(), "logs");
 export const DATABASE_DIR = path.resolve(process.cwd(), "database");
 
-const REQUIRED_DIRS = [UPLOADS_DIR, PDFS_DIR, BACKUPS_DIR, TEMP_DIR, IMPORTS_DIR, LOGS_DIR, DATABASE_DIR];
+const REQUIRED_DIRS = [UPLOADS_DIR, PDFS_DIR, BACKUPS_DIR, TEMP_DIR, LOGS_DIR, DATABASE_DIR];
 
 /** Create all required application directories synchronously. Safe to call multiple times. */
 export function ensureRequiredDirectories(): void {
