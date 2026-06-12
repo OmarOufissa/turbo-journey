@@ -1,6 +1,5 @@
 import { db } from "../db-pg";
 import * as schema from "../schema";
-import { eq, desc, sql } from "drizzle-orm";
 
 export type AuditAction =
   | "CREATE_EMPLOYEE"
@@ -43,25 +42,4 @@ export async function logAuditActionSafe(
   }).returning({ id: schema.auditLogs.id });
 
   return result.id;
-}
-
-export async function getAuditLogs(filters?: {
-  entityId?: number;
-  action?: string;
-  limit?: number;
-  offset?: number;
-}): Promise<typeof schema.auditLogs.$inferSelect[]> {
-  const limit = filters?.limit ?? 100;
-  const offset = filters?.offset ?? 0;
-  return db.select().from(schema.auditLogs).orderBy(desc(schema.auditLogs.createdAt)).limit(limit).offset(offset);
-}
-
-export async function getAuditLogEntry(id: number) {
-  const [log] = await db.select().from(schema.auditLogs).where(eq(schema.auditLogs.id, id));
-  return log ?? null;
-}
-
-export async function exportAuditLogsAsJSON(): Promise<string> {
-  const logs = await db.select().from(schema.auditLogs).orderBy(desc(schema.auditLogs.createdAt)).limit(10000);
-  return JSON.stringify(logs, null, 2);
 }
