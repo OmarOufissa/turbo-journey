@@ -51,7 +51,7 @@ async function createTablesIfNotExist() {
       matricule TEXT NOT NULL UNIQUE,
       nom TEXT NOT NULL,
       prenom TEXT NOT NULL,
-      current_version_id INTEGER,
+      current_version_id INTEGER REFERENCES employee_versions(id) ON DELETE SET NULL,
       deleted INTEGER NOT NULL DEFAULT 0,
       deleted_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -125,6 +125,45 @@ async function createTablesIfNotExist() {
   ];
   for (const m of migrations) {
     try { await client.execute(m); } catch { /* column already exists */ }
+  }
+
+  await addEmployeesCurrentVersionForeignKey();
+}
+
+// employees.current_version_id had no FK constraint in databases created before this
+// migration. SQLite can't ALTER a column's constraints, so rebuild the table.
+// employee_versions.employee_id REFERENCES employees(id), so the old table is dropped
+// (not renamed) and the new one renamed into place — that way employee_versions' FK
+// definition (which still says "employees") resolves to the rebuilt table afterwards.
+async function addEmployeesCurrentVersionForeignKey() {
+  const { rows } = await client.execute(`PRAGMA foreign_key_list(employees)`);
+  const hasFk = rows.some((r: any) => r.from === "current_version_id" && r.table === "employee_versions");
+  if (hasFk) return;
+
+  await client.execute("PRAGMA foreign_keys=OFF");
+  try {
+    await client.batch([
+      `CREATE TABLE employees_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        matricule TEXT NOT NULL UNIQUE,
+        nom TEXT NOT NULL,
+        prenom TEXT NOT NULL,
+        current_version_id INTEGER REFERENCES employee_versions(id) ON DELETE SET NULL,
+        deleted INTEGER NOT NULL DEFAULT 0,
+        deleted_at TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )`,
+      `INSERT INTO employees_new (id, matricule, nom, prenom, current_version_id, deleted, deleted_at, created_at, updated_at)
+       SELECT id, matricule, nom, prenom, current_version_id, deleted, deleted_at, created_at, updated_at FROM employees`,
+      `DROP TABLE employees`,
+      `ALTER TABLE employees_new RENAME TO employees`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS employees_matricule_idx ON employees(matricule)`,
+      `CREATE INDEX IF NOT EXISTS idx_employees_current_version ON employees(current_version_id)`,
+      `CREATE INDEX IF NOT EXISTS idx_employees_deleted ON employees(deleted)`,
+    ], "write");
+  } finally {
+    await client.execute("PRAGMA foreign_keys=ON");
   }
 }
 
