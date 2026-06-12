@@ -3,6 +3,7 @@ import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq, desc, sql, and, gte, lte, gt, like, inArray, notInArray } from "drizzle-orm";
 import { getUserIdFromRequest } from "../utils/authHelpers";
+import { isUniqueConstraintError } from "../utils/dbErrors";
 
 const RENEWAL_ACTIONS = ["ACTIVATE_RENEWAL", "CANCEL_RENEWAL"];
 
@@ -208,6 +209,9 @@ export const revertAuditLog_Handler: RequestHandler = async (req, res) => {
 
     res.json({ success: true, data: result, error: null });
   } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return res.status(409).json({ success: false, data: null, error: "Conflit: une autre modification est en cours. Rechargez et réessayez." });
+    }
     console.error("revertAuditLog error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }

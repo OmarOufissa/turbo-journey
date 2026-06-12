@@ -5,6 +5,7 @@ import { eq, desc, asc, sql, and, or, like, gte, lte, isNull, isNotNull } from "
 import { z } from "zod";
 import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
 import { getUserIdFromRequest } from "../utils/authHelpers";
+import { isUniqueConstraintError } from "../utils/dbErrors";
 
 const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "SF6"] as const;
 const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"] as const;
@@ -459,6 +460,9 @@ export const updateEmployee: RequestHandler = async (req, res) => {
     const employee = await buildEmployeeResponse(id);
     res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return res.status(409).json({ success: false, data: null, error: "Conflit: une autre modification est en cours. Rechargez et réessayez." });
+    }
     console.error("updateEmployee error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
@@ -565,6 +569,9 @@ export const restoreEmployee: RequestHandler = async (req, res) => {
     const employee = await buildEmployeeResponse(id);
     res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return res.status(409).json({ success: false, data: null, error: "Conflit: une autre modification est en cours. Rechargez et réessayez." });
+    }
     console.error("restoreEmployee error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
@@ -674,6 +681,9 @@ export const revertToVersion: RequestHandler = async (req, res) => {
     const employee = await buildEmployeeResponse(employeeId);
     res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return res.status(409).json({ success: false, data: null, error: "Conflit: une autre modification est en cours. Rechargez et réessayez." });
+    }
     console.error("revertToVersion error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
@@ -847,6 +857,9 @@ export const deletePdf: RequestHandler = async (req, res) => {
 
     res.json({ success: true, data: { deleted: true, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return res.status(409).json({ success: false, data: null, error: "Conflit: une autre modification est en cours. Rechargez et réessayez." });
+    }
     console.error("deletePdf error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }

@@ -5,6 +5,7 @@ import { eq, desc, asc, sql } from "drizzle-orm";
 import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
 import { logAuditActionSafe } from "../services/auditService";
 import { getUserIdFromRequest } from "../utils/authHelpers";
+import { isUniqueConstraintError } from "../utils/dbErrors";
 
 // POST /api/renewals — store snapshot for pending renewal
 export const createPendingRenewal: RequestHandler = async (req, res) => {
@@ -36,7 +37,7 @@ export const createPendingRenewal: RequestHandler = async (req, res) => {
   } catch (err: any) {
     // Unique index on pending_renewals.employee_id catches the race the
     // existence check above can miss between two concurrent requests.
-    if (err?.code === "SQLITE_CONSTRAINT" || /UNIQUE constraint failed/i.test(err?.message ?? "")) {
+    if (isUniqueConstraintError(err)) {
       return res.status(409).json({ success: false, data: null, error: "Un renouvellement est déjà en attente pour cet employé" });
     }
     console.error("createPendingRenewal error:", err);
@@ -146,6 +147,9 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
 
     res.json({ success: true, data: result, error: null });
   } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return res.status(409).json({ success: false, data: null, error: "Conflit: une autre modification est en cours. Rechargez et réessayez." });
+    }
     console.error("activatePendingRenewal error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
