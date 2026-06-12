@@ -108,6 +108,8 @@ async function createTablesIfNotExist() {
     `CREATE UNIQUE INDEX IF NOT EXISTS employees_matricule_idx ON employees(matricule)`,
     `CREATE INDEX IF NOT EXISTS idx_emp_versions_emp ON employee_versions(employee_id)`,
     `CREATE INDEX IF NOT EXISTS idx_expiration ON employee_versions(date_expiration)`,
+    `CREATE INDEX IF NOT EXISTS idx_emp_versions_division ON employee_versions(division_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_emp_versions_service ON employee_versions(service_id)`,
     `CREATE UNIQUE INDEX IF NOT EXISTS employee_versions_employee_version_idx ON employee_versions(employee_id, version_number)`,
     `CREATE UNIQUE INDEX IF NOT EXISTS pending_renewals_employee_id_idx ON pending_renewals(employee_id)`,
     `CREATE INDEX IF NOT EXISTS audit_logs_entity_idx ON audit_logs(entity_id)`,
