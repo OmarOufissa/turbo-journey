@@ -247,12 +247,12 @@ export default function EmployeeCard() {
                       {ver.pdfPath ? (
                         <>
                           <Button variant="outline" size="sm" asChild>
-                            <a href={`/uploads/pdfs/${ver.pdfPath}`} target="_blank" rel="noreferrer">
+                            <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
                               <Eye className="w-3 h-3 mr-1" />Voir
                             </a>
                           </Button>
                           <Button variant="outline" size="sm" asChild>
-                            <a href={`/uploads/pdfs/${ver.pdfPath}`} download>
+                            <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} download>
                               <Download className="w-3 h-3 mr-1" />Télécharger
                             </a>
                           </Button>
@@ -351,12 +351,12 @@ export default function EmployeeCard() {
                           {v.pdfPath ? (
                             <>
                               <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
-                                <a href={`/uploads/pdfs/${v.pdfPath}`} target="_blank" rel="noreferrer">
+                                <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
                                   <Eye className="w-3 h-3 mr-1" />Voir
                                 </a>
                               </Button>
                               <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
-                                <a href={`/uploads/pdfs/${v.pdfPath}`} download>
+                                <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} download>
                                   <Download className="w-3 h-3 mr-1" />Télécharger
                                 </a>
                               </Button>

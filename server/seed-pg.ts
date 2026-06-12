@@ -409,13 +409,6 @@ export async function seedDatabasePG() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seedDatabasePG().catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
-}
-
 // Resync only names + fonctions from Excel without touching versions or org structure
 export async function resyncEmployeeNames(): Promise<{ updated: number; skipped: number; errors: string[] }> {
   const errors: string[] = [];

@@ -26,42 +26,6 @@ async function initializeDbOnce() {
 
 async function initializeSeedOnStartup() {
   try {
-    const { initializeOrgStructureOnce } = await import("./seeds/organizationStructure");
-    await initializeOrgStructureOnce();
-  } catch (err) {
-    logger.error("app", "Error initializing seeds", { error: String(err) });
-  }
-  try {
-    const { removeDemoEmployees } = await import("./migrations/remove-demo-employees");
-    await removeDemoEmployees();
-  } catch (err) {
-    logger.warn("app", "Demo employee cleanup skipped", { error: String(err) });
-  }
-  try {
-    const { addMissingEmployees } = await import("./migrations/add-missing-employees");
-    await addMissingEmployees();
-  } catch (err) {
-    logger.warn("app", "Add missing employees migration skipped", { error: String(err) });
-  }
-  try {
-    const { runNamesMigration } = await import("./migrations/fix-names");
-    await runNamesMigration();
-  } catch (err) {
-    logger.warn("app", "Names migration skipped", { error: String(err) });
-  }
-  try {
-    const { runPdfSeedMigration } = await import("./migrations/seed-pdfs");
-    await runPdfSeedMigration();
-  } catch (err) {
-    logger.warn("app", "PDF seed migration skipped", { error: String(err) });
-  }
-  try {
-    const { runPdfImportMigration } = await import("./migrations/import-pdfs");
-    await runPdfImportMigration();
-  } catch (err) {
-    logger.warn("app", "PDF import migration skipped", { error: String(err) });
-  }
-  try {
     const { initializeNotificationJobs } = await import("./jobs/notificationJobs");
     await initializeNotificationJobs();
   } catch (err) {
@@ -82,8 +46,8 @@ export function createServer() {
   initializeDbOnce();
 
   app.use(cors());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json({ limit: "10mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
   // Rate limiting
   const apiLimiter = rateLimit({
@@ -109,7 +73,27 @@ export function createServer() {
   });
 
 
-  app.use("/uploads", express.static(process.env.UPLOADS_BASE_DIR ?? path.join(process.cwd(), "uploads")));
+  // Authenticated PDF serving — accepts Bearer header or ?token= query param
+  // (direct <a>/<iframe> links can't set headers)
+  app.get("/api/pdfs/:filename", async (req, res) => {
+    const { verifyToken } = await import("./routes/auth");
+    const authHeader = req.headers.authorization;
+    const headerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+    const token = headerToken || (req.query.token as string | undefined);
+    if (!token || !verifyToken(token)) {
+      return res.status(401).json({ success: false, data: null, error: "Non autorisé" });
+    }
+    try {
+      const { resolvePdfPath, fileExists } = await import("./utils/pathUtils");
+      const filePath = resolvePdfPath(req.params.filename);
+      if (!fileExists(filePath)) {
+        return res.status(404).json({ success: false, data: null, error: "Fichier introuvable" });
+      }
+      res.sendFile(filePath);
+    } catch {
+      return res.status(400).json({ success: false, data: null, error: "Nom de fichier invalide" });
+    }
+  });
 
   app.get("/api/ping", (_req, res) => {
     res.json({ message: process.env.PING_MESSAGE ?? "ping", version: "1.0.0" });

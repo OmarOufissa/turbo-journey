@@ -126,12 +126,6 @@ export default function Login() {
               {loading ? "Connexion..." : "Se connecter"}
             </Button>
           </form>
-
-          <div className="text-center pt-6 border-t border-border">
-            <p className="text-xs text-muted-foreground font-medium">
-              Demo: <span className="font-semibold text-foreground">admin@example.com</span> / <span className="font-semibold text-foreground">admin123</span>
-            </p>
-          </div>
         </div>
       </div>
     </div>

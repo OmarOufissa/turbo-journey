@@ -54,7 +54,6 @@ interface AuditLog {
   matricule: string | null;
   snapshotOld: Record<string, any> | null;
   snapshotNew: Record<string, any> | null;
-  revertedFromAuditLogId: number | null;
   createdAt: string;
 }
 
@@ -137,7 +136,8 @@ export default function AuditLog() {
     logId: number | null;
     action: string | null;
     matricule: string | null;
-  }>({ open: false, logId: null, action: null, matricule: null });
+    requiresConfirmation: boolean;
+  }>({ open: false, logId: null, action: null, matricule: null, requiresConfirmation: false });
 
   const [reverting, setReverting] = useState(false);
 
@@ -169,8 +169,9 @@ export default function AuditLog() {
         throw new Error("Failed to fetch audit logs");
       }
 
-      const data = await response.json();
-      setLogs(Array.isArray(data) ? data : []);
+      const result = await response.json();
+      const data: AuditLog[] = Array.isArray(result.data) ? result.data : [];
+      setLogs(data);
       // Estimate total (if backend returns count, use that)
       setTotalCount(data.length >= pageSize ? (page + 1) * pageSize + pageSize : page * pageSize + data.length);
     } catch (err) {
@@ -200,26 +201,31 @@ export default function AuditLog() {
     try {
       setReverting(true);
 
-      const response = await fetch(`/api/audit-logs/${revertDialog.logId}/revert`, {
+      const params = revertDialog.requiresConfirmation ? "?confirm=true" : "";
+      const response = await fetch(`/api/audit-logs/${revertDialog.logId}/revert${params}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erreur lors de la réversion");
+      const result = await response.json();
+
+      if (response.status === 409 && result?.data?.requiresConfirmation) {
+        setRevertDialog((prev) => ({ ...prev, requiresConfirmation: true }));
+        return;
       }
 
-      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Erreur lors de la réversion");
+      }
 
       toast({
         title: "Succès",
-        description: result.message || "Donnée restituée avec succès",
+        description: "Donnée restituée avec succès",
       });
 
-      setRevertDialog({ open: false, logId: null, action: null, matricule: null });
+      setRevertDialog({ open: false, logId: null, action: null, matricule: null, requiresConfirmation: false });
       await fetchAuditLogs();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur lors de la réversion";
@@ -333,14 +339,15 @@ export default function AuditLog() {
                   <SelectItem value="CREATE_EMPLOYEE">Créer Employé</SelectItem>
                   <SelectItem value="UPDATE_EMPLOYEE">Modifier Employé</SelectItem>
                   <SelectItem value="DELETE_EMPLOYEE">Supprimer Employé</SelectItem>
-                  <SelectItem value="CREATE_HABILITATION">Créer Habilitation</SelectItem>
-                  <SelectItem value="UPDATE_HABILITATION">Modifier Habilitation</SelectItem>
-                  <SelectItem value="DELETE_HABILITATION">Supprimer Habilitation</SelectItem>
-                  <SelectItem value="RENEW_HABILITATION">Renouveler Habilitation</SelectItem>
-                  <SelectItem value="REVERT_EMPLOYEE">Revert Employé</SelectItem>
-                  <SelectItem value="REVERT_HABILITATION">Revert Habilitation</SelectItem>
+                  <SelectItem value="RESTORE_EMPLOYEE">Restaurer Employé</SelectItem>
+                  <SelectItem value="PERMANENT_DELETE_EMPLOYEE">Supprimer Définitivement</SelectItem>
+                  <SelectItem value="REVERT_VERSION">Revert Version</SelectItem>
+                  <SelectItem value="ACTIVATE_RENEWAL">Activer Renouvellement</SelectItem>
+                  <SelectItem value="CANCEL_RENEWAL">Annuler Renouvellement</SelectItem>
                   <SelectItem value="UPLOAD_PDF">Upload PDF</SelectItem>
                   <SelectItem value="DELETE_PDF">Supprimer PDF</SelectItem>
+                  <SelectItem value="IMPORT_EMPLOYEES">Importer Employés</SelectItem>
+                  <SelectItem value="EXPORT_EMPLOYEES">Exporter Employés</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -384,6 +391,17 @@ export default function AuditLog() {
                 className="glass-input"
                 value={filters.startDate || ""}
                 onChange={(e) => handleFilterChange("startDate", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="end-date">Jusqu'au</Label>
+              <Input
+                id="end-date"
+                type="date"
+                className="glass-input"
+                value={filters.endDate || ""}
+                onChange={(e) => handleFilterChange("endDate", e.target.value)}
               />
             </div>
           </div>
@@ -454,9 +472,7 @@ export default function AuditLog() {
                         </Button>
 
                         {/* Revert button - only show for reversible actions */}
-                        {log.action.includes("CREATE") ||
-                        log.action.includes("UPDATE") ||
-                        log.action.includes("RENEW") ? (
+                        {log.action === "UPDATE_EMPLOYEE" ? (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -467,6 +483,7 @@ export default function AuditLog() {
                                 logId: log.id,
                                 action: log.action,
                                 matricule: log.matricule,
+                                requiresConfirmation: false,
                               })
                             }
                           >
@@ -526,7 +543,7 @@ export default function AuditLog() {
       {/* Revert Confirmation Dialog */}
       <AlertDialog open={revertDialog.open} onOpenChange={(open) => {
         if (!open) {
-          setRevertDialog({ open: false, logId: null, action: null, matricule: null });
+          setRevertDialog({ open: false, logId: null, action: null, matricule: null, requiresConfirmation: false });
         }
       }}>
         <AlertDialogContent>
@@ -540,6 +557,12 @@ export default function AuditLog() {
                 <li>Créera une nouvelle entrée d'audit (la réversion ne sera pas supprimée)</li>
                 <li>Conservera l'historique complet</li>
               </ul>
+              {revertDialog.requiresConfirmation && (
+                <p className="mt-3 font-semibold text-destructive">
+                  Attention : des modifications ont été effectuées sur cet employé depuis cette action.
+                  Continuer écrasera ces changements.
+                </p>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-2">

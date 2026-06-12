@@ -4,6 +4,7 @@ import * as schema from "./schema";
 import bcrypt from "bcrypt";
 import { eq, sql } from "drizzle-orm";
 import path from "path";
+import crypto from "crypto";
 
 // Database path: set by Electron main before server loads, or fall back to cwd
 // Ignore PostgreSQL URLs — only accept file: or relative paths without protocol
@@ -134,31 +135,31 @@ export async function initializeDatabase() {
     console.log("Initializing SQLite database...");
     await createTablesIfNotExist();
 
-    const existingUser = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.email, "admin@example.com"))
-      .limit(1);
+    const [{ userCount }] = await db
+      .select({ userCount: sql<number>`count(*)` })
+      .from(schema.users);
 
-    if (existingUser.length === 0) {
-      const hashedPassword = bcrypt.hashSync("admin123", 10);
+    if (Number(userCount) === 0) {
+      const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+      const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(12).toString("base64url");
+      const hashedPassword = bcrypt.hashSync(adminPassword, 10);
       await db.insert(schema.users).values({
-        email: "admin@example.com",
+        email: adminEmail,
         password: hashedPassword,
       });
-      console.log("Demo user created: admin@example.com / admin123");
-    } else {
-      console.log("Demo user already exists");
+      console.log("============================================================");
+      console.log("Admin account created — save these credentials now:");
+      console.log(`  Email:    ${adminEmail}`);
+      console.log(`  Password: ${adminPassword}`);
+      console.log("============================================================");
     }
 
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })
       .from(schema.divisions);
 
-    const forceSeed = process.env.SEED === "true";
-    if (Number(count) === 0 || forceSeed) {
-      if (forceSeed) console.log("SEED=true — forcing re-seed of organizational structure...");
-      else console.log("Seeding organizational structure...");
+    if (Number(count) === 0) {
+      console.log("Seeding organizational structure...");
       const { seedDatabasePG } = await import("./seed-pg");
       await seedDatabasePG();
     } else {
