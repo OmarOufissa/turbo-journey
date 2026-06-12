@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq } from "drizzle-orm";
@@ -129,7 +130,7 @@ const SEED_ENTRIES: { matricule: string; filename: string }[] = [
 
 export async function runPdfSeedMigration(): Promise<void> {
   const uploadsDir = process.env.UPLOADS_DIR ?? path.join(process.cwd(), "uploads", "pdfs");
-  const seedDir = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "seeds", "pdfs");
+  const seedDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "seeds", "pdfs");
 
   if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 

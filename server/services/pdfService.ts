@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, PDFPage } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import type { HabRows } from '../schema';
 import { PDFS_DIR, buildPdfFilename, resolvePdfPath } from '../utils/pathUtils';
 
@@ -21,7 +22,7 @@ export interface VersionSnapshot {
 }
 
 function resolveTemplatePath(): string {
-  const dir = path.dirname(new URL(import.meta.url).pathname);
+  const dir = path.dirname(fileURLToPath(import.meta.url));
   // Bundled build places this chunk in dist/server/, alongside seeds/data/.
   // In dev, this file lives in server/services/, with seeds/data/ one level up.
   const candidates = [
