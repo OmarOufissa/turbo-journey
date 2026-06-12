@@ -49,6 +49,7 @@ export default function EditEmployee() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [matricule, setMatricule] = useState("");
   const [currentVersionNumber, setCurrentVersionNumber] = useState<number | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     nom: "",
@@ -82,6 +83,7 @@ export default function EditEmployee() {
         const ver = emp.currentVersion;
         setMatricule(emp.matricule);
         setCurrentVersionNumber(ver?.versionNumber ?? null);
+        setUpdatedAt(emp.updatedAt ?? null);
         setForm({
           nom: emp.nom,
           prenom: emp.prenom,
@@ -151,6 +153,7 @@ export default function EditEmployee() {
         habRows: Object.keys(habRows).length > 0 ? habRows : null,
         dateValidation: form.dateValidation,
         dateExpiration: form.dateExpiration,
+        ...(updatedAt ? { expectedUpdatedAt: updatedAt } : {}),
       });
       if (res.success) {
         if (pdfFile && id) {

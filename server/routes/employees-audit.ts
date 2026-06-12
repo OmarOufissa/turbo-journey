@@ -114,6 +114,7 @@ async function buildEmployeeResponse(employeeId: number) {
     prenom: emp.prenom,
     deleted: emp.deleted,
     createdAt: emp.createdAt,
+    updatedAt: emp.updatedAt,
     currentVersion: currentVersion ? await buildVersionResponse(currentVersion) : null,
   };
 }

@@ -33,6 +33,7 @@ export interface Employee {
   prenom: string;
   deleted: boolean;
   createdAt: string;
+  updatedAt: string;
   currentVersion: EmployeeVersion | null;
   versions?: EmployeeVersion[];
 }
@@ -73,4 +74,5 @@ export interface UpdateEmployeeRequest {
   habRows?: HabRows | null;
   dateValidation: string;
   dateExpiration: string;
+  expectedUpdatedAt?: string;
 }
