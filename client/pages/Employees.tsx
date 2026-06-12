@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Trash2, Save, BookmarkCheck, X, Download, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw } from "lucide-react";
+import { Plus, Trash2, Save, BookmarkCheck, X, Download, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, AlertTriangle } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -89,7 +89,7 @@ export default function Employees() {
   const fetchEmployees = useCallback(async () => {
     setIsLoading(true);
     try {
-      const params: Record<string, any> = { page: 1, limit: 500, sort, sortDir };
+      const params: Record<string, any> = { page: 1, limit: 1000, sort, sortDir };
       if (searchTerm) params.search = searchTerm;
       if (hasPdfFilter !== "all") params.hasPdf = hasPdfFilter;
       const range = getExpirationRange(expirationFilter);
@@ -190,6 +190,13 @@ export default function Employees() {
             </Button>
           </div>
         </div>
+
+        {total > employees.length && (
+          <div className="flex items-center gap-2 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            Seuls les {employees.length} premiers employés sur {total} sont affichés. Affinez votre recherche ou vos filtres pour voir les autres.
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2 items-end">
