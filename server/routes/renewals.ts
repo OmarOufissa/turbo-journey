@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq, desc, asc, sql } from "drizzle-orm";
+import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
 
 // POST /api/renewals — store snapshot for pending renewal
 export const createPendingRenewal: RequestHandler = async (req, res) => {
@@ -107,8 +108,10 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
         divisionId: parseInt(snap.divisionId),
         serviceId: parseInt(snap.serviceId),
         equipeId: snap.equipeId ? parseInt(snap.equipeId) : null,
+        habRows: snap.habRows ?? null,
         dateValidation: snap.dateValidation,
         dateExpiration: snap.dateExpiration,
+        pdfPath: null,
       }).returning();
 
       await tx.update(schema.employees).set({ currentVersionId: version.id }).where(eq(schema.employees.id, renewal.employeeId));
@@ -124,6 +127,8 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
 
       return { auditLogId: auditLog.id, versionId: version.id };
     });
+
+    await resetNotificationLogsForEmployee(renewal.employeeId);
 
     res.json({ success: true, data: result, error: null });
   } catch (err) {

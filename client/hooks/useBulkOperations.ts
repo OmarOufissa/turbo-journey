@@ -41,6 +41,7 @@ export function useBulkOperations(employees: Employee[]) {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [progress, setProgress] = useState<BulkProgress | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [renewDialogOpen, setRenewDialogOpen] = useState(false);
 
   const availableIds = useMemo(() => employees.map((e) => e.id), [employees]);
   const allSelected = availableIds.length > 0 && availableIds.every((id) => selectedIds.has(id));
@@ -74,8 +75,16 @@ export function useBulkOperations(employees: Employee[]) {
     [employees, selectedIds]
   );
 
-  async function runBulkAction(action: BulkAction): Promise<void> {
+  async function runBulkAction(
+    action: BulkAction,
+    renewalDates?: { dateValidation: string; dateExpiration: string }
+  ): Promise<void> {
     if (isRunning || !hasSelection) return;
+
+    if (action === "addRenewal" && !renewalDates) {
+      setRenewDialogOpen(true);
+      return;
+    }
 
     const ids = Array.from(selectedIds);
     setIsRunning(true);
@@ -101,10 +110,22 @@ export function useBulkOperations(employees: Employee[]) {
             await apiCall("POST", `/employees/${id}/generate-pdf`);
             break;
           case "addRenewal":
-            if (emp?.currentVersion) {
+            if (emp?.currentVersion && renewalDates) {
+              const cv = emp.currentVersion;
               await apiCall("POST", "/renewals", {
                 employeeId: id,
-                snapshot: emp.currentVersion,
+                snapshot: {
+                  stCodes: cv.stCodes,
+                  htCodes: cv.htCodes,
+                  nDeTitre: cv.nDeTitre,
+                  fonction: cv.fonction,
+                  divisionId: cv.divisionId,
+                  serviceId: cv.serviceId,
+                  equipeId: cv.equipeId ?? null,
+                  habRows: cv.habRows ?? null,
+                  dateValidation: renewalDates.dateValidation,
+                  dateExpiration: renewalDates.dateExpiration,
+                },
               });
             }
             break;
@@ -149,6 +170,14 @@ export function useBulkOperations(employees: Employee[]) {
     if (errors.length === 0) clearSelection();
   }
 
+  const confirmBulkRenewal = useCallback(
+    async (dateValidation: string, dateExpiration: string) => {
+      setRenewDialogOpen(false);
+      await runBulkAction("addRenewal", { dateValidation, dateExpiration });
+    },
+    [runBulkAction]
+  );
+
   return {
     selectedIds,
     selectedEmployees,
@@ -162,5 +191,8 @@ export function useBulkOperations(employees: Employee[]) {
     progress,
     isRunning,
     runBulkAction,
+    renewDialogOpen,
+    setRenewDialogOpen,
+    confirmBulkRenewal,
   };
 }

@@ -3,6 +3,7 @@ import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq, desc, asc, sql, and, or, like, gte, lte, isNull, isNotNull } from "drizzle-orm";
 import { z } from "zod";
+import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
 
 const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "SF6"] as const;
 const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"] as const;
@@ -437,6 +438,8 @@ export const updateEmployee: RequestHandler = async (req, res) => {
       return { auditLogId: auditLog.id };
     });
 
+    await resetNotificationLogsForEmployee(id);
+
     const employee = await buildEmployeeResponse(id);
     res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
@@ -538,6 +541,8 @@ export const restoreEmployee: RequestHandler = async (req, res) => {
       return { auditLogId: auditLog.id };
     });
 
+    await resetNotificationLogsForEmployee(id);
+
     const employee = await buildEmployeeResponse(id);
     res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
@@ -634,6 +639,8 @@ export const revertToVersion: RequestHandler = async (req, res) => {
 
       return { auditLogId: auditLog.id };
     });
+
+    await resetNotificationLogsForEmployee(employeeId);
 
     const employee = await buildEmployeeResponse(employeeId);
     res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });

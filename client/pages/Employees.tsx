@@ -9,11 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Employee } from "@/types/employee";
 import { getExpirationStatus, EXPIRATION_COLOR_CONFIG } from "@/types/habilitation";
 import { getEmployees, deleteEmployee } from "@/api/employees";
+import { useBulkOperations } from "@/hooks/useBulkOperations";
+import { BulkActionBar } from "@/components/employees/BulkActionBar";
+import { BatchRenewDialog } from "@/components/employees/BatchRenewDialog";
 
 const COLOR_TOGGLE_KEY = "colorCodingEnabled";
 const PRESETS_KEY = "employeeFilterPresets";
@@ -66,6 +70,8 @@ export default function Employees() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const token = localStorage.getItem("token");
+
+  const bulk = useBulkOperations(employees);
 
   const handleSort = (col: string) => {
     if (sort === col) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -255,9 +261,27 @@ export default function Employees() {
           />
         ) : (
           <>
+            <BulkActionBar
+              selectedCount={bulk.selectedIds.size}
+              totalCount={employees.length}
+              allSelected={bulk.allSelected}
+              someSelected={bulk.someSelected}
+              isRunning={bulk.isRunning}
+              progress={bulk.progress}
+              onToggleAll={bulk.toggleAll}
+              onClearSelection={bulk.clearSelection}
+              onAction={(action) => bulk.runBulkAction(action)}
+            />
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={bulk.allSelected}
+                      onCheckedChange={() => bulk.toggleAll()}
+                      aria-label="Tout sélectionner"
+                    />
+                  </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("matricule")}>
                     Matricule<SortIcon col="matricule" />
                   </TableHead>
@@ -291,6 +315,13 @@ export default function Employees() {
                       )}
                       onClick={() => navigate(`/employees/${emp.id}`)}
                     >
+                      <TableCell onClick={e => e.stopPropagation()}>
+                        <Checkbox
+                          checked={bulk.selectedIds.has(emp.id)}
+                          onCheckedChange={() => bulk.toggleOne(emp.id)}
+                          aria-label={`Sélectionner ${emp.matricule}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-mono font-medium">{emp.matricule}</TableCell>
                       <TableCell>{emp.prenom} {emp.nom}</TableCell>
                       <TableCell>{ver?.fonction ?? "—"}</TableCell>
@@ -342,6 +373,13 @@ export default function Employees() {
               </TableBody>
             </Table>
 
+            <BatchRenewDialog
+              open={bulk.renewDialogOpen}
+              onOpenChange={bulk.setRenewDialogOpen}
+              selectedCount={bulk.selectedIds.size}
+              onConfirm={bulk.confirmBulkRenewal}
+              isRenewing={bulk.isRunning}
+            />
           </>
         )}
       </div>

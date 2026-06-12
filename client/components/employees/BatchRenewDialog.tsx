@@ -16,7 +16,7 @@ interface BatchRenewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedCount: number;
-  onConfirm: (validationDate: string) => void;
+  onConfirm: (validationDate: string, expirationDate: string) => void;
   isRenewing?: boolean;
 }
 
@@ -28,12 +28,16 @@ export function BatchRenewDialog({
   isRenewing = false,
 }: BatchRenewDialogProps) {
   const [validationDate, setValidationDate] = useState("");
+  const [expirationDate, setExpirationDate] = useState("");
+
+  const isValid =
+    validationDate && expirationDate && expirationDate > validationDate;
 
   const handleConfirm = () => {
-    if (validationDate) {
-      onConfirm(validationDate);
+    if (isValid) {
+      onConfirm(validationDate, expirationDate);
       setValidationDate("");
-      onOpenChange(false);
+      setExpirationDate("");
     }
   };
 
@@ -43,7 +47,7 @@ export function BatchRenewDialog({
         <DialogHeader>
           <DialogTitle>Renouveler les habilitations sélectionnées</DialogTitle>
           <DialogDescription>
-            Sélectionnez une nouvelle date de validation pour {selectedCount}{" "}
+            Sélectionnez les nouvelles dates de validation et d'expiration pour {selectedCount}{" "}
             habilitation(s)
           </DialogDescription>
         </DialogHeader>
@@ -59,6 +63,22 @@ export function BatchRenewDialog({
               onChange={(e) => setValidationDate(e.target.value)}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="batch-expiration-date">
+              Nouvelle date d'expiration *
+            </Label>
+            <Input
+              id="batch-expiration-date"
+              type="date"
+              value={expirationDate}
+              onChange={(e) => setExpirationDate(e.target.value)}
+            />
+            {validationDate && expirationDate && expirationDate <= validationDate && (
+              <p className="text-sm text-destructive">
+                La date d'expiration doit être postérieure à la date de validation
+              </p>
+            )}
+          </div>
         </div>
         <DialogFooter>
           <Button
@@ -66,13 +86,14 @@ export function BatchRenewDialog({
             onClick={() => {
               onOpenChange(false);
               setValidationDate("");
+              setExpirationDate("");
             }}
           >
             Annuler
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={isRenewing || !validationDate}
+            disabled={isRenewing || !isValid}
           >
             {isRenewing ? (
               <span className="flex items-center gap-2">

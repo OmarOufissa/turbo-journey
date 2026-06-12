@@ -136,8 +136,10 @@ export async function autoActivateRenewalsJob(): Promise<{ activated: number; er
             divisionId: parseInt(snap.divisionId),
             serviceId: parseInt(snap.serviceId),
             equipeId: snap.equipeId ? parseInt(snap.equipeId) : null,
+            habRows: snap.habRows ?? null,
             dateValidation: snap.dateValidation,
             dateExpiration: snap.dateExpiration,
+            pdfPath: null,
           }).returning();
 
           await tx.update(schema.employees)
@@ -153,6 +155,7 @@ export async function autoActivateRenewalsJob(): Promise<{ activated: number; er
 
           await tx.delete(schema.pendingRenewals).where(eq(schema.pendingRenewals.id, renewal.renewalId));
         });
+        await resetNotificationLogsForEmployee(renewal.employeeId);
         activated++;
         console.log(`[JOB] Auto-activated renewal for employee ${renewal.employeeId}`);
       } catch (err) {
