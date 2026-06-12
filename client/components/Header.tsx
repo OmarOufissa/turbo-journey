@@ -9,6 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { GlobalSearchBar } from "@/components/GlobalSearchBar";
+import { NotificationPanel } from "@/components/NotificationPanel";
 
 export function Header() {
   const navigate = useNavigate();
@@ -32,8 +34,15 @@ export function Header() {
           <SidebarTrigger />
         </div>
 
+        {/* Center: Search */}
+        <div className="hidden md:flex flex-1 justify-center px-4">
+          <GlobalSearchBar />
+        </div>
+
         {/* Right: Controls */}
         <div className="flex items-center gap-2">
+          <NotificationPanel />
+
           <Button
             variant="ghost"
             size="icon"
