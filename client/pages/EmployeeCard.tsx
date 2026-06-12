@@ -13,6 +13,12 @@ import { getEmployee, revertToVersion } from "@/api/employees";
 import { setLastAction } from "@/components/UndoButton";
 import { getExpirationStatus, EXPIRATION_COLOR_CONFIG } from "@/types/habilitation";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+
+type PendingConfirm =
+  | { type: "revert"; versionId: number; versionNumber: number }
+  | { type: "deletePdf" }
+  | { type: "versionDeletePdf"; versionId: number };
 
 export default function EmployeeCard() {
   const { id } = useParams();
@@ -24,6 +30,7 @@ export default function EmployeeCard() {
   const [expandedVersionId, setExpandedVersionId] = useState<number | null>(null);
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [versionPdfLoading, setVersionPdfLoading] = useState<Record<number, boolean>>({});
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
   const token = localStorage.getItem("token");
 
   const reload = async () => {
@@ -40,8 +47,13 @@ export default function EmployeeCard() {
       .finally(() => setIsLoading(false));
   }, [id]);
 
-  const handleRevert = async (versionId: number, versionNumber: number) => {
-    if (!employee || employee.deleted || !window.confirm(`Revenir à la version ${versionNumber} ?`)) return;
+  const handleRevert = (versionId: number, versionNumber: number) => {
+    if (!employee || employee.deleted) return;
+    setPendingConfirm({ type: "revert", versionId, versionNumber });
+  };
+
+  const doRevert = async (versionId: number, versionNumber: number) => {
+    if (!employee) return;
     try {
       const res = await revertToVersion(employee.id, versionId);
       if (res.success) {
@@ -74,8 +86,13 @@ export default function EmployeeCard() {
     }
   };
 
-  const handleDeletePdf = async () => {
-    if (!employee || !window.confirm("Supprimer le PDF de cette version ?")) return;
+  const handleDeletePdf = () => {
+    if (!employee) return;
+    setPendingConfirm({ type: "deletePdf" });
+  };
+
+  const doDeletePdf = async () => {
+    if (!employee) return;
     try {
       const res = await fetch(`/api/employees/${employee.id}/pdf`, {
         method: "DELETE",
@@ -114,8 +131,13 @@ export default function EmployeeCard() {
     }
   };
 
-  const handleVersionDeletePdf = async (versionId: number) => {
-    if (!employee || !window.confirm("Supprimer le PDF de cette version ?")) return;
+  const handleVersionDeletePdf = (versionId: number) => {
+    if (!employee) return;
+    setPendingConfirm({ type: "versionDeletePdf", versionId });
+  };
+
+  const doVersionDeletePdf = async (versionId: number) => {
+    if (!employee) return;
     setVersionPdfLoading(p => ({ ...p, [versionId]: true }));
     try {
       const res = await fetch(`/api/employees/${employee.id}/versions/${versionId}/pdf`, {
@@ -132,6 +154,33 @@ export default function EmployeeCard() {
       toast({ title: "Erreur", description: "Impossible de supprimer le PDF", variant: "destructive" });
     } finally {
       setVersionPdfLoading(p => ({ ...p, [versionId]: false }));
+    }
+  };
+
+  const handleConfirmAction = () => {
+    if (!pendingConfirm) return;
+    switch (pendingConfirm.type) {
+      case "revert":
+        doRevert(pendingConfirm.versionId, pendingConfirm.versionNumber);
+        break;
+      case "deletePdf":
+        doDeletePdf();
+        break;
+      case "versionDeletePdf":
+        doVersionDeletePdf(pendingConfirm.versionId);
+        break;
+    }
+  };
+
+  const getConfirmDialogProps = () => {
+    switch (pendingConfirm?.type) {
+      case "revert":
+        return { title: "Restaurer la version", description: `Revenir à la version ${pendingConfirm.versionNumber} ?`, confirmText: "Restaurer", variant: "warning" as const };
+      case "deletePdf":
+      case "versionDeletePdf":
+        return { title: "Supprimer le PDF", description: "Supprimer le PDF de cette version ?", confirmText: "Supprimer", variant: "danger" as const };
+      default:
+        return { title: "", description: "" };
     }
   };
 
@@ -416,6 +465,13 @@ export default function EmployeeCard() {
             </CardContent>
           </Card>
         )}
+
+        <ConfirmDialog
+          open={pendingConfirm !== null}
+          onOpenChange={(open) => !open && setPendingConfirm(null)}
+          onConfirm={handleConfirmAction}
+          {...getConfirmDialogProps()}
+        />
       </div>
     </Layout>
   );

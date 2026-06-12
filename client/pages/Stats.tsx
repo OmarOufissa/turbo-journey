@@ -10,6 +10,7 @@ import { getStats } from "@/api/employees";
 import { FileText, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface StatsData {
   total: number;
@@ -63,6 +64,7 @@ export default function Stats() {
   const [error, setError] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; current: string } | null>(null);
+  const [confirmBulkPdf, setConfirmBulkPdf] = useState(false);
   const token = localStorage.getItem("token");
 
   const load = () => {
@@ -83,8 +85,9 @@ export default function Stats() {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
 
-  const handleBulkPdf = async () => {
-    if (!window.confirm("Générer les PDFs pour tous les employés actifs ? Cela peut prendre quelques minutes.")) return;
+  const handleBulkPdf = () => setConfirmBulkPdf(true);
+
+  const doBulkPdf = async () => {
     setBulkLoading(true);
     setBulkProgress(null);
     try {
@@ -305,6 +308,16 @@ export default function Stats() {
             </CardContent>
           </Card>
         )}
+
+        <ConfirmDialog
+          open={confirmBulkPdf}
+          onOpenChange={setConfirmBulkPdf}
+          title="Générer tous les PDFs"
+          description="Générer les PDFs pour tous les employés actifs ? Cela peut prendre quelques minutes."
+          confirmText="Générer"
+          variant="warning"
+          onConfirm={doBulkPdf}
+        />
       </div>
     </Layout>
   );

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Plus, Trash2, Building2, Layers, Users } from "lucide-react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface Division { id: number; name: string; }
 interface Service { id: number; name: string; divisionId: number; }
@@ -32,6 +33,12 @@ export default function OrgSettings() {
 
   const [selDivForSvc, setSelDivForSvc] = useState<string>("all");
   const [selSvcForEq,  setSelSvcForEq]  = useState<string>("all");
+
+  type PendingDelete =
+    | { type: "division"; id: number }
+    | { type: "service"; id: number }
+    | { type: "equipe"; id: number; serviceId: number };
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
 
   const load = async () => {
     const [d, s] = await Promise.all([
@@ -72,25 +79,34 @@ export default function OrgSettings() {
     else toast({ title: "Erreur", description: r.error, variant: "destructive" });
   };
 
-  const deleteDiv = async (id: number) => {
-    if (!window.confirm("Supprimer cette division ? Cela supprimera également ses services et équipes.")) return;
-    const r = await apiFetch(`/api/org/divisions/${id}`, { method: "DELETE" });
-    if (r.success) { load(); toast({ title: "Division supprimée" }); }
-    else toast({ title: "Erreur", description: r.error, variant: "destructive" });
+  const deleteDiv = (id: number) => setPendingDelete({ type: "division", id });
+  const deleteSvc = (id: number) => setPendingDelete({ type: "service", id });
+  const deleteEq = (id: number, serviceId: number) => setPendingDelete({ type: "equipe", id, serviceId });
+
+  const confirmPendingDelete = async () => {
+    if (!pendingDelete) return;
+    if (pendingDelete.type === "division") {
+      const r = await apiFetch(`/api/org/divisions/${pendingDelete.id}`, { method: "DELETE" });
+      if (r.success) { load(); toast({ title: "Division supprimée" }); }
+      else toast({ title: "Erreur", description: r.error, variant: "destructive" });
+    } else if (pendingDelete.type === "service") {
+      const r = await apiFetch(`/api/org/services/${pendingDelete.id}`, { method: "DELETE" });
+      if (r.success) { load(); toast({ title: "Service supprimé" }); }
+      else toast({ title: "Erreur", description: r.error, variant: "destructive" });
+    } else {
+      const r = await apiFetch(`/api/org/equipes/${pendingDelete.id}`, { method: "DELETE" });
+      if (r.success) { loadEquipes(String(pendingDelete.serviceId)); toast({ title: "Équipe supprimée" }); }
+      else toast({ title: "Erreur", description: r.error, variant: "destructive" });
+    }
   };
 
-  const deleteSvc = async (id: number) => {
-    if (!window.confirm("Supprimer ce service ?")) return;
-    const r = await apiFetch(`/api/org/services/${id}`, { method: "DELETE" });
-    if (r.success) { load(); toast({ title: "Service supprimé" }); }
-    else toast({ title: "Erreur", description: r.error, variant: "destructive" });
-  };
-
-  const deleteEq = async (id: number, serviceId: number) => {
-    if (!window.confirm("Supprimer cette équipe ?")) return;
-    const r = await apiFetch(`/api/org/equipes/${id}`, { method: "DELETE" });
-    if (r.success) { loadEquipes(String(serviceId)); toast({ title: "Équipe supprimée" }); }
-    else toast({ title: "Erreur", description: r.error, variant: "destructive" });
+  const getPendingDeleteDescription = () => {
+    switch (pendingDelete?.type) {
+      case "division": return "Supprimer cette division ? Cela supprimera également ses services et équipes.";
+      case "service": return "Supprimer ce service ?";
+      case "equipe": return "Supprimer cette équipe ?";
+      default: return "";
+    }
   };
 
   const filteredServices = selDivForSvc !== "all" ? services.filter(s => s.divisionId === parseInt(selDivForSvc)) : services;
@@ -222,6 +238,16 @@ export default function OrgSettings() {
             </div>
           </CardContent>
         </Card>
+
+        <ConfirmDialog
+          open={pendingDelete !== null}
+          onOpenChange={(open) => !open && setPendingDelete(null)}
+          title="Supprimer"
+          description={getPendingDeleteDescription()}
+          confirmText="Supprimer"
+          variant="danger"
+          onConfirm={confirmPendingDelete}
+        />
       </div>
     </Layout>
   );

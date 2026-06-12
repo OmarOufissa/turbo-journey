@@ -18,6 +18,7 @@ import { getEmployees, deleteEmployee } from "@/api/employees";
 import { useBulkOperations } from "@/hooks/useBulkOperations";
 import { BulkActionBar } from "@/components/employees/BulkActionBar";
 import { BatchRenewDialog } from "@/components/employees/BatchRenewDialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 const COLOR_TOGGLE_KEY = "colorCodingEnabled";
 const PRESETS_KEY = "employeeFilterPresets";
@@ -113,8 +114,15 @@ export default function Employees() {
     localStorage.setItem(COLOR_TOGGLE_KEY, String(colorCodingEnabled));
   }, [colorCodingEnabled]);
 
-  const handleDelete = async (id: number, matricule: string) => {
-    if (!window.confirm(`Supprimer l'employé ${matricule} ?`)) return;
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; matricule: string } | null>(null);
+
+  const handleDelete = (id: number, matricule: string) => {
+    setDeleteTarget({ id, matricule });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const { id, matricule } = deleteTarget;
     try {
       await deleteEmployee(id);
       toast({ title: "Succès", description: `Employé ${matricule} supprimé` });
@@ -379,6 +387,16 @@ export default function Employees() {
               selectedCount={bulk.selectedIds.size}
               onConfirm={bulk.confirmBulkRenewal}
               isRenewing={bulk.isRunning}
+            />
+
+            <ConfirmDialog
+              open={deleteTarget !== null}
+              onOpenChange={(open) => !open && setDeleteTarget(null)}
+              title="Supprimer l'employé"
+              description={deleteTarget ? `Supprimer l'employé ${deleteTarget.matricule} ?` : ""}
+              confirmText="Supprimer"
+              variant="danger"
+              onConfirm={confirmDelete}
             />
           </>
         )}
