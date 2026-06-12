@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { HabRows } from '../schema';
 import { PDFS_DIR, buildPdfFilename, resolvePdfPath } from '../utils/pathUtils';
+import { formatDateFrench } from '../utils/dateUtils';
 
 export interface VersionSnapshot {
   matricule: string;
@@ -37,20 +38,6 @@ const UPLOAD_DIR = PDFS_DIR;
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-const FRENCH_MONTHS = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
-];
-
-function formatDateFrench(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    return `${d.getUTCDate()} ${FRENCH_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
-  } catch {
-    return dateStr;
-  }
 }
 
 export class PdfValidationError extends Error {
