@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq, desc, sql, and, gte, lte, gt, like, inArray, notInArray } from "drizzle-orm";
+import { getUserIdFromRequest } from "../utils/authHelpers";
 
 const RENEWAL_ACTIONS = ["ACTIVATE_RENEWAL", "CANCEL_RENEWAL"];
 
@@ -190,6 +191,7 @@ export const revertAuditLog_Handler: RequestHandler = async (req, res) => {
         dateValidation: snap.dateValidation ?? snap.date_validation,
         dateExpiration: snap.dateExpiration ?? snap.date_expiration,
         pdfPath: snap.pdfPath ?? null,
+        createdBy: getUserIdFromRequest(req),
       }).returning();
 
       await tx.update(schema.employees).set({ currentVersionId: newVersion.id }).where(eq(schema.employees.id, employeeId));

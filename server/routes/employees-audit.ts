@@ -4,6 +4,7 @@ import * as schema from "../schema";
 import { eq, desc, asc, sql, and, or, like, gte, lte, isNull, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
+import { getUserIdFromRequest } from "../utils/authHelpers";
 
 const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "SF6"] as const;
 const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"] as const;
@@ -351,6 +352,7 @@ export const createEmployee: RequestHandler = async (req, res) => {
         habRows: habRows ?? null,
         dateValidation,
         dateExpiration,
+        createdBy: getUserIdFromRequest(req),
       }).returning();
 
       await tx.update(schema.employees).set({ currentVersionId: version.id }).where(eq(schema.employees.id, emp.id));
@@ -429,6 +431,7 @@ export const updateEmployee: RequestHandler = async (req, res) => {
         habRows: habRows ?? null,
         dateValidation,
         dateExpiration,
+        createdBy: getUserIdFromRequest(req),
       }).returning();
 
       await tx.update(schema.employees).set({ currentVersionId: version.id }).where(eq(schema.employees.id, id));
@@ -529,6 +532,7 @@ export const restoreEmployee: RequestHandler = async (req, res) => {
           dateValidation: currentVersion.dateValidation,
           dateExpiration: currentVersion.dateExpiration,
           pdfPath: null,
+          createdBy: getUserIdFromRequest(req),
         }).returning();
         newVersionId = newVersion.id;
       }
@@ -644,6 +648,7 @@ export const revertToVersion: RequestHandler = async (req, res) => {
         equipeId: sourceVersion.equipeId,
         dateValidation: sourceVersion.dateValidation,
         dateExpiration: sourceVersion.dateExpiration,
+        createdBy: getUserIdFromRequest(req),
       }).returning();
 
       await tx.update(schema.employees).set({ currentVersionId: newVersion.id }).where(eq(schema.employees.id, employeeId));
@@ -819,6 +824,7 @@ export const deletePdf: RequestHandler = async (req, res) => {
         dateValidation: ver.dateValidation,
         dateExpiration: ver.dateExpiration,
         pdfPath: null,
+        createdBy: getUserIdFromRequest(req),
       }).returning();
 
       await tx.update(schema.employees).set({ currentVersionId: newVersion.id, updatedAt: nowStr } as any).where(eq(schema.employees.id, empId));

@@ -124,6 +124,7 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
         dateValidation: snap.dateValidation,
         dateExpiration: snap.dateExpiration,
         pdfPath: null,
+        createdBy: userId,
       }).returning();
 
       await tx.update(schema.employees).set({ currentVersionId: version.id }).where(eq(schema.employees.id, renewal.employeeId));
