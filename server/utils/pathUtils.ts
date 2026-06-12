@@ -8,7 +8,9 @@ import path from "path";
 import fs from "fs";
 
 // Base directories — resolved once at module load
-export const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
+export const UPLOADS_DIR = process.env.UPLOADS_BASE_DIR
+  ? path.resolve(process.env.UPLOADS_BASE_DIR)
+  : path.resolve(process.cwd(), "uploads");
 export const PDFS_DIR = path.join(UPLOADS_DIR, "pdfs");
 export const BACKUPS_DIR = path.join(UPLOADS_DIR, "backups");
 export const TEMP_DIR = path.join(UPLOADS_DIR, "temp");
