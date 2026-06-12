@@ -26,7 +26,6 @@ import Renewals from "./pages/Renewals";
 import Trash from "./pages/Trash";
 import Stats from "./pages/Stats";
 import Calendar from "./pages/Calendar";
-import Analytics from "./pages/Analytics";
 import AuditLog from "./pages/AuditLog";
 import EmployeeHistory from "./pages/EmployeeHistory";
 import BackupRestore from "./pages/BackupRestore";
@@ -184,14 +183,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <Calendar />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute>
-                <Analytics />
               </ProtectedRoute>
             }
           />

@@ -79,11 +79,6 @@ const navigationItems = [
         url: "/reports",
       },
       {
-        title: "Analyses",
-        icon: FileText,
-        url: "/analytics",
-      },
-      {
         title: "Journal d'Audit",
         icon: Shield,
         url: "/audit-log",
