@@ -2,6 +2,7 @@ import { PDFDocument, StandardFonts, rgb, PDFPage } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
 import type { HabRows } from '../schema';
+import { PDFS_DIR, buildPdfFilename, resolvePdfPath } from '../utils/pathUtils';
 
 export interface VersionSnapshot {
   matricule: string;
@@ -31,8 +32,7 @@ function resolveTemplatePath(): string {
 }
 
 const TEMPLATE_PATH = process.env.PDF_TEMPLATE_PATH ?? resolveTemplatePath();
-const UPLOAD_DIR = process.env.UPLOADS_DIR
-  ?? path.join(process.cwd(), 'uploads', 'pdfs');
+const UPLOAD_DIR = PDFS_DIR;
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -375,8 +375,8 @@ export async function generateHabilitationPdf(
   if (pages[1]) fillPage2(pages[1], snapshot, fonts);
 
   const pdfBytes = await pdfDoc.save();
-  const filename  = `hab${snapshot.matricule}_v${versionNumber}.pdf`;
-  const fullPath  = path.join(UPLOAD_DIR, filename);
+  const filename  = buildPdfFilename(snapshot.matricule, versionNumber);
+  const fullPath  = resolvePdfPath(filename);
   fs.writeFileSync(fullPath, pdfBytes);
 
   const stats = fs.statSync(fullPath);
@@ -386,14 +386,20 @@ export async function generateHabilitationPdf(
 }
 
 export function getPdfPath(filename: string): string {
-  return path.join(UPLOAD_DIR, filename);
+  return resolvePdfPath(filename);
 }
 
 export function pdfExists(filename: string): boolean {
-  return fs.existsSync(path.join(UPLOAD_DIR, filename));
+  try {
+    return fs.existsSync(resolvePdfPath(filename));
+  } catch {
+    return false;
+  }
 }
 
 export function deletePdf(filename: string): void {
-  const p = path.join(UPLOAD_DIR, filename);
-  if (fs.existsSync(p)) fs.unlinkSync(p);
+  try {
+    const p = resolvePdfPath(filename);
+    if (fs.existsSync(p)) fs.unlinkSync(p);
+  } catch { /* invalid filename — nothing to delete */ }
 }

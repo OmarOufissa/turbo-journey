@@ -416,7 +416,7 @@ export function createServer() {
         const schema = await import("./schema");
         const { eq, desc } = await import("drizzle-orm");
         const fs = await import("fs");
-        const path = await import("path");
+        const { sanitizeFilename, resolvePdfPath } = await import("./utils/pathUtils");
 
         const ver = await db.query.employeeVersions.findFirst({
           where: eq(schema.employeeVersions.employeeId, employeeId),
@@ -429,11 +429,8 @@ export function createServer() {
         });
         if (!emp) return res.status(404).json({ success: false, error: "Employee not found" });
 
-        const uploadDir = process.env.UPLOADS_DIR ?? path.join(process.cwd(), "uploads", "pdfs");
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-        const filename = `hab${emp.matricule}_uploaded.pdf`;
-        const filePath = path.join(uploadDir, filename);
+        const filename = sanitizeFilename(`hab${emp.matricule}_v${ver.versionNumber}_uploaded.pdf`);
+        const filePath = resolvePdfPath(filename);
         const buffer = Buffer.from(pdfBase64, "base64");
         fs.writeFileSync(filePath, buffer);
 
