@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Loader2,
+  UserPlus,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -64,6 +65,8 @@ export default function Settings() {
   const [backupLoading, setBackupLoading] = useState(false);
   const [resyncLoading, setResyncLoading] = useState(false);
   const [resyncResult, setResyncResult] = useState<{ updated: number; skipped: number } | null>(null);
+  const [syncNewLoading, setSyncNewLoading] = useState(false);
+  const [syncNewResult, setSyncNewResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null);
   const [appVersion, setAppVersion] = useState<string>("—");
 
   // Load app version from package.json via server
@@ -117,6 +120,28 @@ export default function Settings() {
       toast({ title: "Erreur", description: err.message, variant: "destructive" });
     } finally {
       setResyncLoading(false);
+    }
+  }
+
+  async function handleSyncNewEmployees() {
+    setSyncNewLoading(true);
+    setSyncNewResult(null);
+    try {
+      const res = await fetch("/api/sync-new-employees", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token") ?? ""}` },
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSyncNewResult(json.data);
+        toast({ title: "Synchronisation terminée", description: `${json.data.created} nouveau(x) employé(s) ajouté(s)` });
+      } else {
+        throw new Error(json.error ?? "Erreur");
+      }
+    } catch (err: any) {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    } finally {
+      setSyncNewLoading(false);
     }
   }
 
@@ -364,6 +389,42 @@ export default function Settings() {
               <p className="text-sm text-green-600 dark:text-green-400">
                 ✓ {resyncResult.updated} employés mis à jour, {resyncResult.skipped} ignorés
               </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── Sync New Employees ───────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5" />
+              Ajouter les nouveaux employés
+            </CardTitle>
+            <CardDescription>
+              Recherche dans le fichier Excel source les employés absents de la base et les ajoute. N'affecte pas les employés existants.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button
+              variant="outline"
+              onClick={handleSyncNewEmployees}
+              disabled={syncNewLoading}
+              className="gap-2"
+            >
+              {syncNewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+              {syncNewLoading ? "Synchronisation en cours..." : "Synchroniser maintenant"}
+            </Button>
+            {syncNewResult && (
+              <div className="text-sm space-y-1">
+                <p className="text-green-600 dark:text-green-400">
+                  ✓ {syncNewResult.created} nouveau(x) employé(s) ajouté(s), {syncNewResult.skipped} ignoré(s)
+                </p>
+                {syncNewResult.errors.length > 0 && (
+                  <ul className="text-yellow-600 dark:text-yellow-400 list-disc list-inside">
+                    {syncNewResult.errors.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>

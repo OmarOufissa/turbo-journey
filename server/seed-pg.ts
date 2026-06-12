@@ -452,3 +452,90 @@ export async function resyncEmployeeNames(): Promise<{ updated: number; skipped:
   console.log(`[resyncEmployeeNames] updated=${updated} skipped=${skipped} errors=${errors.length}`);
   return { updated, skipped, errors };
 }
+
+// Create employees present in the Excel source but missing from the database,
+// without touching existing employees (use resyncEmployeeNames for that).
+export async function syncNewEmployeesFromExcel(): Promise<{ created: number; skipped: number; errors: string[] }> {
+  const errors: string[] = [];
+  let created = 0;
+  let skipped = 0;
+
+  const employeesData = await parseExcelData();
+
+  const existingRows = await db.select({ matricule: schema.employees.matricule }).from(schema.employees);
+  const existingMatricules = new Set(existingRows.map((r) => r.matricule));
+
+  const divisionRows = await db.select().from(schema.divisions);
+  const serviceRows = await db.select().from(schema.services);
+  const equipeRows = await db.select().from(schema.equipes);
+
+  for (const emp of employeesData) {
+    if (existingMatricules.has(emp.matricule)) continue;
+
+    if (!/^\d{5}$/.test(emp.matricule)) {
+      skipped++;
+      errors.push(`${emp.matricule}: format de matricule invalide (5 chiffres attendus)`);
+      continue;
+    }
+
+    const division = divisionRows.find((d) => d.name === emp.division);
+    if (!division) {
+      skipped++;
+      errors.push(`${emp.matricule}: division "${emp.division}" introuvable`);
+      continue;
+    }
+
+    const service = serviceRows.find((s) => s.name === emp.service && s.divisionId === division.id);
+    if (!service) {
+      skipped++;
+      errors.push(`${emp.matricule}: service "${emp.service}" introuvable`);
+      continue;
+    }
+
+    const equipe = emp.equipe ? equipeRows.find((e) => e.name === emp.equipe && e.serviceId === service.id) : undefined;
+
+    try {
+      const dateExpiration = emp.dateExpiration || calculateExpirationDate(emp.dateValidation, "HT");
+      const nDeTitre = emp.nTitre || "INCONNU";
+
+      await db.transaction(async (tx) => {
+        const [newEmp] = await tx.insert(schema.employees)
+          .values({ matricule: emp.matricule, nom: emp.nom, prenom: emp.prenom })
+          .returning();
+
+        const [version] = await tx.insert(schema.employeeVersions).values({
+          employeeId: newEmp.id,
+          versionNumber: 1,
+          stCodes: emp.stCodes,
+          htCodes: emp.htCodes,
+          nDeTitre,
+          fonction: emp.fonction,
+          divisionId: division.id,
+          serviceId: service.id,
+          equipeId: equipe?.id ?? null,
+          dateValidation: emp.dateValidation,
+          dateExpiration,
+        }).returning();
+
+        await tx.update(schema.employees).set({ currentVersionId: version.id }).where(eq(schema.employees.id, newEmp.id));
+
+        const [auditLog] = await tx.insert(schema.auditLogs).values({
+          action: "CREATE_EMPLOYEE",
+          entityId: newEmp.id,
+          snapshotOld: null,
+          snapshotNew: { matricule: emp.matricule, nom: emp.nom, prenom: emp.prenom, versionId: version.id, source: "excel-sync" } as any,
+        }).returning();
+
+        await tx.update(schema.employeeVersions).set({ auditLogId: auditLog.id }).where(eq(schema.employeeVersions.id, version.id));
+      });
+
+      existingMatricules.add(emp.matricule);
+      created++;
+    } catch (err) {
+      errors.push(`${emp.matricule}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  console.log(`[syncNewEmployeesFromExcel] created=${created} skipped=${skipped} errors=${errors.length}`);
+  return { created, skipped, errors };
+}

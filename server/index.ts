@@ -740,6 +740,21 @@ export function createServer() {
     });
   });
 
+  app.post("/api/sync-new-employees", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { syncNewEmployeesFromExcel } = await import("./seed-pg");
+        const result = await syncNewEmployeesFromExcel();
+        res.json({ success: true, data: result, error: null });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[sync-new-employees]", msg);
+        res.status(500).json({ success: false, data: null, error: msg });
+      }
+    });
+  });
+
   app.post("/api/backups/create", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     authMiddleware(req, res, async () => {
