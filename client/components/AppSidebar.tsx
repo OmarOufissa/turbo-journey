@@ -11,6 +11,8 @@ import {
   LogOut,
   Trash2,
   Clock,
+  Building2,
+  DatabaseBackup,
 } from "lucide-react";
 import {
   Sidebar,
@@ -172,6 +174,22 @@ export function AppSidebar() {
                   <Link to="/trash">
                     <Trash2 className="w-4 h-4" />
                     <span>Corbeille</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/org-settings")}>
+                  <Link to="/org-settings">
+                    <Building2 className="w-4 h-4" />
+                    <span>Structure organisationnelle</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/backup-restore")}>
+                  <Link to="/backup-restore">
+                    <DatabaseBackup className="w-4 h-4" />
+                    <span>Sauvegardes</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

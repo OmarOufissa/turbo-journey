@@ -34,6 +34,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Reports from "./pages/Reports";
 import RenewalForm from "./pages/RenewalForm";
+import OrgSettings from "./pages/OrgSettings";
 
 const queryClient = new QueryClient();
 
@@ -216,6 +217,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <BackupRestore />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/org-settings"
+            element={
+              <ProtectedRoute>
+                <OrgSettings />
               </ProtectedRoute>
             }
           />

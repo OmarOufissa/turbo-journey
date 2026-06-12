@@ -137,7 +137,14 @@ export const getServicesByDivision: RequestHandler = async (req, res) => {
 
 export const getEquipesByService: RequestHandler = async (req, res) => {
   try {
+    if (req.params.serviceId === "all") {
+      const eqs = await db.select().from(schema.equipes).orderBy(asc(schema.equipes.name));
+      return res.json({ success: true, data: eqs, error: null });
+    }
+
     const serviceId = parseInt(req.params.serviceId);
+    if (isNaN(serviceId)) return res.status(400).json({ success: false, data: null, error: "serviceId invalide" });
+
     const eqs = await db.select().from(schema.equipes).where(eq(schema.equipes.serviceId, serviceId)).orderBy(asc(schema.equipes.name));
     res.json({ success: true, data: eqs, error: null });
   } catch (err) {
