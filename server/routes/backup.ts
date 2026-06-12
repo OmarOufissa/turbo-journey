@@ -11,6 +11,7 @@ import {
   exportAllData,
   createBackupFile,
   verifyBackup,
+  restoreFromBackup,
   listBackups,
   cleanupOldBackups,
   getBackupStatistics,
@@ -128,6 +129,55 @@ export const verifyBackup_Handler: RequestHandler = async (req, res) => {
   } catch (err) {
     console.error("Error verifying backup:", err);
     res.status(500).json({ message: "Error verifying backup" });
+  }
+};
+
+/**
+ * POST /api/backups/:backupId/restore
+ * Restore the database from a backup, overwriting all current data
+ */
+export const restoreBackup_Handler: RequestHandler = async (req, res) => {
+  try {
+    const { backupId } = req.params;
+    const backups = listBackups();
+
+    const backup = backups.find((b) => b.backupId === backupId);
+    if (!backup) {
+      return res.status(404).json({ message: "Backup not found" });
+    }
+
+    const verification = await verifyBackup(backup.filePath);
+    if (!verification.isValid) {
+      return res.status(400).json({
+        message: "Backup is invalid or corrupted, restore aborted",
+        errors: verification.errors,
+      });
+    }
+
+    const result = await restoreFromBackup(backup.filePath);
+
+    // Log to audit trail
+    await logAuditActionSafe(
+      1,
+      "RESTORE_DATABASE",
+      null,
+      null,
+      {
+        action: "Database restored from backup",
+        backupId,
+        ...result,
+      }
+    );
+
+    res.json({
+      message: "Database restored successfully",
+      backupId,
+      ...result,
+    });
+  } catch (err) {
+    console.error("Error restoring backup:", err);
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ message: `Error restoring backup: ${errorMsg}` });
   }
 };
 
@@ -471,6 +521,7 @@ export default {
   listBackups_Handler,
   downloadBackup_Handler,
   verifyBackup_Handler,
+  restoreBackup_Handler,
   getBackupStatistics_Handler,
   cleanupBackups_Handler,
   getCloudBackupStatus_Handler,

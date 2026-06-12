@@ -14,7 +14,8 @@ export type AuditAction =
   | "CANCEL_RENEWAL"
   | "UPLOAD_PDF"
   | "DELETE_PDF"
-  | "EXPORT_EMPLOYEES";
+  | "EXPORT_EMPLOYEES"
+  | "RESTORE_DATABASE";
 
 export async function logAuditActionSafe(
   userId: number | null,

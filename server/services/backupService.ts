@@ -1,5 +1,6 @@
 import { db } from "../db-pg";
 import * as schema from "../schema";
+import { eq } from "drizzle-orm";
 import { format } from "date-fns";
 import fs from "fs";
 import path from "path";
@@ -169,6 +170,69 @@ export async function verifyBackup(filePath: string): Promise<{
   return { isValid: errors.length === 0, errors, metadata: data.metadata };
 }
 
+export interface RestoreResult {
+  restored: Record<string, number>;
+}
+
+export async function restoreFromBackup(filePath: string): Promise<RestoreResult> {
+  if (!fs.existsSync(filePath)) {
+    throw new Error("Backup file not found");
+  }
+
+  const data: BackupData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  if (!data.payload) {
+    throw new Error("Invalid backup: missing payload");
+  }
+
+  const payload = data.payload;
+
+  return db.transaction(async (tx) => {
+    // Clear existing data (reverse dependency order)
+    await tx.delete(schema.notificationLogs);
+    await tx.delete(schema.auditLogs);
+    await tx.delete(schema.pendingRenewals);
+    await tx.delete(schema.employeeVersions);
+    await tx.delete(schema.employees);
+    await tx.delete(schema.equipes);
+    await tx.delete(schema.services);
+    await tx.delete(schema.divisions);
+
+    // Re-insert in dependency order
+    if (payload.divisions?.length) await tx.insert(schema.divisions).values(payload.divisions);
+    if (payload.services?.length) await tx.insert(schema.services).values(payload.services);
+    if (payload.equipes?.length) await tx.insert(schema.equipes).values(payload.equipes);
+
+    if (payload.employees?.length) {
+      // currentVersionId is restored below, once employee_versions exist
+      await tx.insert(schema.employees).values(
+        payload.employees.map((e: any) => ({ ...e, currentVersionId: null }))
+      );
+    }
+
+    if (payload.employeeVersions?.length) await tx.insert(schema.employeeVersions).values(payload.employeeVersions);
+    if (payload.pendingRenewals?.length) await tx.insert(schema.pendingRenewals).values(payload.pendingRenewals);
+    if (payload.auditLogs?.length) await tx.insert(schema.auditLogs).values(payload.auditLogs);
+
+    for (const emp of payload.employees ?? []) {
+      if (emp.currentVersionId != null) {
+        await tx.update(schema.employees).set({ currentVersionId: emp.currentVersionId }).where(eq(schema.employees.id, emp.id));
+      }
+    }
+
+    return {
+      restored: {
+        divisions: payload.divisions?.length ?? 0,
+        services: payload.services?.length ?? 0,
+        equipes: payload.equipes?.length ?? 0,
+        employees: payload.employees?.length ?? 0,
+        employeeVersions: payload.employeeVersions?.length ?? 0,
+        pendingRenewals: payload.pendingRenewals?.length ?? 0,
+        auditLogs: payload.auditLogs?.length ?? 0,
+      },
+    };
+  });
+}
+
 export function listBackups(backupDir: string = BACKUPS_DIR): {
   backupId: string;
   filename: string;
@@ -229,4 +293,4 @@ export function getBackupStatistics(): {
   };
 }
 
-export default { exportAllData, createBackupFile, verifyBackup, listBackups, cleanupOldBackups, getBackupStatistics };
+export default { exportAllData, createBackupFile, verifyBackup, restoreFromBackup, listBackups, cleanupOldBackups, getBackupStatistics };

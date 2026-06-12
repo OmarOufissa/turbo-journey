@@ -63,6 +63,7 @@ export default function BackupRestore() {
   const [creating, setCreating] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [verifying, setVerifying] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
   const [restoreDialog, setRestoreDialog] = useState<{ open: boolean; backupId: string | null }>({
     open: false,
     backupId: null,
@@ -209,7 +210,7 @@ export default function BackupRestore() {
 
   const handleDownloadBackup = async (backupId: string) => {
     try {
-      const response = await fetch(`/api/backups/${backupId}`, {
+      const response = await fetch(`/api/backups/download/${backupId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
@@ -236,6 +237,41 @@ export default function BackupRestore() {
         description: "Failed to download backup",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!restoreDialog.backupId) return;
+
+    try {
+      setRestoring(true);
+      const response = await fetch(`/api/backups/${restoreDialog.backupId}/restore`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to restore backup");
+      }
+
+      toast({
+        title: "Success",
+        description: "Database restored successfully from backup",
+      });
+
+      setRestoreDialog({ open: false, backupId: null });
+      await fetchBackups();
+    } catch (error) {
+      console.error("Error restoring backup:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to restore backup",
+        variant: "destructive",
+      });
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -643,9 +679,16 @@ export default function BackupRestore() {
             </p>
           </div>
           <div className="flex gap-2">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-red-600 hover:bg-red-700">
-              Restore
+            <AlertDialogCancel disabled={restoring}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={restoring}
+              onClick={(e) => {
+                e.preventDefault();
+                handleRestore();
+              }}
+            >
+              {restoring ? "Restoring..." : "Restore"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
