@@ -1,3 +1,5 @@
+import { daysUntilExpiration, getExpirationThreshold } from "@/lib/dateUtils";
+
 export type ExpirationStatus = "expired" | "3m" | "6m" | "9m" | "valid";
 
 export interface ExpirationStatusConfig {
@@ -47,20 +49,9 @@ export const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "SF6"];
 export const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"];
 
 export function getExpirationStatus(dateExpiration: string): ExpirationStatus {
-  const now = Date.now();
-  const exp = new Date(dateExpiration).getTime();
-  const diff = exp - now;
-  const ms90 = 90 * 24 * 60 * 60 * 1000;
-  const ms180 = 180 * 24 * 60 * 60 * 1000;
-  const ms270 = 270 * 24 * 60 * 60 * 1000;
-
-  if (diff < 0) return "expired";
-  if (diff <= ms90) return "3m";
-  if (diff <= ms180) return "6m";
-  if (diff <= ms270) return "9m";
-  return "valid";
+  return getExpirationThreshold(dateExpiration);
 }
 
 export function getDaysUntilExpiry(dateExpiration: string): number {
-  return Math.ceil((new Date(dateExpiration).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  return daysUntilExpiration(dateExpiration);
 }

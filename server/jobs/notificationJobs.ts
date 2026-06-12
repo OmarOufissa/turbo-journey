@@ -2,6 +2,7 @@ import { findExpiringHabilitations, getAlertStatistics } from "../services/alert
 import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq, and, lte, sql } from "drizzle-orm";
+import { getExpirationThreshold } from "../utils/dateUtils";
 
 export const CRON_PATTERNS = {
   DAILY_8AM: "0 8 * * *",
@@ -13,12 +14,9 @@ let cronJobs: any[] = [];
 
 type Threshold = "3m" | "6m" | "9m" | "expired";
 
-function getThreshold(daysLeft: number): Threshold | null {
-  if (daysLeft < 0) return "expired";
-  if (daysLeft <= 90) return "3m";
-  if (daysLeft <= 180) return "6m";
-  if (daysLeft <= 270) return "9m";
-  return null;
+function getThreshold(dateExpiration: string): Threshold | null {
+  const status = getExpirationThreshold(dateExpiration);
+  return status === "valid" ? null : status;
 }
 
 // Log employees expiring within 3/6/9 months, using notification_logs to deduplicate
@@ -29,7 +27,7 @@ export async function dailyExpirationCheckJob(): Promise<{ employeesNotified: nu
     const expiring = await findExpiringHabilitations(270);
 
     for (const emp of expiring) {
-      const threshold = getThreshold(emp.daysUntilExpiration);
+      const threshold = getThreshold(emp.dateExpiration);
       if (!threshold) continue;
 
       try {

@@ -1,6 +1,7 @@
 import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq, lt, gte, and, lte, sql } from "drizzle-orm";
+import { daysUntilExpiration, todayISO } from "../utils/dateUtils";
 
 export type AlertSeverity = "critical" | "warning" | "notice";
 
@@ -28,14 +29,6 @@ export interface EmployeeAlertStatus {
   warningCount: number;
   noticeCount: number;
   hasAlerts: boolean;
-}
-
-function daysUntil(dateStr: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const exp = new Date(dateStr);
-  exp.setHours(0, 0, 0, 0);
-  return Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function severity(days: number): AlertSeverity {
@@ -75,13 +68,13 @@ export async function findExpiringHabilitations(days: number): Promise<ExpiringE
     .where(
       and(
         eq(schema.employees.deleted, false),
-        gte(schema.employeeVersions.dateExpiration, isoDate(today)),
+        gte(schema.employeeVersions.dateExpiration, todayISO()),
         lte(schema.employeeVersions.dateExpiration, isoDate(future))
       )
     );
 
   return rows.map((r) => {
-    const d = daysUntil(r.dateExpiration);
+    const d = daysUntilExpiration(r.dateExpiration);
     return {
       employeeId: r.employeeId,
       matricule: r.matricule,

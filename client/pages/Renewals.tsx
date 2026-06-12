@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { exportRenewalsToExcel } from "@/utils/exportToExcel";
-import { formatDateFrench } from "@/lib/dateUtils";
+import { formatDateFrench, daysUntilExpiration } from "@/lib/dateUtils";
 
 interface RenewalSnapshot {
   stCodes: string[];
@@ -30,10 +30,6 @@ interface PendingRenewal {
   prenom: string;
   divisionName: string | null;
   serviceName: string | null;
-}
-
-function getDaysUntilExpiry(dateExpiration: string): number {
-  return Math.ceil((new Date(dateExpiration).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
 function urgencyClass(days: number): string {
@@ -165,7 +161,7 @@ export default function Renewals() {
         ) : (
           <div className="space-y-4">
             {renewals.map((renewal) => {
-              const days = getDaysUntilExpiry(renewal.snapshot.dateExpiration);
+              const days = daysUntilExpiration(renewal.snapshot.dateExpiration);
               return (
                 <div
                   key={renewal.id}

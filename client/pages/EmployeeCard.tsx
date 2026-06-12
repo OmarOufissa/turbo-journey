@@ -185,6 +185,11 @@ export default function EmployeeCard() {
             <Button variant="outline" size="sm" onClick={() => setShowVersions(v => !v)}>
               <History className="w-4 h-4 mr-1" />{showVersions ? "Masquer" : "Historique"}
             </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to={`/employees/${employee.id}/history`}>
+                <History className="w-4 h-4 mr-1" />Historique complet
+              </Link>
+            </Button>
             {!employee.deleted && (
               <>
                 <Button variant="outline" size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
