@@ -19,7 +19,13 @@ interface AnalyticsData {
   addedByMonth: { month: string; count: number }[];
   deletedByMonth: { month: string; count: number }[];
   activatedByMonth: { month: string; count: number }[];
-  byDivision: { division: string; count: number }[];
+}
+
+interface DivisionBreakdown {
+  name: string;
+  total: number;
+  expired: number;
+  critical: number;
 }
 
 interface ReportEmployee {
@@ -87,6 +93,7 @@ export default function Reports() {
   const [period, setPeriod] = useState<Period>("3m");
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [byDivision, setByDivision] = useState<DivisionBreakdown[]>([]);
   const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -96,9 +103,14 @@ export default function Reports() {
   async function loadAnalytics() {
     setAnalyticsLoading(true);
     try {
-      const res = await fetch("/api/analytics", { headers: { Authorization: `Bearer ${token}` } });
-      const json = await res.json();
-      if (json.success) setAnalytics(json.data);
+      const [analyticsRes, statsRes] = await Promise.all([
+        fetch("/api/analytics", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/stats", { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      const analyticsJson = await analyticsRes.json();
+      if (analyticsJson.success) setAnalytics(analyticsJson.data);
+      const statsJson = await statsRes.json();
+      if (statsJson.success) setByDivision(statsJson.data.byDivision ?? []);
     } catch {
       /* silent */
     } finally {
@@ -304,7 +316,7 @@ export default function Reports() {
             )}
 
             {/* By division */}
-            {analytics && analytics.byDivision.length > 0 && (
+            {byDivision.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Répartition par division</CardTitle>
@@ -315,16 +327,20 @@ export default function Reports() {
                       <TableRow>
                         <TableHead>Division</TableHead>
                         <TableHead className="text-right">Employés actifs</TableHead>
+                        <TableHead className="text-right">Expirés</TableHead>
+                        <TableHead className="text-right">Critiques (&lt;3m)</TableHead>
                         <TableHead className="text-right">%</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {analytics.byDivision.map(row => (
-                        <TableRow key={row.division ?? "unknown"}>
-                          <TableCell className="font-medium">{row.division ?? "Non assigné"}</TableCell>
-                          <TableCell className="text-right font-semibold">{Number(row.count)}</TableCell>
+                      {byDivision.map(row => (
+                        <TableRow key={row.name ?? "unknown"}>
+                          <TableCell className="font-medium">{row.name ?? "Non assigné"}</TableCell>
+                          <TableCell className="text-right font-semibold">{row.total}</TableCell>
+                          <TableCell className="text-right text-red-600">{row.expired}</TableCell>
+                          <TableCell className="text-right text-orange-600">{row.critical}</TableCell>
                           <TableCell className="text-right text-muted-foreground">
-                            {analytics.totalActive > 0 ? Math.round((Number(row.count) / analytics.totalActive) * 100) : 0}%
+                            {analytics && analytics.totalActive > 0 ? Math.round((row.total / analytics.totalActive) * 100) : 0}%
                           </TableCell>
                         </TableRow>
                       ))}

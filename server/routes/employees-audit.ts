@@ -734,10 +734,16 @@ export const getStats: RequestHandler = async (_req, res) => {
       .slice(0, 10)
       .map(([code, count]) => ({ code, count }));
 
-    const forecastSorted = Object.entries(monthlyForecast)
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .slice(0, 12)
-      .map(([month, count]) => ({ month, count }));
+    // Forecast only future months: zero-fill the next 12 calendar months starting
+    // from the current month, so a backlog of already-expired months can't displace them.
+    const currentMonth = now.substring(0, 7);
+    const forecastSorted: { month: string; count: number }[] = [];
+    const [curYear, curMon] = currentMonth.split("-").map(Number);
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(curYear, curMon - 1 + i, 1);
+      const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      forecastSorted.push({ month: ym, count: monthlyForecast[ym] ?? 0 });
+    }
 
     res.json({
       success: true,

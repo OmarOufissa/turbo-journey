@@ -168,19 +168,6 @@ export function createServer() {
           .groupBy(sql`strftime('%Y-%m', created_at)`)
           .orderBy(sql`strftime('%Y-%m', created_at)`);
 
-        // Employees activated by division (breakdown of current active)
-        const byDivision = await db
-          .select({
-            division: schema.divisions.name,
-            count: sql<number>`count(*)`,
-          })
-          .from(schema.employees)
-          .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
-          .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
-          .where(eq(schema.employees.deleted, false))
-          .groupBy(schema.divisions.name)
-          .orderBy(sql`count(*) desc`);
-
         // Pending renewals
         const [{ pendingRenewals }] = await db
           .select({ pendingRenewals: sql<number>`count(*)` })
@@ -237,7 +224,6 @@ export function createServer() {
             addedByMonth,
             deletedByMonth: deletedByMonth,
             activatedByMonth,
-            byDivision,
           },
           error: null,
         });
