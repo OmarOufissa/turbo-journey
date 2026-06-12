@@ -215,6 +215,40 @@ export function createServer() {
           .groupBy(sql`strftime('%Y-%m', created_at)`)
           .orderBy(sql`strftime('%Y-%m', created_at)`);
 
+        // Renewal rate: for each activated renewal, compare the activation
+        // date to the *previous* version's expiration date — renewed in time
+        // if activated on or before that expiration, lapsed otherwise.
+        const renewalLogs = await db
+          .select({ createdAt: schema.auditLogs.createdAt, snapshotNew: schema.auditLogs.snapshotNew })
+          .from(schema.auditLogs)
+          .where(eq(schema.auditLogs.action, "ACTIVATE_RENEWAL"));
+
+        let renewedInTime = 0;
+        let lapsed = 0;
+        for (const log of renewalLogs) {
+          const versionId = (log.snapshotNew as any)?.versionId;
+          if (!versionId) continue;
+
+          const [version] = await db
+            .select({ employeeId: schema.employeeVersions.employeeId, versionNumber: schema.employeeVersions.versionNumber })
+            .from(schema.employeeVersions)
+            .where(eq(schema.employeeVersions.id, versionId));
+          if (!version) continue;
+
+          const [prevVersion] = await db
+            .select({ dateExpiration: schema.employeeVersions.dateExpiration })
+            .from(schema.employeeVersions)
+            .where(and(
+              eq(schema.employeeVersions.employeeId, version.employeeId),
+              eq(schema.employeeVersions.versionNumber, version.versionNumber - 1)
+            ));
+          if (!prevVersion) continue;
+
+          const activationDate = (log.createdAt as string).slice(0, 10);
+          if (activationDate <= prevVersion.dateExpiration) renewedInTime++;
+          else lapsed++;
+        }
+
         res.json({
           success: true,
           data: {
@@ -224,6 +258,7 @@ export function createServer() {
             addedByMonth,
             deletedByMonth: deletedByMonth,
             activatedByMonth,
+            renewalRate: { renewedInTime, lapsed, total: renewedInTime + lapsed },
           },
           error: null,
         });

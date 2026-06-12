@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Download, RefreshCw, Users, UserPlus, UserMinus, Clock } from "lucide-react";
+import { Download, RefreshCw, Users, UserPlus, UserMinus, Clock, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Tab = "analytics" | "expiration";
@@ -19,6 +19,7 @@ interface AnalyticsData {
   addedByMonth: { month: string; count: number }[];
   deletedByMonth: { month: string; count: number }[];
   activatedByMonth: { month: string; count: number }[];
+  renewalRate: { renewedInTime: number; lapsed: number; total: number };
 }
 
 interface DivisionBreakdown {
@@ -210,11 +211,11 @@ export default function Reports() {
           <div className="space-y-6">
             {/* Summary KPIs */}
             {analyticsLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[0,1,2,3].map(i => <Skeleton key={i} className="h-28" />)}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {[0,1,2,3,4].map(i => <Skeleton key={i} className="h-28" />)}
               </div>
             ) : analytics && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <Card>
                   <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                     <CardTitle className="text-sm text-muted-foreground">Employés actifs</CardTitle>
@@ -257,6 +258,24 @@ export default function Reports() {
                   <CardContent>
                     <p className="text-3xl font-bold text-orange-600">{analytics.pendingRenewals}</p>
                     <p className="text-xs text-muted-foreground mt-1">à activer</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-sm text-muted-foreground">Renouvelés à temps</CardTitle>
+                    <TrendingUp className="w-4 h-4 text-blue-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {analytics.renewalRate.total > 0
+                        ? `${Math.round((analytics.renewalRate.renewedInTime / analytics.renewalRate.total) * 100)}%`
+                        : "—"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {analytics.renewalRate.total > 0
+                        ? `${analytics.renewalRate.renewedInTime}/${analytics.renewalRate.total} (${analytics.renewalRate.lapsed} en retard)`
+                        : "aucun renouvellement"}
+                    </p>
                   </CardContent>
                 </Card>
               </div>
