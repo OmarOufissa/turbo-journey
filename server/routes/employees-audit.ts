@@ -15,6 +15,11 @@ const habRowDataSchema = z.object({
   indication: z.string().default(''),
 });
 
+const HAB_ROW_KEYS = ["H0V_B0V", "H1V_B1V", "BR", "H2V_B2V", "HC_BC", "SF6"] as const;
+const habRowsSchema = z.object(
+  Object.fromEntries(HAB_ROW_KEYS.map((key) => [key, habRowDataSchema.optional()]))
+) as z.ZodType<Partial<Record<typeof HAB_ROW_KEYS[number], z.infer<typeof habRowDataSchema>>>>;
+
 const versionFieldsBase = z.object({
   stCodes: z.array(z.string()).default([]),
   htCodes: z.array(z.string()).default([]),
@@ -23,7 +28,7 @@ const versionFieldsBase = z.object({
   divisionId: z.coerce.number().positive("Division requise"),
   serviceId: z.coerce.number().positive("Service requis"),
   equipeId: z.coerce.number().positive().nullable().optional(),
-  habRows: z.record(z.string(), habRowDataSchema).nullable().optional(),
+  habRows: habRowsSchema.nullable().optional(),
   dateValidation: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
   dateExpiration: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
 });
