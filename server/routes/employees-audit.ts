@@ -468,7 +468,9 @@ export const deleteEmployee: RequestHandler = async (req, res) => {
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
 
     const result = await db.transaction(async (tx) => {
-      await tx.update(schema.employees).set({ deleted: true }).where(eq(schema.employees.id, id));
+      const nowStr = new Date().toISOString().replace("T", " ").substring(0, 19);
+
+      await tx.update(schema.employees).set({ deleted: true, deletedAt: nowStr } as any).where(eq(schema.employees.id, id));
 
       const [auditLog] = await tx.insert(schema.auditLogs).values({
         action: "DELETE_EMPLOYEE",
