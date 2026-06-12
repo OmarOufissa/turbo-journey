@@ -145,7 +145,8 @@
     "asar": true,
     "asarUnpack": [
       "**/*.node",
-      "**/node_modules/bcrypt/**"
+      "**/node_modules/bcrypt/**",
+      "**/node_modules/@libsql/**"
     ],
     "files": [
       "dist/**/*",
