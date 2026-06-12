@@ -3,6 +3,7 @@ import { db } from "../db-pg";
 import * as schema from "../schema";
 import { eq, and, lte, gte } from "drizzle-orm";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { daysUntilExpiration, todayISO } from "../utils/dateUtils";
 
 const FRENCH_MONTHS = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -42,13 +43,11 @@ async function fetchReportData(period: string): Promise<{
   expiring: number;
   total: number;
 }> {
-  const now = new Date();
   const periodDays =
     period === "3m" ? 90 : period === "6m" ? 180 : period === "9m" ? 270 : 365;
-  const cutoff = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0];
-  const today = now.toISOString().split("T")[0];
+  const now = new Date();
+  const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const cutoff = new Date(todayUTC + periodDays * 86400000).toISOString().split("T")[0];
 
   const rows = await db
     .select({
@@ -83,10 +82,6 @@ async function fetchReportData(period: string): Promise<{
   const filtered = rows.filter((r) => r.dateExpiration <= cutoff);
 
   const mapped: EmployeeReportRow[] = filtered.map((r) => {
-    const expDate = new Date(r.dateExpiration + "T00:00:00Z");
-    const daysUntilExpiration = Math.ceil(
-      (expDate.getTime() - now.getTime()) / 86400000
-    );
     return {
       matricule: r.matricule ?? "",
       nom: r.nom ?? "",
@@ -99,7 +94,7 @@ async function fetchReportData(period: string): Promise<{
       dateValidation: r.dateValidation ?? "",
       dateExpiration: r.dateExpiration ?? "",
       nDeTitre: r.nDeTitre ?? "",
-      daysUntilExpiration,
+      daysUntilExpiration: daysUntilExpiration(r.dateExpiration),
     };
   });
 
@@ -167,9 +162,7 @@ export const downloadExpirationReportPdf: RequestHandler = async (
     const colorBlack = rgb(0, 0, 0);
     const colorWhite = rgb(1, 1, 1);
 
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
-    const generatedLabel = formatDateFrench(todayStr);
+    const generatedLabel = formatDateFrench(todayISO());
 
     // Column definitions: [label, x, width]
     const columns: [string, number, number][] = [
@@ -365,7 +358,7 @@ export const downloadExpirationReportPdf: RequestHandler = async (
 
     const pdfBytes = await pdfDoc.save();
 
-    const filename = `rapport_habilitation_${period}_${todayStr}.pdf`;
+    const filename = `rapport_habilitation_${period}_${todayISO()}.pdf`;
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
