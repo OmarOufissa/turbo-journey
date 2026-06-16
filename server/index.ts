@@ -790,6 +790,21 @@ export function createServer() {
     });
   });
 
+  app.post("/api/admin/reseed", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { seedDatabasePG } = await import("./seed-pg");
+        await seedDatabasePG();
+        res.json({ success: true, data: { message: "Base de données réinitialisée avec succès" }, error: null });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[admin/reseed]", msg);
+        res.status(500).json({ success: false, data: null, error: msg });
+      }
+    });
+  });
+
   app.post("/api/backups/create", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     authMiddleware(req, res, async () => {

@@ -16,7 +16,9 @@ import {
   AlertTriangle,
   Loader2,
   UserPlus,
+  RefreshCw,
 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -67,6 +69,8 @@ export default function Settings() {
   const [resyncResult, setResyncResult] = useState<{ updated: number; skipped: number } | null>(null);
   const [syncNewLoading, setSyncNewLoading] = useState(false);
   const [syncNewResult, setSyncNewResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null);
+  const [reseedConfirm, setReseedConfirm] = useState(false);
+  const [reseedLoading, setReseedLoading] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("—");
 
   // Load app version from package.json via server
@@ -142,6 +146,26 @@ export default function Settings() {
       toast({ title: "Erreur", description: err.message, variant: "destructive" });
     } finally {
       setSyncNewLoading(false);
+    }
+  }
+
+  async function handleReseed() {
+    setReseedLoading(true);
+    try {
+      const res = await fetch("/api/admin/reseed", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token") ?? ""}` },
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: "Base réinitialisée", description: "Toutes les données ont été rechargées depuis le fichier Excel." });
+      } else {
+        throw new Error(json.error ?? "Erreur");
+      }
+    } catch (err: any) {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    } finally {
+      setReseedLoading(false);
     }
   }
 
@@ -429,6 +453,30 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        {/* ── Reset & Reseed ───────────────────────────────────────── */}
+        <Card className="border-red-200 dark:border-red-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <RefreshCw className="w-5 h-5" />
+              Réinitialiser la base de données
+            </CardTitle>
+            <CardDescription>
+              Supprime <strong>toutes</strong> les données (employés, habilitations, historique) et recharge depuis le fichier Excel intégré. Action irréversible.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="destructive"
+              onClick={() => setReseedConfirm(true)}
+              disabled={reseedLoading}
+              className="gap-2"
+            >
+              {reseedLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              {reseedLoading ? "Réinitialisation en cours..." : "Réinitialiser et recharger"}
+            </Button>
+          </CardContent>
+        </Card>
+
         <Button onClick={handleSave} size="lg" className="w-full">
           Sauvegarder tous les paramètres
         </Button>
@@ -514,6 +562,17 @@ export default function Settings() {
           </CardContent>
         </Card>
       </div>
+
+      <ConfirmDialog
+        open={reseedConfirm}
+        onOpenChange={setReseedConfirm}
+        title="Réinitialiser la base de données ?"
+        description="Cette action supprimera définitivement tous les employés, habilitations et l'historique complet, puis rechargera les données depuis le fichier Excel intégré. Cette opération est irréversible."
+        confirmText="Oui, tout réinitialiser"
+        cancelText="Annuler"
+        variant="danger"
+        onConfirm={handleReseed}
+      />
     </Layout>
   );
 }
