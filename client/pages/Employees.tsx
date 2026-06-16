@@ -339,8 +339,8 @@ export default function Employees() {
                       </TableCell>
                       <TableCell className="font-mono font-medium">{emp.matricule}</TableCell>
                       <TableCell>{emp.prenom} {emp.nom}</TableCell>
-                      <TableCell>{ver?.fonction ?? "—"}</TableCell>
-                      <TableCell>{ver ? `${ver.division} / ${ver.service}` : "—"}</TableCell>
+                      <TableCell className="max-w-[120px] truncate" title={ver?.fonction ?? ""}>{ver?.fonction ?? "—"}</TableCell>
+                      <TableCell className="max-w-[220px] truncate" title={ver ? `${ver.division} / ${ver.service}` : ""}>{ver ? `${ver.division} / ${ver.service}` : "—"}</TableCell>
                       <TableCell className="font-mono text-sm">
                         ST: {stStr} / HT: {htStr}
                       </TableCell>
