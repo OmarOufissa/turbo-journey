@@ -14,6 +14,7 @@ if (!isDev) {
   process.env.UPLOADS_BASE_DIR = path.join(userData, "uploads");
   process.env.UPLOADS_DIR = path.join(userData, "uploads", "pdfs");
   process.env.PDF_TEMPLATE_PATH = path.join(__dirname, "../server/seeds/data/titre_HAE_vierge.pdf");
+  process.env.HABILITATIONS_EXCEL_URL = path.join(__dirname, "../server/seeds/data/employees.xlsx");
 }
 
 // ─── IPC Handlers ─────────────────────────────────────────────────────────
