@@ -12,6 +12,21 @@ import {
 } from "./org-structure";
 import { eq } from "drizzle-orm";
 import type { HabRows, HabRowData } from "./schema";
+import fs from "fs";
+import path from "path";
+import { resolvePdfPath } from "./utils/pathUtils";
+
+function findExistingPdf(matricule: string, versionNumber: number): string | null {
+  const candidates = [
+    `hab${matricule}_v${versionNumber}.pdf`,
+    `hab${matricule}_seed.pdf`,
+  ];
+  for (const candidate of candidates) {
+    const fullPath = resolvePdfPath(candidate);
+    if (fs.existsSync(fullPath)) return candidate;
+  }
+  return null;
+}
 
 interface EmployeeData {
   matricule: string;
@@ -355,6 +370,7 @@ export async function seedDatabasePG() {
     const employeeDataList = await parseExcelData();
     let employeeCount = 0;
     let versionCount = 0;
+    let pdfLinked = 0;
 
     for (const empData of employeeDataList) {
       const divisionId = divisions[empData.division];
@@ -422,6 +438,8 @@ export async function seedDatabasePG() {
       const stCodes = empData.stCodes.length > 0 ? empData.stCodes : [];
       const htCodes = empData.htCodes.length > 0 ? empData.htCodes : [];
 
+      const existingPdf = findExistingPdf(empData.matricule, versionNumber);
+
       const [ver] = await db.insert(schema.employeeVersions)
         .values({
           employeeId,
@@ -436,6 +454,7 @@ export async function seedDatabasePG() {
           dateValidation: empData.dateValidation,
           dateExpiration: dateExp,
           habRows: empData.habRows ?? null,
+          pdfPath: existingPdf,
         })
         .returning({ id: schema.employeeVersions.id });
 
@@ -443,11 +462,13 @@ export async function seedDatabasePG() {
         .set({ currentVersionId: ver.id })
         .where(eq(schema.employees.id, employeeId));
 
+      if (existingPdf) pdfLinked++;
       versionCount++;
     }
 
     console.log(`✓ Created ${employeeCount} employees`);
     console.log(`✓ Created ${versionCount} employee versions`);
+    console.log(`✓ Linked ${pdfLinked} existing PDFs`);
     console.log("\n✅ PostgreSQL database seeding completed successfully!");
   } catch (err) {
     console.error("Error seeding PostgreSQL database:", err);
