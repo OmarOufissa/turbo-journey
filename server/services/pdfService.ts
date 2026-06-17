@@ -230,9 +230,9 @@ function drawDynamicTable(
       : 'XXX';
 
     const rd = isActive ? snapshot.habRows?.[row.rowKey] : null;
-    const domaine    = rd?.domaine    || 'XXX';
-    const ouvrage    = rd?.ouvrage    || 'XXX';
-    const indication = rd?.indication || 'XXX';
+    const domaine    = isActive ? (rd?.domaine    || '') : 'XXX';
+    const ouvrage    = isActive ? (rd?.ouvrage    || '') : 'XXX';
+    const indication = isActive ? (rd?.indication || '') : 'XXX';
 
     const labelLines = countLines(PERSONNEL_LABELS[idx], wPer, regular, SZ_CELL);
     const symLines   = countLines(symbolText, wSym, isActive ? bold : regular, isActive ? SZ_SYM : SZ_CELL);

@@ -30,7 +30,6 @@ import EmployeeHistory from "./pages/EmployeeHistory";
 import BackupRestore from "./pages/BackupRestore";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import Reports from "./pages/Reports";
 import RenewalForm from "./pages/RenewalForm";
 import OrgSettings from "./pages/OrgSettings";
 
@@ -180,15 +179,6 @@ function App() {
             }
           />
 
-
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <Reports />
-              </ProtectedRoute>
-            }
-          />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

@@ -23,14 +23,17 @@ export const ORGANIZATIONAL_STRUCTURE: DivisionStructure[] = [
         ],
       },
       {
-        name: "Service Maintenance Casa",
+        name: "Service Exploitation et Maintenance Casa",
         equipes: [
+          "Equipe Lignes Casa",
+          "Equipe Postes Casa",
+          "Equipe Postes Settat",
           "Equipe Maintenance Lignes Casa",
           "Equipe Maintenance Lignes Settat",
           "Equipe Maintenance Postes Casa",
           "Equipe Maintenance Postes Settat",
           "Equipe Contrôle Commande et Télécom Casa",
-          "Equipe Contrôle Commande et Télécom Settat",
+          "Equipe Contrôle Commande et Télecom Casa",
           "Equipe TST Lignes Casa",
         ],
       },
@@ -45,12 +48,20 @@ export const ORGANIZATIONAL_STRUCTURE: DivisionStructure[] = [
           "Equipe Conduite El Jadida",
           "Equipe Conduite Safi",
           "Equipe Conduite Bouguedra",
+          "Equipe Conduite Sidi Bennour",
+          "Equipe Conduite Ghanem",
+          "Equipe Conduite Jorf Lasfer",
+          "Equipe Conduite Chemaia",
           "Equipe TST Postes El Jadida",
         ],
       },
       {
-        name: "Service Maintenance El Jadida",
+        name: "Service Exploitation et Maintenance El Jadida",
         equipes: [
+          "Equipe Lignes El Jadida",
+          "Equipe Lignes Safi",
+          "Equipe Postes El Jadida",
+          "Equipe Postes Safi",
           "Equipe Maintenance Lignes El Jadida",
           "Equipe Maintenance Lignes Safi",
           "Equipe Maintenance Postes El Jadida",
@@ -78,8 +89,12 @@ export const ORGANIZATIONAL_STRUCTURE: DivisionStructure[] = [
         ],
       },
       {
-        name: "Service Maintenance Afourer",
+        name: "Service Exploitation et Maintenance Afourer",
         equipes: [
+          "Equipe Lignes Afourer",
+          "Equipe Lignes Kalaa",
+          "Equipe Lignes Tadla",
+          "Equipe Postes Afourer",
           "Equipe Maintenance Lignes Afourer",
           "Equipe Maintenance Lignes Kalaa",
           "Equipe Maintenance Lignes Tadla",
@@ -96,6 +111,7 @@ export const ORGANIZATIONAL_STRUCTURE: DivisionStructure[] = [
           "Equipe Contrôle Commande et Télécom Khouribga",
           "Equipe Contrôle Commande et Télécom Benguerir",
           "Equipe TST Lignes Afourer",
+          "Equipe TST Postes Afourer",
         ],
       },
     ],
@@ -148,10 +164,17 @@ export function findMatchingService(raw: string, divisionName: string): string |
   if (!division) return null;
   if (!raw || !raw.trim()) return null;
 
-  const target = normalizeName(raw);
+  const target = normalizeName(raw.replace(/\s+/g, " "));
 
   for (const service of division.services) {
     if (normalizeName(service.name) === target) {
+      return service.name;
+    }
+  }
+
+  for (const service of division.services) {
+    const normSvc = normalizeName(service.name);
+    if (normSvc.includes(target) || target.includes(normSvc)) {
       return service.name;
     }
   }
@@ -171,22 +194,31 @@ export function findMatchingService(raw: string, divisionName: string): string |
 
 export function findMatchingEquipe(raw: string, divisionName: string, serviceName: string): string | null {
   const division = ORGANIZATIONAL_STRUCTURE.find((d) => d.name === divisionName);
-  const service = division?.services.find((s) => s.name === serviceName);
-  if (!service) return null;
+  if (!division) return null;
   if (!raw || !raw.trim()) return null;
 
-  const target = normalizeName(raw);
+  const target = normalizeName(raw.replace(/\s+/g, " "));
 
-  for (const equipe of service.equipes) {
-    if (normalizeName(equipe) === target) {
-      return equipe;
+  // Search in the matched service first, then all services in the division
+  const services = [
+    division.services.find((s) => s.name === serviceName),
+    ...division.services,
+  ].filter(Boolean) as ServiceStructure[];
+
+  for (const svc of services) {
+    for (const equipe of svc.equipes) {
+      if (normalizeName(equipe) === target) {
+        return equipe;
+      }
     }
   }
 
-  for (const equipe of service.equipes) {
-    const normEquipe = normalizeName(equipe);
-    if (normEquipe.includes(target) || target.includes(normEquipe)) {
-      return equipe;
+  for (const svc of services) {
+    for (const equipe of svc.equipes) {
+      const normEquipe = normalizeName(equipe);
+      if (normEquipe.includes(target) || target.includes(normEquipe)) {
+        return equipe;
+      }
     }
   }
 

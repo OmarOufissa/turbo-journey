@@ -4,7 +4,6 @@ import {
   Users,
   Calendar,
   BarChart3,
-  FileText,
   Settings,
   Shield,
   LogOut,
@@ -60,11 +59,6 @@ const navigationItems = [
         title: "Statistiques",
         icon: BarChart3,
         url: "/stats",
-      },
-      {
-        title: "Rapports",
-        icon: FileText,
-        url: "/reports",
       },
       {
         title: "Journal d'Audit",

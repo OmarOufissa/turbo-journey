@@ -360,8 +360,19 @@ export async function seedDatabasePG() {
       const divisionId = divisions[empData.division];
       const serviceKey = `${empData.division}|${empData.service}`;
       const serviceId = services[serviceKey];
-      const equipeKey = `${serviceKey}|${empData.equipe}`;
-      const equipeId = equipes[equipeKey];
+      let equipeId: number | undefined;
+      if (empData.equipe) {
+        const directKey = `${serviceKey}|${empData.equipe}`;
+        equipeId = equipes[directKey];
+        if (!equipeId) {
+          for (const [key, id] of Object.entries(equipes)) {
+            if (key.startsWith(`${empData.division}|`) && key.endsWith(`|${empData.equipe}`)) {
+              equipeId = id;
+              break;
+            }
+          }
+        }
+      }
 
       if (!divisionId || !serviceId) {
         console.warn(`Skipping ${empData.matricule}: missing divisionId or serviceId`);
@@ -527,7 +538,8 @@ export async function syncNewEmployeesFromExcel(): Promise<{ created: number; sk
       continue;
     }
 
-    const equipe = emp.equipe ? equipeRows.find((e) => e.name === emp.equipe && e.serviceId === service.id) : undefined;
+    const divServiceIds = serviceRows.filter((s) => s.divisionId === division.id).map((s) => s.id);
+    const equipe = emp.equipe ? equipeRows.find((e) => e.name === emp.equipe && divServiceIds.includes(e.serviceId)) : undefined;
 
     try {
       const dateExpiration = emp.dateExpiration || calculateExpirationDate(emp.dateValidation, "HT");
