@@ -139,7 +139,7 @@ function hasTruthyValue(value: unknown): boolean {
   if (typeof value === "number") return value !== 0;
   const text = String(value).trim().toLowerCase();
   if (!text) return false;
-  return !["non", "no", "false", "0"].includes(text);
+  return !["non", "no", "false", "0", "xxx", "x", "-", "n/a", "na", "néant"].includes(text);
 }
 
 function extractCodes(row: ExcelRow): { htCodes: string[]; stCodes: string[] } {
