@@ -48,10 +48,10 @@ export default function EmployeeHistory() {
     check("Expiration", "dateExpiration");
     const oldST = (previous.stCodes ?? []).join(",");
     const newST = (current.stCodes ?? []).join(",");
-    if (oldST !== newST) diffs.push({ field: "ST codes", old: oldST || "XXX", new: newST || "XXX" });
+    if (oldST !== newST) diffs.push({ field: "ST codes", old: oldST || "—", new: newST || "—" });
     const oldHT = (previous.htCodes ?? []).join(",");
     const newHT = (current.htCodes ?? []).join(",");
-    if (oldHT !== newHT) diffs.push({ field: "HT codes", old: oldHT || "XXX", new: newHT || "XXX" });
+    if (oldHT !== newHT) diffs.push({ field: "HT codes", old: oldHT || "—", new: newHT || "—" });
     return diffs;
   }
 
@@ -224,10 +224,10 @@ export default function EmployeeHistory() {
                         </>}
 
                         <span className="text-muted-foreground">ST codes</span>
-                        <span className="font-mono">{v.stCodes.length > 0 ? v.stCodes.join(", ") : "XXX"}</span>
+                        <span className="font-mono">{v.stCodes.length > 0 ? v.stCodes.join(", ") : "—"}</span>
 
                         <span className="text-muted-foreground">HT codes</span>
-                        <span className="font-mono">{v.htCodes.length > 0 ? v.htCodes.join(", ") : "XXX"}</span>
+                        <span className="font-mono">{v.htCodes.length > 0 ? v.htCodes.join(", ") : "—"}</span>
 
                         <span className="text-muted-foreground">Validation</span>
                         <span>{new Date(v.dateValidation).toLocaleDateString("fr-FR")}</span>

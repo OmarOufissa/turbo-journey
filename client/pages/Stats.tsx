@@ -196,7 +196,6 @@ export default function Stats() {
           <StatCard title="HT uniquement" value={stats.htOnly} />
           <StatCard title="ST + HT" value={stats.both} />
           <StatCard title="Sans PDF" value={stats.missingPdf} color={stats.missingPdf > 0 ? "text-amber-600" : ""} sub="version actuelle" />
-          <StatCard title="Renouvellements" value={stats.pendingRenewals} color={stats.pendingRenewals > 0 ? "text-purple-600" : ""} sub="en attente" />
         </div>
 
         {/* Monthly forecast */}

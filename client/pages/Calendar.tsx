@@ -182,8 +182,8 @@ export default function Calendar() {
                               <p className="font-medium text-sm">{emp.prenom} {emp.nom}</p>
                               <p className="text-xs text-muted-foreground font-mono">{emp.matricule}</p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                ST: {(emp.currentVersion!.stCodes.length > 0 ? emp.currentVersion!.stCodes : ["XXX"]).join(", ")} /
-                                HT: {(emp.currentVersion!.htCodes.length > 0 ? emp.currentVersion!.htCodes : ["XXX"]).join(", ")}
+                                ST: {(emp.currentVersion!.stCodes.length > 0 ? emp.currentVersion!.stCodes : ["—"]).join(", ")} /
+                                HT: {(emp.currentVersion!.htCodes.length > 0 ? emp.currentVersion!.htCodes : ["—"]).join(", ")}
                               </p>
                             </div>
                             <div className="text-right">

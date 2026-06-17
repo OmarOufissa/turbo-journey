@@ -2,7 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Users,
-  RefreshCw,
   Calendar,
   BarChart3,
   FileText,
@@ -10,7 +9,6 @@ import {
   Shield,
   LogOut,
   Trash2,
-  Clock,
   Building2,
   DatabaseBackup,
 } from "lucide-react";
@@ -47,16 +45,6 @@ const navigationItems = [
         title: "Employés",
         icon: Users,
         url: "/employees",
-      },
-      {
-        title: "Renouvellements en attente",
-        icon: Clock,
-        url: "/pending-renewals",
-      },
-      {
-        title: "Renouvellements",
-        icon: RefreshCw,
-        url: "/renewals",
       },
       {
         title: "Calendrier",

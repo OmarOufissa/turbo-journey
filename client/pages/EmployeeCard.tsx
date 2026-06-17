@@ -202,10 +202,10 @@ export default function EmployeeCard() {
     }
     const oldST = (previous.stCodes ?? []).join(",");
     const newST = (current.stCodes ?? []).join(",");
-    if (oldST !== newST) diffs.push({ field: "ST codes", old: oldST || "XXX", new: newST || "XXX" });
+    if (oldST !== newST) diffs.push({ field: "ST codes", old: oldST || "—", new: newST || "—" });
     const oldHT = (previous.htCodes ?? []).join(",");
     const newHT = (current.htCodes ?? []).join(",");
-    if (oldHT !== newHT) diffs.push({ field: "HT codes", old: oldHT || "XXX", new: newHT || "XXX" });
+    if (oldHT !== newHT) diffs.push({ field: "HT codes", old: oldHT || "—", new: newHT || "—" });
     return diffs;
   }
 
@@ -285,11 +285,11 @@ export default function EmployeeCard() {
                 <div className="flex justify-between"><span className="text-muted-foreground">N° titre</span><span className="font-mono">{ver.nDeTitre}</span></div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">ST codes</span>
-                  <span className="font-mono">{ver.stCodes.length > 0 ? ver.stCodes.join(", ") : "XXX"}</span>
+                  <span className="font-mono">{ver.stCodes.length > 0 ? ver.stCodes.join(", ") : "—"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">HT codes</span>
-                  <span className="font-mono">{ver.htCodes.length > 0 ? ver.htCodes.join(", ") : "XXX"}</span>
+                  <span className="font-mono">{ver.htCodes.length > 0 ? ver.htCodes.join(", ") : "—"}</span>
                 </div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Validation</span><span>{new Date(ver.dateValidation).toLocaleDateString("fr-FR")}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Expiration</span><span className={cn("font-medium", config.textColor)}>{new Date(ver.dateExpiration).toLocaleDateString("fr-FR")}</span></div>
@@ -373,7 +373,7 @@ export default function EmployeeCard() {
                             </div>
                             <p className="text-xs text-muted-foreground">N° {v.nDeTitre} · {v.fonction}</p>
                             <p className="text-xs font-mono text-muted-foreground">
-                              ST: {v.stCodes.length > 0 ? v.stCodes.join(", ") : "XXX"} / HT: {v.htCodes.length > 0 ? v.htCodes.join(", ") : "XXX"}
+                              ST: {v.stCodes.length > 0 ? v.stCodes.join(", ") : "—"} / HT: {v.htCodes.length > 0 ? v.htCodes.join(", ") : "—"}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               Val: {new Date(v.dateValidation).toLocaleDateString("fr-FR")} ·{" "}

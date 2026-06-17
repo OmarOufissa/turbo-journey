@@ -112,20 +112,17 @@ export function useBulkOperations(employees: Employee[]) {
           case "addRenewal":
             if (emp?.currentVersion && renewalDates) {
               const cv = emp.currentVersion;
-              await apiCall("POST", "/renewals", {
-                employeeId: id,
-                snapshot: {
-                  stCodes: cv.stCodes,
-                  htCodes: cv.htCodes,
-                  nDeTitre: cv.nDeTitre,
-                  fonction: cv.fonction,
-                  divisionId: cv.divisionId,
-                  serviceId: cv.serviceId,
-                  equipeId: cv.equipeId ?? null,
-                  habRows: cv.habRows ?? null,
-                  dateValidation: renewalDates.dateValidation,
-                  dateExpiration: renewalDates.dateExpiration,
-                },
+              await apiCall("PUT", `/employees/${id}`, {
+                stCodes: cv.stCodes,
+                htCodes: cv.htCodes,
+                nDeTitre: cv.nDeTitre,
+                fonction: cv.fonction,
+                divisionId: cv.divisionId,
+                serviceId: cv.serviceId,
+                equipeId: cv.equipeId ?? null,
+                habRows: cv.habRows ?? null,
+                dateValidation: renewalDates.dateValidation,
+                dateExpiration: renewalDates.dateExpiration,
               });
             }
             break;

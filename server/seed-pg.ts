@@ -11,6 +11,7 @@ import {
   calculateExpirationDate,
 } from "./org-structure";
 import { eq } from "drizzle-orm";
+import type { HabRows, HabRowData } from "./schema";
 
 interface EmployeeData {
   matricule: string;
@@ -25,6 +26,7 @@ interface EmployeeData {
   nTitre: string;
   dateValidation: string;
   dateExpiration?: string;
+  habRows?: HabRows | null;
 }
 
 const MATRICULE_KEYS = ["matricule", "MATRICULE"];
@@ -178,6 +180,36 @@ function extractCodes(row: ExcelRow): { htCodes: string[]; stCodes: string[] } {
   };
 }
 
+const HAB_COLUMN_GROUPS: { suffix: string; rowKey: keyof NonNullable<HabRows> }[] = [
+  { suffix: "",   rowKey: "H0V_B0V" },
+  { suffix: "_1", rowKey: "H1V_B1V" },
+  { suffix: "_2", rowKey: "H2V_B2V" },
+  { suffix: "_3", rowKey: "HC_BC"   },
+  { suffix: "_4", rowKey: "BR"      },
+];
+
+function extractHabRows(row: ExcelRow): HabRows | null {
+  const result: HabRows = {};
+  let hasAny = false;
+
+  for (const { suffix, rowKey } of HAB_COLUMN_GROUPS) {
+    const domaine = getRowValue(row, [`domaine de tension${suffix}`, `Domaine de tension${suffix}`]);
+    const ouvrage = getRowValue(row, [`ouvrages concernés${suffix}`, `Ouvrages concernés${suffix}`, `ouvrages concernes${suffix}`]);
+    const indication = getRowValue(row, [`indications${suffix}`, `Indications${suffix}`]);
+
+    const d = hasTruthyValue(domaine) ? domaine : "";
+    const o = hasTruthyValue(ouvrage) ? ouvrage : "";
+    const i = hasTruthyValue(indication) ? indication : "";
+
+    if (d || o || i) {
+      result[rowKey] = { domaine: d, ouvrage: o, indication: i };
+      hasAny = true;
+    }
+  }
+
+  return hasAny ? result : null;
+}
+
 export async function parseExcelData(): Promise<EmployeeData[]> {
   const excelRows = await loadExcelRows();
   console.log(`Loaded ${excelRows.length} rows from Excel source`);
@@ -242,6 +274,7 @@ export async function parseExcelData(): Promise<EmployeeData[]> {
     const normalizedExpDate = normalizeDateValue(rawExpValue) || undefined;
 
     const { htCodes, stCodes } = extractCodes(row);
+    const habRows = extractHabRows(row);
 
     if (htCodes.length === 0 && stCodes.length === 0) {
       continue;
@@ -259,7 +292,8 @@ export async function parseExcelData(): Promise<EmployeeData[]> {
       stCodes,
       nTitre,
       dateValidation: normalizedDate,
-      dateExpiration: normalizedExpDate
+      dateExpiration: normalizedExpDate,
+      habRows,
     });
   }
 
@@ -390,6 +424,7 @@ export async function seedDatabasePG() {
           equipeId: equipeId || null,
           dateValidation: empData.dateValidation,
           dateExpiration: dateExp,
+          habRows: empData.habRows ?? null,
         })
         .returning({ id: schema.employeeVersions.id });
 

@@ -252,16 +252,6 @@ export default function Reports() {
                 </Card>
                 <Card>
                   <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                    <CardTitle className="text-sm text-muted-foreground">Renouvellements en attente</CardTitle>
-                    <Clock className="w-4 h-4 text-orange-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold text-orange-600">{analytics.pendingRenewals}</p>
-                    <p className="text-xs text-muted-foreground mt-1">à activer</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                     <CardTitle className="text-sm text-muted-foreground">Renouvelés à temps</CardTitle>
                     <TrendingUp className="w-4 h-4 text-blue-500" />
                   </CardHeader>

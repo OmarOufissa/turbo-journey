@@ -303,13 +303,12 @@ export default function Employees() {
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("nom")}>
                     Nom<SortIcon col="nom" />
                   </TableHead>
-                  <TableHead>Fonction</TableHead>
                   <TableHead>Division / Service</TableHead>
-                  <TableHead>ST / HT</TableHead>
+                  <TableHead>ST</TableHead>
+                  <TableHead>HT</TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("expiration")}>
                     Expiration<SortIcon col="expiration" />
                   </TableHead>
-                  <TableHead>PDF</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -318,8 +317,8 @@ export default function Employees() {
                   const ver = emp.currentVersion;
                   const status = ver ? getExpirationStatus(ver.dateExpiration) : "valid";
                   const config = EXPIRATION_COLOR_CONFIG[status];
-                  const stStr = ver && ver.stCodes.length > 0 ? ver.stCodes.join(", ") : "XXX";
-                  const htStr = ver && ver.htCodes.length > 0 ? ver.htCodes.join(", ") : "XXX";
+                  const stStr = ver && ver.stCodes.length > 0 ? ver.stCodes.join(", ") : "—";
+                  const htStr = ver && ver.htCodes.length > 0 ? ver.htCodes.join(", ") : "—";
 
                   return (
                     <TableRow
@@ -337,27 +336,18 @@ export default function Employees() {
                           aria-label={`Sélectionner ${emp.matricule}`}
                         />
                       </TableCell>
-                      <TableCell className="font-mono font-medium">{emp.matricule}</TableCell>
-                      <TableCell>{emp.prenom} {emp.nom}</TableCell>
-                      <TableCell className="max-w-[120px] truncate" title={ver?.fonction ?? ""}>{ver?.fonction ?? "—"}</TableCell>
+                      <TableCell className="font-mono font-medium whitespace-nowrap">{emp.matricule}</TableCell>
+                      <TableCell className="whitespace-nowrap">{emp.prenom} {emp.nom}</TableCell>
                       <TableCell className="max-w-[220px] truncate" title={ver ? `${ver.division} / ${ver.service}` : ""}>{ver ? `${ver.division} / ${ver.service}` : "—"}</TableCell>
-                      <TableCell className="font-mono text-sm">
-                        ST: {stStr} / HT: {htStr}
-                      </TableCell>
-                      <TableCell>
+                      <TableCell className="font-mono text-xs whitespace-nowrap">{stStr}</TableCell>
+                      <TableCell className="font-mono text-xs whitespace-nowrap">{htStr}</TableCell>
+                      <TableCell className="whitespace-nowrap">
                         {ver ? (
                           <span className={cn("text-sm font-medium", colorCodingEnabled && config.textColor)}>
                             {new Date(ver.dateExpiration).toLocaleDateString("fr-FR")}
                             {colorCodingEnabled && ` (${config.name})`}
                           </span>
                         ) : "—"}
-                      </TableCell>
-                      <TableCell>
-                        {ver?.pdfPath ? (
-                          <Badge variant="secondary" className="text-xs">PDF</Badge>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
                       </TableCell>
                       <TableCell onClick={e => e.stopPropagation()} className="flex gap-1">
                         <Button variant="outline" size="sm" asChild>

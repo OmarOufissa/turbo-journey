@@ -144,7 +144,7 @@ export default function RenewalForm() {
 
     setIsSubmitting(true);
     try {
-      const snapshot = {
+      const payload = {
         stCodes: form.stCodes,
         htCodes: form.htCodes,
         nDeTitre: form.nDeTitre,
@@ -157,21 +157,21 @@ export default function RenewalForm() {
         dateExpiration: form.dateExpiration,
       };
 
-      const res = await fetch("/api/renewals", {
-        method: "POST",
+      const res = await fetch(`/api/employees/${id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ employeeId: parseInt(id), snapshot }),
+        body: JSON.stringify(payload),
       });
       const body = await res.json();
 
       if (!res.ok) {
-        throw new Error(body.error ?? "Erreur lors de la création du renouvellement");
+        throw new Error(body.error ?? "Erreur lors du renouvellement");
       }
 
-      toast({ title: "Renouvellement créé", description: `Renouvellement en attente créé pour ${employee.prenom} ${employee.nom}` });
+      toast({ title: "Renouvellement effectué", description: `Nouvelle version créée pour ${employee.prenom} ${employee.nom}` });
       navigate(`/employees/${id}`);
     } catch (err: any) {
       toast({ title: "Erreur", description: err.message ?? "Erreur", variant: "destructive" });
@@ -213,7 +213,7 @@ export default function RenewalForm() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <RefreshCw className="w-5 h-5" />
-              Créer un renouvellement
+              Renouveler l'habilitation
             </h1>
             <p className="text-sm text-muted-foreground">
               {employee.prenom} {employee.nom} — {employee.matricule}
@@ -222,14 +222,14 @@ export default function RenewalForm() {
         </div>
 
         <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 p-4 text-sm text-blue-800 dark:text-blue-200">
-          Le renouvellement sera mis en attente et s'activera automatiquement à l'expiration de la version actuelle ({new Date(employee.currentVersion.dateExpiration).toLocaleDateString("fr-FR")}).
+          Une nouvelle version sera créée immédiatement. La version actuelle (expire le {new Date(employee.currentVersion.dateExpiration).toLocaleDateString("fr-FR")}) sera conservée dans l'historique.
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Prochaine version</CardTitle>
-              <CardDescription>Modifiez les données pour la future version de l'habilitation</CardDescription>
+              <CardTitle>Nouvelle version</CardTitle>
+              <CardDescription>Modifiez les données pour le renouvellement de l'habilitation</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -371,7 +371,7 @@ export default function RenewalForm() {
               <Link to={`/employees/${id}`}>Annuler</Link>
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Création..." : "Créer le renouvellement"}
+              {isSubmitting ? "Renouvellement..." : "Renouveler"}
             </Button>
           </div>
         </form>

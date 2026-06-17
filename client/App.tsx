@@ -22,7 +22,6 @@ import Employees from "./pages/Employees";
 import AddEmployee from "./pages/AddEmployee";
 import EditEmployee from "./pages/EditEmployee";
 import EmployeeCard from "./pages/EmployeeCard";
-import Renewals from "./pages/Renewals";
 import Trash from "./pages/Trash";
 import Stats from "./pages/Stats";
 import Calendar from "./pages/Calendar";
@@ -91,23 +90,7 @@ function App() {
             }
           />
           <Route
-            path="/add-employee"
-            element={
-              <ProtectedRoute>
-                <AddEmployee />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/employees/:id"
-            element={
-              <ProtectedRoute>
-                <EmployeeCard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/employee/:id"
             element={
               <ProtectedRoute>
                 <EmployeeCard />
@@ -131,34 +114,10 @@ function App() {
             }
           />
           <Route
-            path="/employee/:id/edit"
-            element={
-              <ProtectedRoute>
-                <EditEmployee />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/employees/:employeeId/history"
             element={
               <ProtectedRoute>
                 <EmployeeHistory />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/renewals"
-            element={
-              <ProtectedRoute>
-                <Renewals />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/pending-renewals"
-            element={
-              <ProtectedRoute>
-                <Renewals />
               </ProtectedRoute>
             }
           />

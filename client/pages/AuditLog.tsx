@@ -9,7 +9,7 @@
  * - Pagination
  */
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -453,7 +453,7 @@ export default function AuditLog() {
               </TableHeader>
               <TableBody>
                 {logs.map((log) => (
-                  <div key={log.id} className="space-y-0">
+                  <React.Fragment key={log.id}>
                     {/* Main Row */}
                     <TableRow className="border-b border-white/10 hover:bg-white/5">
                       <TableCell className="font-mono text-sm">{log.id}</TableCell>
@@ -520,7 +520,7 @@ export default function AuditLog() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </div>
+                  </React.Fragment>
                 ))}
               </TableBody>
             </Table>

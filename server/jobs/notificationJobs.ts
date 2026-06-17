@@ -1,7 +1,7 @@
 import { findExpiringHabilitations, getAlertStatistics } from "../services/alertService";
 import { db } from "../db-pg";
 import * as schema from "../schema";
-import { eq, and, lte, sql } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getExpirationThreshold } from "../utils/dateUtils";
 
 export const CRON_PATTERNS = {
@@ -98,88 +98,11 @@ export async function weeklySummaryJob(): Promise<{ success: boolean; errors: st
   }
 }
 
-export async function autoActivateRenewalsJob(): Promise<{ activated: number; errors: string[] }> {
-  const errors: string[] = [];
-  let activated = 0;
-  const today = new Date().toISOString().split("T")[0];
-  try {
-    const pending = await db
-      .select({
-        renewalId: schema.pendingRenewals.id,
-        employeeId: schema.pendingRenewals.employeeId,
-        snapshot: schema.pendingRenewals.snapshot,
-        dateExpiration: schema.employeeVersions.dateExpiration,
-      })
-      .from(schema.pendingRenewals)
-      .innerJoin(schema.employees, eq(schema.pendingRenewals.employeeId, schema.employees.id))
-      .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id));
-
-    for (const renewal of pending) {
-      if (renewal.dateExpiration > today) continue;
-      try {
-        const snap = renewal.snapshot as Record<string, any>;
-        await db.transaction(async (tx) => {
-          const [{ maxVer }] = await tx
-            .select({ maxVer: sql<number>`coalesce(max(version_number), 0)` })
-            .from(schema.employeeVersions)
-            .where(eq(schema.employeeVersions.employeeId, renewal.employeeId));
-
-          const [version] = await tx.insert(schema.employeeVersions).values({
-            employeeId: renewal.employeeId,
-            versionNumber: Number(maxVer) + 1,
-            stCodes: snap.stCodes ?? [],
-            htCodes: snap.htCodes ?? [],
-            nDeTitre: snap.nDeTitre ?? "",
-            fonction: snap.fonction ?? "",
-            divisionId: parseInt(snap.divisionId),
-            serviceId: parseInt(snap.serviceId),
-            equipeId: snap.equipeId ? parseInt(snap.equipeId) : null,
-            habRows: snap.habRows ?? null,
-            dateValidation: snap.dateValidation,
-            dateExpiration: snap.dateExpiration,
-            pdfPath: null,
-          }).returning();
-
-          await tx.update(schema.employees)
-            .set({ currentVersionId: version.id })
-            .where(eq(schema.employees.id, renewal.employeeId));
-
-          await tx.insert(schema.auditLogs).values({
-            action: "ACTIVATE_RENEWAL",
-            entityId: renewal.employeeId,
-            snapshotOld: { renewalId: renewal.renewalId, snapshot: snap } as any,
-            snapshotNew: { versionId: version.id, versionNumber: version.versionNumber, autoActivated: true } as any,
-          });
-
-          await tx.delete(schema.pendingRenewals).where(eq(schema.pendingRenewals.id, renewal.renewalId));
-        });
-        await resetNotificationLogsForEmployee(renewal.employeeId);
-        activated++;
-        console.log(`[JOB] Auto-activated renewal for employee ${renewal.employeeId}`);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(`employee ${renewal.employeeId}: ${msg}`);
-        console.error(`[JOB] Failed to auto-activate renewal for employee ${renewal.employeeId}:`, msg);
-      }
-    }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    errors.push(msg);
-    console.error("[JOB] autoActivateRenewalsJob error:", msg);
-  }
-  if (activated > 0) console.log(`[JOB] Auto-activated ${activated} renewals`);
-  return { activated, errors };
-}
-
 export async function initializeNotificationJobs(): Promise<{ initialized: boolean; jobsCount: number }> {
-  // Startup catch-up: the embedded server only runs while the desktop app is open,
-  // so the daily cron schedule may be missed for days. Run once immediately.
-  await autoActivateRenewalsJob();
   await dailyExpirationCheckJob();
 
   let cron: any;
   try {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore optional dependency
     cron = await import("node-cron");
   } catch {
@@ -193,11 +116,8 @@ export async function initializeNotificationJobs(): Promise<{ initialized: boole
   const weekly = cron.schedule(CRON_PATTERNS.WEEKLY_MONDAY_9AM, async () => {
     await weeklySummaryJob();
   });
-  const autoActivate = cron.schedule(CRON_PATTERNS.DAILY_MIDNIGHT, async () => {
-    await autoActivateRenewalsJob();
-  });
 
-  cronJobs = [daily, weekly, autoActivate];
+  cronJobs = [daily, weekly];
   console.log(`[JOB] Initialized ${cronJobs.length} notification jobs`);
   return { initialized: true, jobsCount: cronJobs.length };
 }

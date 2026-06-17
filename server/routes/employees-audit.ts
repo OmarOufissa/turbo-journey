@@ -541,6 +541,7 @@ export const restoreEmployee: RequestHandler = async (req, res) => {
           equipeId: currentVersion.equipeId,
           dateValidation: currentVersion.dateValidation,
           dateExpiration: currentVersion.dateExpiration,
+          habRows: currentVersion.habRows ?? null,
           pdfPath: null,
           createdBy: getUserIdFromRequest(req),
         }).returning();

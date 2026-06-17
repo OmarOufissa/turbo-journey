@@ -102,8 +102,8 @@ export default function Home() {
             { label: "Expirés", value: stats?.expired, icon: AlertCircle, color: "text-red-600" },
             { label: "< 3 mois", value: stats?.lessThan3Months, icon: Clock, color: "text-orange-600" },
             { label: "< 6 mois", value: stats?.lessThan6Months, icon: Clock, color: "text-yellow-600" },
+            { label: "< 9 mois", value: stats?.lessThan9Months, icon: Clock, color: "text-green-600" },
             { label: "Sans PDF", value: stats?.missingPdf, icon: FileText, color: stats?.missingPdf ? "text-amber-600" : "" },
-            { label: "Renouvellements", value: stats?.pendingRenewals, icon: RefreshCw, color: stats?.pendingRenewals ? "text-purple-600" : "" },
           ].map(({ label, value, icon: Icon, color }) => (
             <Card key={label} className="p-4 space-y-2">
               <div className="flex items-center justify-between">
