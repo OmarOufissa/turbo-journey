@@ -50,9 +50,9 @@ export async function githubBackupJob(): Promise<{
 }> {
   console.log("[BACKUP JOB] Starting GitHub backup job...");
 
-  if (!isGitHubBackupConfigured()) {
+  if (!(await isGitHubBackupConfigured())) {
     console.log(
-      "[BACKUP JOB] GitHub backup not configured. Skipping. Set GITHUB_BACKUP_TOKEN and GITHUB_BACKUP_REPO to enable."
+      "[BACKUP JOB] GitHub backup not configured. Skipping. Configure it in Settings (or set GITHUB_BACKUP_TOKEN + GITHUB_BACKUP_REPO)."
     );
     return { success: true, errors: ["GitHub backup not configured"] };
   }

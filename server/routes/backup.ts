@@ -521,8 +521,30 @@ export const cleanupCloudBackups_Handler: RequestHandler = async (req, res) => {
 // ============================================================================
 
 export const getGitHubBackupStatus_Handler: RequestHandler = async (_req, res) => {
-  const { isGitHubBackupConfigured } = await import("../services/githubBackupService");
-  res.json({ configured: isGitHubBackupConfigured(), repo: process.env.GITHUB_BACKUP_REPO ?? null });
+  const { isGitHubBackupConfigured, getGitHubBackupRepo } = await import("../services/githubBackupService");
+  res.json({ configured: await isGitHubBackupConfigured(), repo: await getGitHubBackupRepo() });
+};
+
+export const saveGitHubBackupConfig_Handler: RequestHandler = async (req, res) => {
+  try {
+    const { repo, token } = req.body as { repo?: string; token?: string };
+    const { setSetting } = await import("../services/settingsService");
+
+    if (typeof repo === "string") {
+      await setSetting("github_backup_repo", repo.trim());
+    }
+    // Only overwrite the token when a non-empty value is provided (lets the
+    // admin update the repo without re-entering the token).
+    if (typeof token === "string" && token.trim()) {
+      await setSetting("github_backup_token", token.trim());
+    }
+
+    const { isGitHubBackupConfigured, getGitHubBackupRepo } = await import("../services/githubBackupService");
+    res.json({ success: true, configured: await isGitHubBackupConfigured(), repo: await getGitHubBackupRepo() });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ success: false, message: `Erreur sauvegarde config: ${msg}` });
+  }
 };
 
 export const githubBackupDb_Handler: RequestHandler = async (_req, res) => {
@@ -613,6 +635,7 @@ export default {
   deleteCloudBackup_Handler,
   cleanupCloudBackups_Handler,
   getGitHubBackupStatus_Handler,
+  saveGitHubBackupConfig_Handler,
   githubBackupDb_Handler,
   githubBackupFull_Handler,
   listGitHubBackups_Handler,

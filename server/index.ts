@@ -917,6 +917,14 @@ export function createServer() {
     });
   });
 
+  app.post("/api/backups/github/config", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { saveGitHubBackupConfig_Handler } = await import("./routes/backup");
+      saveGitHubBackupConfig_Handler(req, res, () => {});
+    });
+  });
+
   app.get("/api/backups/github/list", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     authMiddleware(req, res, async () => {

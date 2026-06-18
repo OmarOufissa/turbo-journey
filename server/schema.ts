@@ -121,3 +121,11 @@ export const auditLogs = sqliteTable("audit_logs", {
   actionIdx: index("audit_logs_action_idx").on(table.action),
   createdAtIdx: index("audit_logs_created_at_idx").on(table.createdAt),
 }));
+
+// Simple key-value app configuration (e.g. GitHub backup token/repo).
+// Intentionally NOT included in backups, so config survives a restore/reseed.
+export const appSettings = sqliteTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value"),
+  updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
+});

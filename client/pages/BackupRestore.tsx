@@ -13,6 +13,8 @@ import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -77,6 +79,10 @@ export default function BackupRestore() {
   const [githubFullBackups, setGithubFullBackups] = useState<Array<{ backupId: string; url: string; fileSize: number; createdAt: string }>>([]);
   const [githubRestoreDialog, setGithubRestoreDialog] = useState<{ open: boolean; kind: "db" | "full"; backupId: string | null }>({ open: false, kind: "db", backupId: null });
   const [githubRestoring, setGithubRestoring] = useState(false);
+  const [githubConfigOpen, setGithubConfigOpen] = useState(false);
+  const [githubRepoInput, setGithubRepoInput] = useState("");
+  const [githubTokenInput, setGithubTokenInput] = useState("");
+  const [githubSaving, setGithubSaving] = useState(false);
 
   useEffect(() => {
     fetchBackups();
@@ -93,9 +99,39 @@ export default function BackupRestore() {
       const data = await res.json();
       setGithubConfigured(data.configured);
       setGithubRepo(data.repo);
+      if (data.repo) setGithubRepoInput(data.repo);
       if (data.configured) fetchGithubBackups();
     } catch (e) {
       console.error("Error checking GitHub backup status:", e);
+    }
+  };
+
+  const handleSaveGithubConfig = async () => {
+    setGithubSaving(true);
+    try {
+      const res = await fetch("/api/backups/github/config", {
+        method: "POST",
+        headers: { ...githubAuthHeader(), "Content-Type": "application/json" },
+        body: JSON.stringify({ repo: githubRepoInput.trim(), token: githubTokenInput.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setGithubConfigured(data.configured);
+        setGithubRepo(data.repo);
+        setGithubTokenInput("");
+        setGithubConfigOpen(false);
+        toast({
+          title: "Configuration enregistrée",
+          description: data.configured ? "Sauvegarde GitHub prête" : "Repo enregistré — token requis",
+        });
+        if (data.configured) fetchGithubBackups();
+      } else {
+        toast({ title: "Erreur", description: data.message || "Échec de l'enregistrement", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Erreur", description: "Impossible de contacter le serveur", variant: "destructive" });
+    } finally {
+      setGithubSaving(false);
     }
   };
 
@@ -448,13 +484,23 @@ export default function BackupRestore() {
                 {githubConfigured ? (
                   <p className="text-xs text-green-700 mt-2">
                     Connecté à <span className="font-mono font-semibold">{githubRepo}</span>
+                    <button
+                      className="ml-2 underline text-gray-500 hover:text-gray-700"
+                      onClick={() => setGithubConfigOpen((v) => !v)}
+                    >
+                      Modifier
+                    </button>
                   </p>
                 ) : (
-                  <div className="text-xs text-amber-700 mt-2 flex items-center gap-1">
+                  <div className="text-xs text-amber-700 mt-2 flex items-center gap-1 flex-wrap">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    Non configuré — définissez{" "}
-                    <span className="font-mono">GITHUB_BACKUP_TOKEN</span> et{" "}
-                    <span className="font-mono">GITHUB_BACKUP_REPO</span>.
+                    Non configuré.
+                    <button
+                      className="underline font-medium hover:text-amber-900"
+                      onClick={() => setGithubConfigOpen((v) => !v)}
+                    >
+                      Configurer maintenant
+                    </button>
                   </div>
                 )}
               </div>
@@ -479,6 +525,43 @@ export default function BackupRestore() {
               </Button>
             </div>
           </div>
+
+          {/* Config form */}
+          {githubConfigOpen && (
+            <div className="mt-5 p-4 rounded-lg border bg-muted/40 space-y-3 max-w-xl">
+              <div>
+                <Label className="text-xs">Dépôt de sauvegarde (owner/repo)</Label>
+                <Input
+                  value={githubRepoInput}
+                  onChange={(e) => setGithubRepoInput(e.target.value)}
+                  placeholder="OmarOufissa/turbo-journey-backups"
+                  className="mt-1 font-mono text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Token d'accès personnel (PAT)</Label>
+                <Input
+                  type="password"
+                  value={githubTokenInput}
+                  onChange={(e) => setGithubTokenInput(e.target.value)}
+                  placeholder={githubConfigured ? "•••••••• (laisser vide pour conserver)" : "github_pat_..."}
+                  className="mt-1 font-mono text-sm"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Créez un token « fine-grained » avec la permission <span className="font-medium">Contents: Read and write</span> sur ce dépôt.
+                  Le token est stocké localement et n'est jamais réaffiché.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleSaveGithubConfig} disabled={githubSaving || !githubRepoInput.trim()}>
+                  {githubSaving ? "Enregistrement..." : "Enregistrer"}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setGithubConfigOpen(false)} disabled={githubSaving}>
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          )}
 
           {githubConfigured && (githubFullBackups.length > 0 || githubDbBackups.length > 0) && (
             <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -116,6 +116,11 @@ async function createTablesIfNotExist() {
     `CREATE INDEX IF NOT EXISTS audit_logs_action_idx ON audit_logs(action)`,
     `CREATE INDEX IF NOT EXISTS audit_logs_created_at_idx ON audit_logs(created_at)`,
     `CREATE UNIQUE INDEX IF NOT EXISTS notif_logs_emp_threshold_idx ON notification_logs(employee_id, threshold)`,
+    `CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
   ];
 
   await client.batch(statements, "write");

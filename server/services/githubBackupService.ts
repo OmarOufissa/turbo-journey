@@ -29,9 +29,6 @@ import { PDFS_DIR } from "../utils/pathUtils";
 const GITHUB_API = "https://api.github.com";
 const GITHUB_UPLOADS = "https://uploads.github.com";
 
-const TOKEN = process.env.GITHUB_BACKUP_TOKEN;
-const REPO = process.env.GITHUB_BACKUP_REPO; // "owner/repo"
-
 export interface GitHubBackupResult {
   success: boolean;
   backupId?: string;
@@ -40,13 +37,27 @@ export interface GitHubBackupResult {
   errors: string[];
 }
 
-export function isGitHubBackupConfigured(): boolean {
-  return Boolean(TOKEN && REPO && REPO.includes("/"));
+// Config is read fresh on each call: admin-saved settings take precedence,
+// falling back to environment variables.
+async function getConfig(): Promise<{ token: string | null; repo: string | null }> {
+  const { getSetting } = await import("./settingsService");
+  const token = (await getSetting("github_backup_token")) || process.env.GITHUB_BACKUP_TOKEN || null;
+  const repo = (await getSetting("github_backup_repo")) || process.env.GITHUB_BACKUP_REPO || null;
+  return { token, repo };
 }
 
-function ghHeaders(extra: Record<string, string> = {}): Record<string, string> {
+export async function getGitHubBackupRepo(): Promise<string | null> {
+  return (await getConfig()).repo;
+}
+
+export async function isGitHubBackupConfigured(): Promise<boolean> {
+  const { token, repo } = await getConfig();
+  return Boolean(token && repo && repo.includes("/"));
+}
+
+function ghHeaders(token: string, extra: Record<string, string> = {}): Record<string, string> {
   return {
-    Authorization: `Bearer ${TOKEN}`,
+    Authorization: `Bearer ${token}`,
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
     "User-Agent": "gestion-habilitations-backup",
@@ -65,17 +76,18 @@ function notConfigured(): GitHubBackupResult {
 
 // ── DB-only backup: commit the JSON export into the repo ──────────────────────
 export async function pushDbBackupToGitHub(uploadedBy: string = "system"): Promise<GitHubBackupResult> {
-  if (!isGitHubBackupConfigured()) return notConfigured();
+  const { token, repo } = await getConfig();
+  if (!token || !repo || !repo.includes("/")) return notConfigured();
 
   try {
     const data = await exportAllData();
     const json = JSON.stringify(data, null, 2);
     const filePath = `db-backups/${data.metadata.backupId}.json`;
-    const url = `${GITHUB_API}/repos/${REPO}/contents/${filePath}`;
+    const url = `${GITHUB_API}/repos/${repo}/contents/${filePath}`;
 
     const res = await fetch(url, {
       method: "PUT",
-      headers: ghHeaders({ "Content-Type": "application/json" }),
+      headers: ghHeaders(token, { "Content-Type": "application/json" }),
       body: JSON.stringify({
         message: `DB backup ${data.metadata.backupId} — ${data.metadata.totalEmployees} employés, ${data.metadata.totalVersions} versions (par ${uploadedBy})`,
         content: Buffer.from(json, "utf-8").toString("base64"),
@@ -105,7 +117,8 @@ export async function pushDbBackupToGitHub(uploadedBy: string = "system"): Promi
 
 // ── Full backup: zip DB export + all PDFs, upload as a Release asset ──────────
 export async function pushFullBackupToGitHub(uploadedBy: string = "system"): Promise<GitHubBackupResult> {
-  if (!isGitHubBackupConfigured()) return notConfigured();
+  const { token, repo } = await getConfig();
+  if (!token || !repo || !repo.includes("/")) return notConfigured();
 
   let zipPath: string | null = null;
   try {
@@ -120,9 +133,9 @@ export async function pushFullBackupToGitHub(uploadedBy: string = "system"): Pro
     console.log(`[GITHUB BACKUP] Zip built: ${(zipSize / 1024 / 1024).toFixed(1)} MB`);
 
     // 2. Create a Release to attach the asset to
-    const releaseRes = await fetch(`${GITHUB_API}/repos/${REPO}/releases`, {
+    const releaseRes = await fetch(`${GITHUB_API}/repos/${repo}/releases`, {
       method: "POST",
-      headers: ghHeaders({ "Content-Type": "application/json" }),
+      headers: ghHeaders(token, { "Content-Type": "application/json" }),
       body: JSON.stringify({
         tag_name: backupId,
         name: `Full backup ${backupId}`,
@@ -140,12 +153,12 @@ export async function pushFullBackupToGitHub(uploadedBy: string = "system"): Pro
 
     // 3. Upload the zip as a Release asset (streamed)
     const assetName = `${backupId}.zip`;
-    const uploadUrl = `${GITHUB_UPLOADS}/repos/${REPO}/releases/${releaseId}/assets?name=${encodeURIComponent(assetName)}`;
+    const uploadUrl = `${GITHUB_UPLOADS}/repos/${repo}/releases/${releaseId}/assets?name=${encodeURIComponent(assetName)}`;
     const fileStream = createReadStream(zipPath);
 
     const uploadRes = await fetch(uploadUrl, {
       method: "POST",
-      headers: ghHeaders({
+      headers: ghHeaders(token, {
         "Content-Type": "application/zip",
         "Content-Length": String(zipSize),
       }),
@@ -185,7 +198,8 @@ export async function listGitHubBackups(): Promise<{
   fullBackups: Array<{ backupId: string; url: string; fileSize: number; createdAt: string }>;
   errors: string[];
 }> {
-  if (!isGitHubBackupConfigured()) {
+  const { token, repo } = await getConfig();
+  if (!token || !repo || !repo.includes("/")) {
     return { dbBackups: [], fullBackups: [], errors: notConfigured().errors };
   }
 
@@ -195,7 +209,7 @@ export async function listGitHubBackups(): Promise<{
 
   // DB backups = files under db-backups/
   try {
-    const res = await fetch(`${GITHUB_API}/repos/${REPO}/contents/db-backups`, { headers: ghHeaders() });
+    const res = await fetch(`${GITHUB_API}/repos/${repo}/contents/db-backups`, { headers: ghHeaders(token) });
     if (res.ok) {
       const files = (await res.json()) as any[];
       for (const f of files) {
@@ -212,7 +226,7 @@ export async function listGitHubBackups(): Promise<{
 
   // Full backups = releases with an attached zip asset
   try {
-    const res = await fetch(`${GITHUB_API}/repos/${REPO}/releases?per_page=100`, { headers: ghHeaders() });
+    const res = await fetch(`${GITHUB_API}/repos/${repo}/releases?per_page=100`, { headers: ghHeaders(token) });
     if (res.ok) {
       const releases = (await res.json()) as any[];
       for (const r of releases) {
@@ -244,14 +258,15 @@ export interface GitHubRestoreResult {
 
 // ── Restore the DB from a db-backups/ JSON file stored on GitHub ──────────────
 export async function restoreDbFromGitHub(backupId: string): Promise<GitHubRestoreResult> {
-  if (!isGitHubBackupConfigured()) return { success: false, errors: notConfigured().errors };
+  const { token, repo } = await getConfig();
+  if (!token || !repo || !repo.includes("/")) return { success: false, errors: notConfigured().errors };
 
   let tmpPath: string | null = null;
   try {
     const filePath = `db-backups/${backupId}.json`;
-    // raw=true gives the file content directly (handles files >1MB unlike the JSON API)
-    const res = await fetch(`${GITHUB_API}/repos/${REPO}/contents/${filePath}`, {
-      headers: ghHeaders({ Accept: "application/vnd.github.raw+json" }),
+    // raw accept header gives the file content directly (handles files >1MB unlike the JSON API)
+    const res = await fetch(`${GITHUB_API}/repos/${repo}/contents/${filePath}`, {
+      headers: ghHeaders(token, { Accept: "application/vnd.github.raw+json" }),
     });
     if (!res.ok) {
       return { success: false, errors: [`Téléchargement BD: GitHub ${res.status}`] };
@@ -279,13 +294,14 @@ export async function restoreDbFromGitHub(backupId: string): Promise<GitHubResto
 
 // ── Restore the full app (DB + PDFs) from a Release-asset zip on GitHub ───────
 export async function restoreFullFromGitHub(backupId: string): Promise<GitHubRestoreResult> {
-  if (!isGitHubBackupConfigured()) return { success: false, errors: notConfigured().errors };
+  const { token, repo } = await getConfig();
+  if (!token || !repo || !repo.includes("/")) return { success: false, errors: notConfigured().errors };
 
   let zipPath: string | null = null;
   try {
     // 1. Find the release by tag and its zip asset id
-    const relRes = await fetch(`${GITHUB_API}/repos/${REPO}/releases/tags/${encodeURIComponent(backupId)}`, {
-      headers: ghHeaders(),
+    const relRes = await fetch(`${GITHUB_API}/repos/${repo}/releases/tags/${encodeURIComponent(backupId)}`, {
+      headers: ghHeaders(token),
     });
     if (!relRes.ok) return { success: false, errors: [`Release introuvable: GitHub ${relRes.status}`] };
     const release = (await relRes.json()) as any;
@@ -293,8 +309,8 @@ export async function restoreFullFromGitHub(backupId: string): Promise<GitHubRes
     if (!asset) return { success: false, errors: ["Aucun fichier .zip attaché à cette sauvegarde"] };
 
     // 2. Download the asset (octet-stream on the asset endpoint returns the binary)
-    const dlRes = await fetch(`${GITHUB_API}/repos/${REPO}/releases/assets/${asset.id}`, {
-      headers: ghHeaders({ Accept: "application/octet-stream" }),
+    const dlRes = await fetch(`${GITHUB_API}/repos/${repo}/releases/assets/${asset.id}`, {
+      headers: ghHeaders(token, { Accept: "application/octet-stream" }),
     });
     if (!dlRes.ok || !dlRes.body) return { success: false, errors: [`Téléchargement zip: GitHub ${dlRes.status}`] };
 
