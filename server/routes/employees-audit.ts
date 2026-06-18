@@ -645,33 +645,15 @@ export const revertToVersion: RequestHandler = async (req, res) => {
     }
 
     const result = await db.transaction(async (tx) => {
-      const [{ maxVer }] = await tx
-        .select({ maxVer: sql<number>`coalesce(max(version_number), 0)` })
-        .from(schema.employeeVersions)
-        .where(eq(schema.employeeVersions.employeeId, employeeId));
-
-      const [newVersion] = await tx.insert(schema.employeeVersions).values({
-        employeeId,
-        versionNumber: Number(maxVer) + 1,
-        stCodes: sourceVersion.stCodes,
-        htCodes: sourceVersion.htCodes,
-        nDeTitre: sourceVersion.nDeTitre,
-        fonction: sourceVersion.fonction,
-        divisionId: sourceVersion.divisionId,
-        serviceId: sourceVersion.serviceId,
-        equipeId: sourceVersion.equipeId,
-        dateValidation: sourceVersion.dateValidation,
-        dateExpiration: sourceVersion.dateExpiration,
-        createdBy: getUserIdFromRequest(req),
-      }).returning();
-
-      await tx.update(schema.employees).set({ currentVersionId: newVersion.id }).where(eq(schema.employees.id, employeeId));
+      await tx.update(schema.employees)
+        .set({ currentVersionId: versionId })
+        .where(eq(schema.employees.id, employeeId));
 
       const [auditLog] = await tx.insert(schema.auditLogs).values({
         action: "REVERT_VERSION",
         entityId: employeeId,
         snapshotOld: { currentVersionId: emp.currentVersionId } as any,
-        snapshotNew: { revertedFromVersionId: versionId, newVersionId: newVersion.id } as any,
+        snapshotNew: { revertedToVersionId: versionId, versionNumber: sourceVersion.versionNumber } as any,
       }).returning();
 
       return { auditLogId: auditLog.id };
@@ -682,9 +664,6 @@ export const revertToVersion: RequestHandler = async (req, res) => {
     const employee = await buildEmployeeResponse(employeeId);
     res.json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
   } catch (err) {
-    if (isUniqueConstraintError(err)) {
-      return res.status(409).json({ success: false, data: null, error: "Conflit: une autre modification est en cours. Rechargez et réessayez." });
-    }
     console.error("revertToVersion error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
