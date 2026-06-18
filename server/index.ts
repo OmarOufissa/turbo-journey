@@ -311,6 +311,7 @@ export function createServer() {
             stCodes: schema.employeeVersions.stCodes,
             htCodes: schema.employeeVersions.htCodes,
             habRows: schema.employeeVersions.habRows,
+            autorisationSpecialesVerso: schema.employeeVersions.autorisationSpecialesVerso,
             dateValidation: schema.employeeVersions.dateValidation,
             dateExpiration: schema.employeeVersions.dateExpiration,
             pdfPath: schema.employeeVersions.pdfPath,
@@ -348,6 +349,7 @@ export function createServer() {
               stCodes: (row.stCodes as string[]) ?? [],
               htCodes: (row.htCodes as string[]) ?? [],
               habRows: (row.habRows as any) ?? null,
+              autorisationSpecialesVerso: row.autorisationSpecialesVerso ?? null,
               dateValidation: row.dateValidation,
               dateExpiration: row.dateExpiration,
             }, row.versionNumber);
@@ -942,6 +944,7 @@ export function createServer() {
           stCodes: ver.stCodes ?? [],
           htCodes: ver.htCodes ?? [],
           habRows: ver.habRows ?? null,
+          autorisationSpecialesVerso: ver.autorisationSpecialesVerso ?? null,
           dateValidation: ver.dateValidation,
           dateExpiration: ver.dateExpiration,
         }, ver.versionNumber);
@@ -995,6 +998,7 @@ export function createServer() {
           stCodes: ver.stCodes ?? [],
           htCodes: ver.htCodes ?? [],
           habRows: ver.habRows ?? null,
+          autorisationSpecialesVerso: ver.autorisationSpecialesVerso ?? null,
           dateValidation: ver.dateValidation,
           dateExpiration: ver.dateExpiration,
         }, ver.versionNumber);

@@ -18,6 +18,7 @@ export interface VersionSnapshot {
   stCodes: string[];
   htCodes: string[];
   habRows?: HabRows | null;
+  autorisationSpecialesVerso?: string | null;
   dateValidation: string;
   dateExpiration: string;
 }
@@ -71,8 +72,7 @@ const P1 = {
 const P2 = {
   ...P1,
   nDeTitre:       { x: 372.38, y: 724.3  },
-  dateDelivrance: { x: 128.21, y: 261.43 },
-  valableJusquau: { x: 129.17, y: 250.15 },
+  autorisationY:  185,
 };
 
 // ─── Table geometry ───────────────────────────────────────────────────────────
@@ -335,12 +335,28 @@ function fillPage2(
 
   drawText(page, snapshot.nDeTitre, P2.nDeTitre.x, P2.nDeTitre.y, bold, SZ);
 
-  // Clear the "Autorisations" label band that overlaps valableJusquau
-  clearRect(page, 0, P2.valableJusquau.y - 4, 340, 14);
-  drawText(page, formatDateFrench(snapshot.dateValidation), P2.dateDelivrance.x, P2.dateDelivrance.y, regular, SZ);
-  drawText(page, formatDateFrench(snapshot.dateExpiration), P2.valableJusquau.x,  P2.valableJusquau.y,  regular, SZ);
+  // Write AUTORISATION SPECIALES VERSO below the "Autorisations (ou restrictions) spéciales :" label
+  if (snapshot.autorisationSpecialesVerso) {
+    const text = snapshot.autorisationSpecialesVerso;
+    const margin = 35;
+    const maxWidth = page.getWidth() - 2 * margin;
+    const lineHeight = SZ * 1.4;
+    let y = P2.autorisationY;
 
-  // Footer (BRAHIMI ALI) is pre-printed — do NOT overwrite
+    const words = text.split(/\s+/);
+    let line = '';
+    for (const word of words) {
+      const test = line ? `${line} ${word}` : word;
+      if (regular.widthOfTextAtSize(test, SZ) > maxWidth && line) {
+        drawText(page, line, margin, y, regular, SZ);
+        y -= lineHeight;
+        line = word;
+      } else {
+        line = test;
+      }
+    }
+    if (line) drawText(page, line, margin, y, regular, SZ);
+  }
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────

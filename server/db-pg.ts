@@ -124,6 +124,7 @@ async function createTablesIfNotExist() {
   const migrations = [
     `ALTER TABLE employees ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'))`,
     `ALTER TABLE employee_versions ADD COLUMN hab_rows TEXT`,
+    `ALTER TABLE employee_versions ADD COLUMN autorisation_speciales_verso TEXT`,
   ];
   for (const m of migrations) {
     try { await client.execute(m); } catch { /* column already exists */ }

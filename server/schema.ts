@@ -57,7 +57,9 @@ export const employees = sqliteTable("employees", {
 
 export type HabRowData = { domaine: string; ouvrage: string; indication: string };
 // Keys match the 6 official table rows: H0V/B0V, H1V/B1V, H2V/B2V, HC/BC, BR, SF6
-export type HabRows = Partial<Record<'H0V_B0V' | 'H1V_B1V' | 'H2V_B2V' | 'HC_BC' | 'BR' | 'SF6', HabRowData>>;
+// ST-specific keys (H1N, H1T, H2N, H2T) store per-code data from the TST Excel
+export type HabRowKey = 'H0V_B0V' | 'H1V_B1V' | 'H2V_B2V' | 'HC_BC' | 'BR' | 'SF6' | 'H1N' | 'H1T' | 'H2N' | 'H2T';
+export type HabRows = Partial<Record<HabRowKey, HabRowData>>;
 
 // Source of truth for all employee data (versioned)
 export const employeeVersions = sqliteTable("employee_versions", {
@@ -74,6 +76,7 @@ export const employeeVersions = sqliteTable("employee_versions", {
   dateValidation: text("date_validation").notNull(),
   dateExpiration: text("date_expiration").notNull(),
   habRows: text("hab_rows", { mode: "json" }).$type<HabRows | null>(),
+  autorisationSpecialesVerso: text("autorisation_speciales_verso"),
   pdfPath: text("pdf_path"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   createdBy: integer("created_by").references(() => users.id),

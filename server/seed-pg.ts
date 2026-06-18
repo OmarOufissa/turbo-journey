@@ -1,6 +1,7 @@
 import { db } from "./db-pg";
 import * as schema from "./schema";
 import { format } from "date-fns";
+import * as XLSX from "xlsx";
 import { loadExcelRows, ExcelRow } from "./excel-loader";
 import {
   ORGANIZATIONAL_STRUCTURE,
@@ -13,6 +14,8 @@ import {
 import { eq } from "drizzle-orm";
 import type { HabRows, HabRowData } from "./schema";
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { resolvePdfPath } from "./utils/pathUtils";
 
 function findExistingPdf(matricule: string, versionNumber: number): string | null {
@@ -377,7 +380,6 @@ export async function seedDatabasePG() {
     let employeeCount = 0;
     let versionCount = 0;
     let pdfLinked = 0;
-    const missingPdf: Array<{ verId: number; matricule: string; nom: string; prenom: string; nDeTitre: string; fonction: string; divisionName: string; serviceName: string; equipeName: string; stCodes: string[]; htCodes: string[]; habRows: any; dateValidation: string; dateExpiration: string; versionNumber: number }> = [];
 
     for (const empData of employeeDataList) {
       const divisionId = divisions[empData.division];
@@ -470,7 +472,6 @@ export async function seedDatabasePG() {
         .where(eq(schema.employees.id, employeeId));
 
       if (existingPdf) pdfLinked++;
-      else missingPdf.push({ verId: ver.id, matricule: empData.matricule, nom: empData.nom, prenom: empData.prenom, nDeTitre, fonction: empData.fonction || "Non spécifié", divisionName: empData.division, serviceName: empData.service, equipeName: empData.equipe, stCodes, htCodes, habRows: empData.habRows ?? null, dateValidation: empData.dateValidation, dateExpiration: dateExp, versionNumber });
       versionCount++;
     }
 
@@ -478,12 +479,48 @@ export async function seedDatabasePG() {
     console.log(`✓ Created ${versionCount} employee versions`);
     console.log(`✓ Linked ${pdfLinked} existing PDFs`);
 
-    // Generate PDFs for employees without an existing one
+    // Merge TST (ST habilitation) data into existing employees
+    await mergeTstData();
+
+    // Generate PDFs for employees without an existing one (query DB for fresh data after TST merge)
     const { generateHabilitationPdf } = await import("./services/pdfService");
+    const [allDivs, allSvcs, allEquipesMap] = await Promise.all([
+      db.select({ id: schema.divisions.id, name: schema.divisions.name }).from(schema.divisions),
+      db.select({ id: schema.services.id, name: schema.services.name }).from(schema.services),
+      db.select({ id: schema.equipes.id, name: schema.equipes.name }).from(schema.equipes),
+    ]);
+    const divMap = Object.fromEntries(allDivs.map(d => [d.id, d.name]));
+    const svcMap = Object.fromEntries(allSvcs.map(s => [s.id, s.name]));
+    const eqMap = Object.fromEntries(allEquipesMap.map(e => [e.id, e.name]));
+
+    const versionsNeedingPdf = await db
+      .select({
+        verId: schema.employeeVersions.id,
+        versionNumber: schema.employeeVersions.versionNumber,
+        matricule: schema.employees.matricule,
+        nom: schema.employees.nom,
+        prenom: schema.employees.prenom,
+        nDeTitre: schema.employeeVersions.nDeTitre,
+        fonction: schema.employeeVersions.fonction,
+        divisionId: schema.employeeVersions.divisionId,
+        serviceId: schema.employeeVersions.serviceId,
+        equipeId: schema.employeeVersions.equipeId,
+        stCodes: schema.employeeVersions.stCodes,
+        htCodes: schema.employeeVersions.htCodes,
+        habRows: schema.employeeVersions.habRows,
+        autorisationSpecialesVerso: schema.employeeVersions.autorisationSpecialesVerso,
+        dateValidation: schema.employeeVersions.dateValidation,
+        dateExpiration: schema.employeeVersions.dateExpiration,
+        pdfPath: schema.employeeVersions.pdfPath,
+      })
+      .from(schema.employeeVersions)
+      .innerJoin(schema.employees, eq(schema.employees.currentVersionId, schema.employeeVersions.id));
+
+    const toGenerate = versionsNeedingPdf.filter(v => !v.pdfPath);
     let pdfGenerated = 0;
     let pdfFailed = 0;
 
-    for (const row of missingPdf) {
+    for (const row of toGenerate) {
       try {
         const result = await generateHabilitationPdf({
           matricule: row.matricule,
@@ -491,12 +528,13 @@ export async function seedDatabasePG() {
           prenom: row.prenom,
           nDeTitre: row.nDeTitre,
           fonction: row.fonction,
-          division: row.divisionName,
-          service: row.serviceName || null,
-          equipe: row.equipeName || null,
-          stCodes: row.stCodes,
-          htCodes: row.htCodes,
-          habRows: row.habRows as any,
+          division: divMap[row.divisionId] ?? "",
+          service: svcMap[row.serviceId] ?? null,
+          equipe: row.equipeId ? (eqMap[row.equipeId] ?? null) : null,
+          stCodes: (row.stCodes as string[]) ?? [],
+          htCodes: (row.htCodes as string[]) ?? [],
+          habRows: (row.habRows as any) ?? null,
+          autorisationSpecialesVerso: row.autorisationSpecialesVerso ?? null,
           dateValidation: row.dateValidation,
           dateExpiration: row.dateExpiration,
         }, row.versionNumber);
@@ -517,6 +555,76 @@ export async function seedDatabasePG() {
     console.error("Error seeding PostgreSQL database:", err);
     throw err;
   }
+}
+
+// Merge TST Excel data (ST habilitation info) into existing employee versions
+async function mergeTstData() {
+  const dir = path.dirname(fileURLToPath(import.meta.url));
+  const tstPath = path.join(dir, "seeds", "data", "employees_tst.xlsx");
+  if (!fs.existsSync(tstPath)) {
+    console.log("⚠ No TST Excel file found, skipping ST merge");
+    return;
+  }
+
+  const wb = XLSX.read(fs.readFileSync(tstPath), { type: "buffer" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws) as Record<string, any>[];
+  let merged = 0;
+
+  const ST_CODE_KEYS = ["H1N", "H1T", "H2N", "H2T"] as const;
+
+  for (const row of rows) {
+    const matricule = String(row["MATRICULE"] ?? "").trim();
+    if (!matricule) continue;
+
+    const [emp] = await db.select({ id: schema.employees.id, currentVersionId: schema.employees.currentVersionId })
+      .from(schema.employees)
+      .where(eq(schema.employees.matricule, matricule))
+      .limit(1);
+    if (!emp || !emp.currentVersionId) continue;
+
+    const [ver] = await db.select()
+      .from(schema.employeeVersions)
+      .where(eq(schema.employeeVersions.id, emp.currentVersionId))
+      .limit(1);
+    if (!ver) continue;
+
+    // Extract ST codes
+    const newStCodes: string[] = [...((ver.stCodes as string[]) ?? [])];
+    for (const code of ST_CODE_KEYS) {
+      const val = String(row[code] ?? "").trim();
+      if (val && val.toUpperCase() === code && !newStCodes.includes(code)) {
+        newStCodes.push(code);
+      }
+    }
+
+    // Build ST-specific habRows
+    const existingHabRows = (ver.habRows as HabRows) ?? {};
+    const domaine = String(row["DOMAINE DE TENSION"] ?? "").trim();
+    const ouvrage = String(row["OUVRAGES CONCERNES"] ?? "").trim();
+
+    for (const code of ST_CODE_KEYS) {
+      if (!newStCodes.includes(code)) continue;
+      const rawIndication = String(row[`INDICATIONS COMPLEMENTAIRES ${code}`] ?? "").trim();
+      const indication = (rawIndication && rawIndication !== "***") ? rawIndication : "";
+      existingHabRows[code] = { domaine, ouvrage, indication };
+    }
+
+    // Autorisation speciales verso
+    const autorisation = String(row["AUTORISATION SPECIALES VERSO"] ?? "").trim() || null;
+
+    await db.update(schema.employeeVersions)
+      .set({
+        stCodes: newStCodes,
+        habRows: existingHabRows,
+        autorisationSpecialesVerso: autorisation,
+      })
+      .where(eq(schema.employeeVersions.id, ver.id));
+
+    merged++;
+  }
+
+  console.log(`✓ Merged TST data for ${merged}/${rows.length} employees`);
 }
 
 // Resync only names + fonctions from Excel without touching versions or org structure
