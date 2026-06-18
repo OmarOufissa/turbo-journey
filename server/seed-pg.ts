@@ -370,6 +370,7 @@ export async function seedDatabasePG() {
     let employeeCount = 0;
     let versionCount = 0;
     let pdfLinked = 0;
+    const missingPdf: Array<{ verId: number; matricule: string; nom: string; prenom: string; nDeTitre: string; fonction: string; divisionName: string; serviceName: string; equipeName: string; stCodes: string[]; htCodes: string[]; habRows: any; dateValidation: string; dateExpiration: string; versionNumber: number }> = [];
 
     for (const empData of employeeDataList) {
       const divisionId = divisions[empData.division];
@@ -462,12 +463,48 @@ export async function seedDatabasePG() {
         .where(eq(schema.employees.id, employeeId));
 
       if (existingPdf) pdfLinked++;
+      else missingPdf.push({ verId: ver.id, matricule: empData.matricule, nom: empData.nom, prenom: empData.prenom, nDeTitre, fonction: empData.fonction || "Non spécifié", divisionName: empData.division, serviceName: empData.service, equipeName: empData.equipe, stCodes, htCodes, habRows: empData.habRows ?? null, dateValidation: empData.dateValidation, dateExpiration: dateExp, versionNumber });
       versionCount++;
     }
 
     console.log(`✓ Created ${employeeCount} employees`);
     console.log(`✓ Created ${versionCount} employee versions`);
     console.log(`✓ Linked ${pdfLinked} existing PDFs`);
+
+    // Generate PDFs for employees without an existing one
+    const { generateHabilitationPdf } = await import("./services/pdfService");
+    let pdfGenerated = 0;
+    let pdfFailed = 0;
+
+    for (const row of missingPdf) {
+      try {
+        const result = await generateHabilitationPdf({
+          matricule: row.matricule,
+          nom: row.nom,
+          prenom: row.prenom,
+          nDeTitre: row.nDeTitre,
+          fonction: row.fonction,
+          division: row.divisionName,
+          service: row.serviceName || null,
+          equipe: row.equipeName || null,
+          stCodes: row.stCodes,
+          htCodes: row.htCodes,
+          habRows: row.habRows as any,
+          dateValidation: row.dateValidation,
+          dateExpiration: row.dateExpiration,
+        }, row.versionNumber);
+
+        await db.update(schema.employeeVersions)
+          .set({ pdfPath: result.pdfPath })
+          .where(eq(schema.employeeVersions.id, row.verId));
+        pdfGenerated++;
+      } catch (err) {
+        pdfFailed++;
+        console.warn(`PDF generation failed for ${row.matricule}: ${(err as Error).message}`);
+      }
+    }
+
+    console.log(`✓ Generated ${pdfGenerated} new PDFs (${pdfFailed} failed)`);
     console.log("\n✅ PostgreSQL database seeding completed successfully!");
   } catch (err) {
     console.error("Error seeding PostgreSQL database:", err);
