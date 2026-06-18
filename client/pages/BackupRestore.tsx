@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Download, CheckCircle, AlertTriangle, HardDrive, RefreshCw, Plus } from "lucide-react";
+import { Download, CheckCircle, AlertTriangle, HardDrive, RefreshCw, Plus, Github, Database, Package } from "lucide-react";
 
 interface Backup {
   backupId: string;
@@ -69,10 +69,66 @@ export default function BackupRestore() {
     backupId: null,
   });
 
+  // GitHub backups (durable)
+  const [githubConfigured, setGithubConfigured] = useState(false);
+  const [githubRepo, setGithubRepo] = useState<string | null>(null);
+  const [githubBusy, setGithubBusy] = useState<"db" | "full" | null>(null);
+  const [githubDbBackups, setGithubDbBackups] = useState<Array<{ backupId: string; url: string }>>([]);
+  const [githubFullBackups, setGithubFullBackups] = useState<Array<{ backupId: string; url: string; fileSize: number; createdAt: string }>>([]);
+
   useEffect(() => {
     fetchBackups();
     checkCloudBackupStatus();
+    checkGithubBackupStatus();
   }, []);
+
+  const githubAuthHeader = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
+
+  const checkGithubBackupStatus = async () => {
+    try {
+      const res = await fetch("/api/backups/github/status", { headers: githubAuthHeader() });
+      if (!res.ok) return;
+      const data = await res.json();
+      setGithubConfigured(data.configured);
+      setGithubRepo(data.repo);
+      if (data.configured) fetchGithubBackups();
+    } catch (e) {
+      console.error("Error checking GitHub backup status:", e);
+    }
+  };
+
+  const fetchGithubBackups = async () => {
+    try {
+      const res = await fetch("/api/backups/github/list", { headers: githubAuthHeader() });
+      if (!res.ok) return;
+      const data = await res.json();
+      setGithubDbBackups(data.dbBackups || []);
+      setGithubFullBackups(data.fullBackups || []);
+    } catch (e) {
+      console.error("Error fetching GitHub backups:", e);
+    }
+  };
+
+  const handleGithubBackup = async (kind: "db" | "full") => {
+    setGithubBusy(kind);
+    try {
+      const res = await fetch(`/api/backups/github/${kind}`, { method: "POST", headers: githubAuthHeader() });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast({
+          title: "Sauvegarde GitHub réussie",
+          description: kind === "full" ? "Application complète (BD + PDFs) sauvegardée" : "Base de données sauvegardée",
+        });
+        fetchGithubBackups();
+      } else {
+        toast({ title: "Échec de la sauvegarde GitHub", description: data.message || "Erreur inconnue", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Erreur", description: "Impossible de contacter le serveur", variant: "destructive" });
+    } finally {
+      setGithubBusy(null);
+    }
+  };
 
   const fetchBackups = async () => {
     try {
@@ -347,6 +403,97 @@ export default function BackupRestore() {
             {creating ? "Creating..." : "Create Backup"}
           </Button>
         </div>
+
+        {/* GitHub backups (durable — survives container restarts) */}
+        <Card className="p-6 border-2">
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="flex items-start gap-3">
+              <Github className="w-6 h-6 mt-1" />
+              <div>
+                <h2 className="text-lg font-semibold">Sauvegarde GitHub (durable)</h2>
+                <p className="text-sm text-gray-600 mt-1 max-w-xl">
+                  Pousse les sauvegardes vers un dépôt GitHub dédié pour préserver
+                  l'application même si l'environnement est réinitialisé.
+                </p>
+                {githubConfigured ? (
+                  <p className="text-xs text-green-700 mt-2">
+                    Connecté à <span className="font-mono font-semibold">{githubRepo}</span>
+                  </p>
+                ) : (
+                  <div className="text-xs text-amber-700 mt-2 flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Non configuré — définissez{" "}
+                    <span className="font-mono">GITHUB_BACKUP_TOKEN</span> et{" "}
+                    <span className="font-mono">GITHUB_BACKUP_REPO</span>.
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                onClick={() => handleGithubBackup("full")}
+                disabled={!githubConfigured || githubBusy !== null}
+                className="gap-2"
+              >
+                <Package className="w-4 h-4" />
+                {githubBusy === "full" ? "Sauvegarde..." : "App complète (BD + PDFs)"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleGithubBackup("db")}
+                disabled={!githubConfigured || githubBusy !== null}
+                className="gap-2"
+              >
+                <Database className="w-4 h-4" />
+                {githubBusy === "db" ? "Sauvegarde..." : "Base de données"}
+              </Button>
+            </div>
+          </div>
+
+          {githubConfigured && (githubFullBackups.length > 0 || githubDbBackups.length > 0) && (
+            <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                  <Package className="w-4 h-4" /> App complète ({githubFullBackups.length})
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-auto">
+                  {githubFullBackups.map((b) => (
+                    <a
+                      key={b.backupId}
+                      href={b.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between text-xs p-2 rounded bg-muted hover:bg-muted/70"
+                    >
+                      <span className="font-mono truncate">{b.backupId}</span>
+                      <span className="text-gray-500 whitespace-nowrap ml-2">{formatBytes(b.fileSize)}</span>
+                    </a>
+                  ))}
+                  {githubFullBackups.length === 0 && <p className="text-xs text-gray-400">Aucune</p>}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                  <Database className="w-4 h-4" /> Base de données ({githubDbBackups.length})
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-auto">
+                  {githubDbBackups.map((b) => (
+                    <a
+                      key={b.backupId}
+                      href={b.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center text-xs p-2 rounded bg-muted hover:bg-muted/70"
+                    >
+                      <span className="font-mono truncate">{b.backupId}</span>
+                    </a>
+                  ))}
+                  {githubDbBackups.length === 0 && <p className="text-xs text-gray-400">Aucune</p>}
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
 
         {/* Statistics */}
         {stats && (

@@ -516,6 +516,56 @@ export const cleanupCloudBackups_Handler: RequestHandler = async (req, res) => {
   }
 };
 
+// ============================================================================
+// GITHUB BACKUPS (durable — survives ephemeral environments)
+// ============================================================================
+
+export const getGitHubBackupStatus_Handler: RequestHandler = async (_req, res) => {
+  const { isGitHubBackupConfigured } = await import("../services/githubBackupService");
+  res.json({ configured: isGitHubBackupConfigured(), repo: process.env.GITHUB_BACKUP_REPO ?? null });
+};
+
+export const githubBackupDb_Handler: RequestHandler = async (_req, res) => {
+  try {
+    const { pushDbBackupToGitHub } = await import("../services/githubBackupService");
+    const result = await pushDbBackupToGitHub("admin");
+    if (!result.success) {
+      return res.status(result.errors[0]?.includes("non configurée") ? 400 : 502).json({ message: result.errors.join("; "), ...result });
+    }
+    await logAuditActionSafe(1, "EXPORT_EMPLOYEES", null, null, { action: "GitHub DB backup", backupId: result.backupId });
+    res.json({ message: "Sauvegarde BD poussée sur GitHub", ...result });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ message: `Erreur sauvegarde GitHub: ${msg}` });
+  }
+};
+
+export const githubBackupFull_Handler: RequestHandler = async (_req, res) => {
+  try {
+    const { pushFullBackupToGitHub } = await import("../services/githubBackupService");
+    const result = await pushFullBackupToGitHub("admin");
+    if (!result.success) {
+      return res.status(result.errors[0]?.includes("non configurée") ? 400 : 502).json({ message: result.errors.join("; "), ...result });
+    }
+    await logAuditActionSafe(1, "EXPORT_EMPLOYEES", null, null, { action: "GitHub full backup", backupId: result.backupId, fileSize: result.fileSize });
+    res.json({ message: "Sauvegarde complète poussée sur GitHub", ...result });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ message: `Erreur sauvegarde GitHub: ${msg}` });
+  }
+};
+
+export const listGitHubBackups_Handler: RequestHandler = async (_req, res) => {
+  try {
+    const { listGitHubBackups } = await import("../services/githubBackupService");
+    const result = await listGitHubBackups();
+    res.json(result);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ message: `Erreur liste GitHub: ${msg}` });
+  }
+};
+
 export default {
   createBackup_Handler,
   listBackups_Handler,
@@ -530,4 +580,8 @@ export default {
   downloadFromCloud_Handler,
   deleteCloudBackup_Handler,
   cleanupCloudBackups_Handler,
+  getGitHubBackupStatus_Handler,
+  githubBackupDb_Handler,
+  githubBackupFull_Handler,
+  listGitHubBackups_Handler,
 };

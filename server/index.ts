@@ -901,6 +901,39 @@ export function createServer() {
     });
   });
 
+  // GitHub backups (durable — survives ephemeral environments)
+  app.get("/api/backups/github/status", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { getGitHubBackupStatus_Handler } = await import("./routes/backup");
+      getGitHubBackupStatus_Handler(req, res, () => {});
+    });
+  });
+
+  app.get("/api/backups/github/list", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { listGitHubBackups_Handler } = await import("./routes/backup");
+      listGitHubBackups_Handler(req, res, () => {});
+    });
+  });
+
+  app.post("/api/backups/github/db", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { githubBackupDb_Handler } = await import("./routes/backup");
+      githubBackupDb_Handler(req, res, () => {});
+    });
+  });
+
+  app.post("/api/backups/github/full", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { githubBackupFull_Handler } = await import("./routes/backup");
+      githubBackupFull_Handler(req, res, () => {});
+    });
+  });
+
   // ============================================================================
   // PDF GENERATION
   // ============================================================================
