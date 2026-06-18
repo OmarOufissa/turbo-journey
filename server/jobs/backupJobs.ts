@@ -22,6 +22,10 @@ import {
   cleanupOldS3Backups,
   getS3BackupStatistics,
 } from "../services/awsBackupService";
+import {
+  isGitHubBackupConfigured,
+  pushFullBackupToGitHub,
+} from "../services/githubBackupService";
 import { logAuditActionSafe } from "../services/auditService";
 
 // ============================================================================
@@ -31,8 +35,49 @@ import { logAuditActionSafe } from "../services/auditService";
 export const BACKUP_CRON_PATTERNS = {
   DAILY_MIDNIGHT: "0 0 * * *", // Every day at midnight
   WEEKLY_SUNDAY_2AM: "0 2 * * 0", // Every Sunday at 2 AM
+  WEEKLY_SUNDAY_3AM: "0 3 * * 0", // Every Sunday at 3 AM
   EVERY_6_HOURS: "0 */6 * * *", // Every 6 hours (for testing)
 };
+
+/**
+ * GitHub backup job
+ * Pushes a full backup (DB + PDFs zip) to the configured GitHub backup repo.
+ */
+export async function githubBackupJob(): Promise<{
+  success: boolean;
+  backupId?: string;
+  errors: string[];
+}> {
+  console.log("[BACKUP JOB] Starting GitHub backup job...");
+
+  if (!isGitHubBackupConfigured()) {
+    console.log(
+      "[BACKUP JOB] GitHub backup not configured. Skipping. Set GITHUB_BACKUP_TOKEN and GITHUB_BACKUP_REPO to enable."
+    );
+    return { success: true, errors: ["GitHub backup not configured"] };
+  }
+
+  try {
+    const result = await pushFullBackupToGitHub("scheduled");
+    if (result.success) {
+      console.log(`[BACKUP JOB] GitHub full backup pushed: ${result.backupId}`);
+      try {
+        await logAuditActionSafe(null, "EXPORT_EMPLOYEES", null, null, {
+          action: "Scheduled GitHub full backup",
+          backupId: result.backupId,
+          fileSize: result.fileSize,
+        });
+      } catch { /* audit best-effort */ }
+    } else {
+      console.error("[BACKUP JOB] GitHub backup failed:", result.errors.join("; "));
+    }
+    return { success: result.success, backupId: result.backupId, errors: result.errors };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[BACKUP JOB] GitHub backup job error:", err);
+    return { success: false, errors: [msg] };
+  }
+}
 
 // Backup configuration
 const BACKUPS_TO_KEEP = parseInt(process.env.BACKUPS_TO_KEEP || "7"); // Keep last 7 backups
@@ -432,6 +477,18 @@ export async function initializeBackupJobs(): Promise<{
     });
     cronJobs.push(cloudJob);
     console.log("[BACKUP JOB] Scheduled: Cloud backup at Sunday 2 AM");
+
+    // Weekly GitHub backup (Sunday 3 AM) — durable, survives env rebuilds
+    const githubJob = cron.schedule(BACKUP_CRON_PATTERNS.WEEKLY_SUNDAY_3AM, async () => {
+      try {
+        console.log("[BACKUP JOB] Running GitHub backup...");
+        await githubBackupJob();
+      } catch (err) {
+        console.error("[BACKUP JOB] GitHub job error:", err);
+      }
+    });
+    cronJobs.push(githubJob);
+    console.log("[BACKUP JOB] Scheduled: GitHub backup at Sunday 3 AM");
 
     // Backup statistics daily
     const statsJob = cron.schedule(BACKUP_CRON_PATTERNS.DAILY_MIDNIGHT, async () => {

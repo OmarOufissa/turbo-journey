@@ -75,6 +75,8 @@ export default function BackupRestore() {
   const [githubBusy, setGithubBusy] = useState<"db" | "full" | null>(null);
   const [githubDbBackups, setGithubDbBackups] = useState<Array<{ backupId: string; url: string }>>([]);
   const [githubFullBackups, setGithubFullBackups] = useState<Array<{ backupId: string; url: string; fileSize: number; createdAt: string }>>([]);
+  const [githubRestoreDialog, setGithubRestoreDialog] = useState<{ open: boolean; kind: "db" | "full"; backupId: string | null }>({ open: false, kind: "db", backupId: null });
+  const [githubRestoring, setGithubRestoring] = useState(false);
 
   useEffect(() => {
     fetchBackups();
@@ -127,6 +129,34 @@ export default function BackupRestore() {
       toast({ title: "Erreur", description: "Impossible de contacter le serveur", variant: "destructive" });
     } finally {
       setGithubBusy(null);
+    }
+  };
+
+  const handleGithubRestore = async () => {
+    const { kind, backupId } = githubRestoreDialog;
+    if (!backupId) return;
+    setGithubRestoring(true);
+    try {
+      const res = await fetch(`/api/backups/github/restore/${kind}/${encodeURIComponent(backupId)}`, {
+        method: "POST",
+        headers: githubAuthHeader(),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const r = data.restored || {};
+        toast({
+          title: "Restauration réussie",
+          description: `${r.employees ?? 0} employés${r.pdfs != null ? `, ${r.pdfs} PDFs` : ""} restaurés depuis GitHub`,
+        });
+        fetchBackups();
+      } else {
+        toast({ title: "Échec de la restauration", description: data.message || "Erreur inconnue", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Erreur", description: "Impossible de contacter le serveur", variant: "destructive" });
+    } finally {
+      setGithubRestoring(false);
+      setGithubRestoreDialog({ open: false, kind: "db", backupId: null });
     }
   };
 
@@ -458,16 +488,23 @@ export default function BackupRestore() {
                 </div>
                 <div className="space-y-1.5 max-h-48 overflow-auto">
                   {githubFullBackups.map((b) => (
-                    <a
+                    <div
                       key={b.backupId}
-                      href={b.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between text-xs p-2 rounded bg-muted hover:bg-muted/70"
+                      className="flex items-center justify-between gap-2 text-xs p-2 rounded bg-muted"
                     >
-                      <span className="font-mono truncate">{b.backupId}</span>
-                      <span className="text-gray-500 whitespace-nowrap ml-2">{formatBytes(b.fileSize)}</span>
-                    </a>
+                      <a href={b.url} target="_blank" rel="noreferrer" className="font-mono truncate hover:underline flex-1">
+                        {b.backupId}
+                      </a>
+                      <span className="text-gray-500 whitespace-nowrap">{formatBytes(b.fileSize)}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => setGithubRestoreDialog({ open: true, kind: "full", backupId: b.backupId })}
+                      >
+                        Restaurer
+                      </Button>
+                    </div>
                   ))}
                   {githubFullBackups.length === 0 && <p className="text-xs text-gray-400">Aucune</p>}
                 </div>
@@ -478,15 +515,22 @@ export default function BackupRestore() {
                 </div>
                 <div className="space-y-1.5 max-h-48 overflow-auto">
                   {githubDbBackups.map((b) => (
-                    <a
+                    <div
                       key={b.backupId}
-                      href={b.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center text-xs p-2 rounded bg-muted hover:bg-muted/70"
+                      className="flex items-center justify-between gap-2 text-xs p-2 rounded bg-muted"
                     >
-                      <span className="font-mono truncate">{b.backupId}</span>
-                    </a>
+                      <a href={b.url} target="_blank" rel="noreferrer" className="font-mono truncate hover:underline flex-1">
+                        {b.backupId}
+                      </a>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => setGithubRestoreDialog({ open: true, kind: "db", backupId: b.backupId })}
+                      >
+                        Restaurer
+                      </Button>
+                    </div>
                   ))}
                   {githubDbBackups.length === 0 && <p className="text-xs text-gray-400">Aucune</p>}
                 </div>
@@ -836,6 +880,34 @@ export default function BackupRestore() {
               }}
             >
               {restoring ? "Restoring..." : "Restore"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* GitHub restore confirmation */}
+      <AlertDialog
+        open={githubRestoreDialog.open}
+        onOpenChange={(open) => setGithubRestoreDialog({ ...githubRestoreDialog, open })}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restaurer depuis GitHub ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {githubRestoreDialog.kind === "full"
+                ? "Cela écrasera TOUTES les données actuelles (base de données ET PDFs) avec le contenu de cette sauvegarde GitHub."
+                : "Cela écrasera TOUTE la base de données actuelle avec le contenu de cette sauvegarde GitHub."}{" "}
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <AlertDialogCancel disabled={githubRestoring}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleGithubRestore}
+              disabled={githubRestoring}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {githubRestoring ? "Restauration..." : "Restaurer"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

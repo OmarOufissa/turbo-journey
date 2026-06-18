@@ -566,6 +566,38 @@ export const listGitHubBackups_Handler: RequestHandler = async (_req, res) => {
   }
 };
 
+export const restoreGitHubDb_Handler: RequestHandler = async (req, res) => {
+  try {
+    const backupId = req.params.backupId;
+    const { restoreDbFromGitHub } = await import("../services/githubBackupService");
+    const result = await restoreDbFromGitHub(backupId);
+    if (!result.success) {
+      return res.status(result.errors[0]?.includes("non configurée") ? 400 : 502).json({ message: result.errors.join("; "), ...result });
+    }
+    await logAuditActionSafe(1, "RESTORE_EMPLOYEE", null, null, { action: "GitHub DB restore", backupId, restored: result.restored });
+    res.json({ message: "Base de données restaurée depuis GitHub", ...result });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ message: `Erreur restauration GitHub: ${msg}` });
+  }
+};
+
+export const restoreGitHubFull_Handler: RequestHandler = async (req, res) => {
+  try {
+    const backupId = req.params.backupId;
+    const { restoreFullFromGitHub } = await import("../services/githubBackupService");
+    const result = await restoreFullFromGitHub(backupId);
+    if (!result.success) {
+      return res.status(result.errors[0]?.includes("non configurée") ? 400 : 502).json({ message: result.errors.join("; "), ...result });
+    }
+    await logAuditActionSafe(1, "RESTORE_EMPLOYEE", null, null, { action: "GitHub full restore", backupId, restored: result.restored });
+    res.json({ message: "Application complète restaurée depuis GitHub", ...result });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ message: `Erreur restauration GitHub: ${msg}` });
+  }
+};
+
 export default {
   createBackup_Handler,
   listBackups_Handler,
@@ -584,4 +616,6 @@ export default {
   githubBackupDb_Handler,
   githubBackupFull_Handler,
   listGitHubBackups_Handler,
+  restoreGitHubDb_Handler,
+  restoreGitHubFull_Handler,
 };

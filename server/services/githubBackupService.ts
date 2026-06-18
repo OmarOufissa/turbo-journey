@@ -16,12 +16,14 @@
  *  - GITHUB_BACKUP_REPO  : "owner/repo", e.g. "OmarOufissa/turbo-journey-backups"
  */
 
-import { createReadStream, createWriteStream, statSync, unlinkSync } from "fs";
+import { createReadStream, createWriteStream, statSync, unlinkSync, mkdirSync, writeFileSync } from "fs";
 import path from "path";
 import os from "os";
 import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 import { ZipArchive } from "archiver";
-import { exportAllData, BackupMetadata } from "./backupService";
+import { Open as unzipOpen } from "unzipper";
+import { exportAllData, restoreFromBackup, BackupMetadata } from "./backupService";
 import { PDFS_DIR } from "../utils/pathUtils";
 
 const GITHUB_API = "https://api.github.com";
@@ -234,6 +236,113 @@ export async function listGitHubBackups(): Promise<{
   return { dbBackups, fullBackups, errors };
 }
 
+export interface GitHubRestoreResult {
+  success: boolean;
+  restored?: { employees: number; versions: number; pdfs?: number };
+  errors: string[];
+}
+
+// ── Restore the DB from a db-backups/ JSON file stored on GitHub ──────────────
+export async function restoreDbFromGitHub(backupId: string): Promise<GitHubRestoreResult> {
+  if (!isGitHubBackupConfigured()) return { success: false, errors: notConfigured().errors };
+
+  let tmpPath: string | null = null;
+  try {
+    const filePath = `db-backups/${backupId}.json`;
+    // raw=true gives the file content directly (handles files >1MB unlike the JSON API)
+    const res = await fetch(`${GITHUB_API}/repos/${REPO}/contents/${filePath}`, {
+      headers: ghHeaders({ Accept: "application/vnd.github.raw+json" }),
+    });
+    if (!res.ok) {
+      return { success: false, errors: [`Téléchargement BD: GitHub ${res.status}`] };
+    }
+    const json = await res.text();
+
+    tmpPath = path.join(os.tmpdir(), `restore_${backupId}.json`);
+    writeFileSync(tmpPath, json);
+
+    const result = await restoreFromBackup(tmpPath);
+    console.log(`[GITHUB BACKUP] DB restored from ${backupId}`);
+    return {
+      success: true,
+      restored: { employees: result.restored.employees ?? 0, versions: result.restored.employeeVersions ?? 0 },
+      errors: [],
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[GITHUB BACKUP] DB restore failed:", err);
+    return { success: false, errors: [msg] };
+  } finally {
+    if (tmpPath) { try { unlinkSync(tmpPath); } catch { /* gone */ } }
+  }
+}
+
+// ── Restore the full app (DB + PDFs) from a Release-asset zip on GitHub ───────
+export async function restoreFullFromGitHub(backupId: string): Promise<GitHubRestoreResult> {
+  if (!isGitHubBackupConfigured()) return { success: false, errors: notConfigured().errors };
+
+  let zipPath: string | null = null;
+  try {
+    // 1. Find the release by tag and its zip asset id
+    const relRes = await fetch(`${GITHUB_API}/repos/${REPO}/releases/tags/${encodeURIComponent(backupId)}`, {
+      headers: ghHeaders(),
+    });
+    if (!relRes.ok) return { success: false, errors: [`Release introuvable: GitHub ${relRes.status}`] };
+    const release = (await relRes.json()) as any;
+    const asset = (release.assets ?? []).find((a: any) => a.name?.endsWith(".zip"));
+    if (!asset) return { success: false, errors: ["Aucun fichier .zip attaché à cette sauvegarde"] };
+
+    // 2. Download the asset (octet-stream on the asset endpoint returns the binary)
+    const dlRes = await fetch(`${GITHUB_API}/repos/${REPO}/releases/assets/${asset.id}`, {
+      headers: ghHeaders({ Accept: "application/octet-stream" }),
+    });
+    if (!dlRes.ok || !dlRes.body) return { success: false, errors: [`Téléchargement zip: GitHub ${dlRes.status}`] };
+
+    zipPath = path.join(os.tmpdir(), `restore_${backupId}.zip`);
+    await pipeline(Readable.fromWeb(dlRes.body as any), createWriteStream(zipPath));
+
+    // 3. Open the zip and restore DB + PDFs
+    const directory = await unzipOpen.file(zipPath);
+
+    const dbEntry = directory.files.find((f) => f.path === "database.json");
+    if (!dbEntry) return { success: false, errors: ["database.json absent du zip"] };
+
+    const dbBuffer = await dbEntry.buffer();
+    const tmpDbPath = path.join(os.tmpdir(), `restore_${backupId}.json`);
+    writeFileSync(tmpDbPath, dbBuffer);
+    const dbResult = await restoreFromBackup(tmpDbPath);
+    try { unlinkSync(tmpDbPath); } catch { /* gone */ }
+
+    // 4. Extract PDFs into the live PDFs directory
+    mkdirSync(PDFS_DIR, { recursive: true });
+    let pdfCount = 0;
+    for (const entry of directory.files) {
+      if (entry.type !== "File" || !entry.path.startsWith("pdfs/")) continue;
+      const name = path.basename(entry.path);
+      if (!name.toLowerCase().endsWith(".pdf")) continue;
+      await pipeline(entry.stream(), createWriteStream(path.join(PDFS_DIR, name)));
+      pdfCount++;
+    }
+
+    console.log(`[GITHUB BACKUP] Full restore from ${backupId}: ${pdfCount} PDFs`);
+    return {
+      success: true,
+      restored: {
+        employees: dbResult.restored.employees ?? 0,
+        versions: dbResult.restored.employeeVersions ?? 0,
+        pdfs: pdfCount,
+      },
+      errors: [],
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[GITHUB BACKUP] Full restore failed:", err);
+    return { success: false, errors: [msg] };
+  } finally {
+    if (zipPath) { try { unlinkSync(zipPath); } catch { /* gone */ } }
+  }
+}
+
 // ── Helper: stream-build a zip of the DB JSON + the entire PDFs directory ─────
 function buildZip(zipPath: string, dbJson: string, pdfsDir: string): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -259,4 +368,6 @@ export default {
   pushDbBackupToGitHub,
   pushFullBackupToGitHub,
   listGitHubBackups,
+  restoreDbFromGitHub,
+  restoreFullFromGitHub,
 };

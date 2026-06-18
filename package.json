@@ -41,6 +41,7 @@
     "@types/multer": "^2.0.0",
     "@types/pdf-parse": "^1.1.5",
     "@types/pdfkit": "^0.17.5",
+    "@types/unzipper": "^0.10.11",
     "archiver": "^8.0.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -57,6 +58,7 @@
     "pdfkit": "^0.18.0",
     "pg": "^8.16.3",
     "sql.js": "^1.13.0",
+    "unzipper": "^0.12.3",
     "xlsx": "^0.18.5",
     "xlsx-js-style": "^1.2.0",
     "zod": "^3.25.76"

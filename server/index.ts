@@ -31,6 +31,13 @@ async function initializeSeedOnStartup() {
   } catch (err) {
     logger.error("app", "Error initializing notification jobs", { error: String(err) });
   }
+  // Scheduled backups (daily local, weekly S3, weekly GitHub)
+  try {
+    const { initializeBackupJobs } = await import("./jobs/backupJobs");
+    await initializeBackupJobs();
+  } catch (err) {
+    logger.error("app", "Error initializing backup jobs", { error: String(err) });
+  }
   // Run health checks after DB is ready (non-blocking)
   try {
     const { runHealthChecks } = await import("./utils/healthCheck");
@@ -931,6 +938,22 @@ export function createServer() {
     authMiddleware(req, res, async () => {
       const { githubBackupFull_Handler } = await import("./routes/backup");
       githubBackupFull_Handler(req, res, () => {});
+    });
+  });
+
+  app.post("/api/backups/github/restore/db/:backupId", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { restoreGitHubDb_Handler } = await import("./routes/backup");
+      restoreGitHubDb_Handler(req, res, () => {});
+    });
+  });
+
+  app.post("/api/backups/github/restore/full/:backupId", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { restoreGitHubFull_Handler } = await import("./routes/backup");
+      restoreGitHubFull_Handler(req, res, () => {});
     });
   });
 
