@@ -69,6 +69,12 @@ const DATE_EXPIRATION_KEYS = [
   "date_expiration"
 ];
 
+const FONCTION_NORMALIZE: Record<string, string> = {
+  "Cadre technique": "Cadre Technique",
+  "Conducteur mécanicien": "Conducteur Mécanicien",
+  "Technicien principal contrôle Commande RT": "Technicien Principal Contrôle Commande RT",
+};
+
 const KNOWN_HT_CODES = new Set(["H0V", "B0V", "H1V", "B1V", "H2V", "B2V", "HC", "BR", "BC", "SF6"]);
 const KNOWN_ST_CODES = new Set(["H1N", "H1T", "H2N", "H2T", "SF6"]);
 const CODE_TOKEN_REGEX = /(H0V|B0V|H1V|B1V|H2V|B2V|HC|BR|BC|SF6|H1N|H1T|H2N|H2T)/gi;
@@ -271,7 +277,8 @@ export async function parseExcelData(): Promise<EmployeeData[]> {
       continue;
     }
 
-    const fonction = fixCasing(getRowValue(row, FONCTION_KEYS)) || "Non spécifié";
+    const rawFonction = getRowValue(row, FONCTION_KEYS).trim() || "Non spécifié";
+    const fonction = FONCTION_NORMALIZE[rawFonction] ?? rawFonction;
     const divisionText = getRowValue(row, DIVISION_KEYS);
     const serviceText = getRowValue(row, SERVICE_KEYS);
     const equipeText = getRowValue(row, EQUIPE_KEYS);
