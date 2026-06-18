@@ -13,7 +13,6 @@ import {
 import { eq } from "drizzle-orm";
 import type { HabRows, HabRowData } from "./schema";
 import fs from "fs";
-import path from "path";
 import { resolvePdfPath } from "./utils/pathUtils";
 
 function findExistingPdf(matricule: string, versionNumber: number): string | null {
