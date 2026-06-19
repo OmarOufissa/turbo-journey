@@ -1,5 +1,6 @@
 import { app, BrowserWindow, shell, ipcMain, session, dialog } from "electron";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -7,12 +8,36 @@ const isDev = !app.isPackaged;
 const PORT = 4399;
 const ALLOWED_ORIGIN = isDev ? "http://localhost:8080" : `http://localhost:${PORT}`;
 
-// Set DB path to persistent user data dir before any server module loads
+// Decide where the app keeps its data (database, PDFs, backups).
+//
+// Portable build (run from a USB stick): electron-builder sets
+// PORTABLE_EXECUTABLE_DIR to the folder the .exe runs from. We put the data in
+// a "GestionHabilitations-Data" folder right next to the .exe, so everything
+// travels with the USB — plug it into any PC and all your data is already there.
+//
+// Installed build (normal install): fall back to the per-user AppData folder.
+function resolveDataDir(): string {
+  const portableDir = process.env.PORTABLE_EXECUTABLE_DIR;
+  if (portableDir) {
+    const dir = path.join(portableDir, "GestionHabilitations-Data");
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      // Verify we can actually write here (USB may be read-only/locked).
+      fs.accessSync(dir, fs.constants.W_OK);
+      return dir;
+    } catch {
+      // USB not writable — fall through to AppData so the app still works.
+    }
+  }
+  return app.getPath("userData");
+}
+
+// Set DB path to persistent data dir before any server module loads
 if (!isDev) {
-  const userData = app.getPath("userData");
-  process.env.DATABASE_URL = `file:${path.join(userData, "habilitations.db")}`;
-  process.env.UPLOADS_BASE_DIR = path.join(userData, "uploads");
-  process.env.UPLOADS_DIR = path.join(userData, "uploads", "pdfs");
+  const dataDir = resolveDataDir();
+  process.env.DATABASE_URL = `file:${path.join(dataDir, "habilitations.db")}`;
+  process.env.UPLOADS_BASE_DIR = path.join(dataDir, "uploads");
+  process.env.UPLOADS_DIR = path.join(dataDir, "uploads", "pdfs");
   process.env.PDF_TEMPLATE_PATH = path.join(__dirname, "../server/seeds/data/titre_HAE_vierge.pdf");
   process.env.HABILITATIONS_EXCEL_URL = path.join(__dirname, "../server/seeds/data/employees.xlsx");
 }
