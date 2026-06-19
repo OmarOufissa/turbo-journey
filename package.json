@@ -188,7 +188,11 @@
       "createStartMenuShortcut": true,
       "installerIcon": "build-resources/icon.ico",
       "installerHeaderIcon": "build-resources/icon.ico",
-      "shortcutName": "Gestion Habilitations"
+      "shortcutName": "Gestion Habilitations",
+      "artifactName": "GestionHabilitations-INSTALLER-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "GestionHabilitations-PORTABLE-USB-${version}.${ext}"
     },
     "linux": {
       "target": [
