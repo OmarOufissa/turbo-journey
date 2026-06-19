@@ -116,6 +116,30 @@ async function createTablesIfNotExist() {
     `CREATE INDEX IF NOT EXISTS audit_logs_action_idx ON audit_logs(action)`,
     `CREATE INDEX IF NOT EXISTS audit_logs_created_at_idx ON audit_logs(created_at)`,
     `CREATE UNIQUE INDEX IF NOT EXISTS notif_logs_emp_threshold_idx ON notification_logs(employee_id, threshold)`,
+    `CREATE TABLE IF NOT EXISTS fonctions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS fonctions_name_idx ON fonctions(name)`,
+    `CREATE TABLE IF NOT EXISTS ouvrages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS ouvrages_name_idx ON ouvrages(name)`,
+    `CREATE TABLE IF NOT EXISTS domaines_tension (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS domaines_tension_name_idx ON domaines_tension(name)`,
+    `CREATE TABLE IF NOT EXISTS indications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS indications_name_idx ON indications(name)`,
     `CREATE TABLE IF NOT EXISTS app_settings (
       key TEXT PRIMARY KEY,
       value TEXT,
@@ -228,6 +252,84 @@ async function makeAuditLogsEntityIdNullable() {
 
 export { createTablesIfNotExist };
 
+const SEED_FONCTIONS = [
+  "Acheteur-Approvisionneur", "Acheteur-Approvisionneur Principal", "Agent Administratif",
+  "Assistant Administratif", "Assistant Support Informatique", "Cadre Administratif et de Gestion",
+  "Cadre Contrôle Commande RT", "Cadre Exploitation Réseau", "Cadre HC",
+  "Cadre Lignes THT&HT", "Cadre Postes THT/HT", "Cadre TST Lignes THT&HT",
+  "Cadre Technique", "Cadre Télécom", "Chef d'Equipe Electromécanicien",
+  "Chef d'Equipe Isolation Thermique", "Chef d'Equipe Lignes THT&HT", "Chef d'Equipe Postes THT/HT",
+  "Chef de Division", "Chef de Service", "Conducteur Engins Spéciaux",
+  "Conducteur Mécanicien", "Conducteur Principal de Direction", "Conducteur Travaux Génie Civil",
+  "Contremaître Lignes THT&HT", "Contremaître Postes THT/HT", "Contremaître TST Lignes THT&HT",
+  "Contremaître TST Postes THT/HT", "Contrôleur Travaux Génie Civil", "Documentaliste",
+  "Employé de Bureau Principal", "Gestionnaire Ressources Humaines", "Monteur de Lignes THT&HT",
+  "Opérateur TST Lignes THT&HT", "Opérateur TST Postes THT/HT", "Ouvrier Professionnel Réseau",
+  "Préparateur Lignes MT&BT", "Projeteur Lignes THT&HT", "Secrétaire Principale",
+  "Surveillant Travaux Génie Civil", "Technicien Contrôle Commande RT", "Technicien Exploitation Réseau",
+  "Technicien Lignes THT&HT", "Technicien Ppal Contrôle Commande RT",
+  "Technicien Principal Contrôle Commande RT", "Technicien Principal Exploitation Réseau",
+  "Technicien Spécialisé Télécom",
+];
+
+const SEED_OUVRAGES = [
+  "Lignes relevant de la DTC",
+  "Ouvrages électriques Lignes relevant de la DTC",
+  "Ouvrages électriques Postes 60/22 kV relevant de la XJ/XJ",
+  "Ouvrages électriques Postes 60/22 kV relevant de la XJ/XS",
+  "Ouvrages électriques Postes et Lignes relevant de la DTC",
+  "Ouvrages électriques Postes et Lignes relevant de la DTC et ouvrages tiers sous contrat avec la DTC.",
+  "Ouvrages électriques Postes et Lignes relevant de la XA",
+  "Ouvrages électriques Postes et Lignes relevant de la XC",
+  "Ouvrages électriques Postes et Lignes relevant de la XJ",
+  "Ouvrages électriques Postes relevant de la DTC",
+  "Ouvrages électriques Postes relevant de la XA",
+  "Ouvrages électriques Postes relevant de la XC",
+  "Ouvrages électriques Postes relevant de la XJ",
+  "Poste 225/60 kV CTM",
+  "Poste 225/60/22 kV LAAWAMER",
+  "Poste 225/60/22 kV TIT MELLIL",
+  "Poste 400/225 kV CHEMAIA",
+  "Poste 400/225 kV JORF LASFAR",
+  "Poste 400/225 kV MEDIOUNA",
+  "Poste 60/20/5,5kV CTC",
+  "Postes SETTAT et CHIKER",
+];
+
+const SEED_DOMAINES = ["BT TBT", "BTA TBT", "HT BT TBT", "HTB"];
+
+const SEED_INDICATIONS = [
+  "Compris les travaux entre le pylône d'arrêt et le portique d'ancrage des postes HTB",
+  "Etude de construction et d'aménagement des ouvrages",
+  "La première étape uniquement",
+  "Manipule les engins de manutention dans la zone de travail et au voisinage de PNST",
+  "Postes non gardés; condamnation de départs Lignes",
+  "Suivi et contrôle des travaux de construction et d'aménagement des ouvrages",
+];
+
+async function seedRefDataIfEmpty() {
+  const [{ c: fCount }] = await db.select({ c: sql<number>`count(*)` }).from(schema.fonctions);
+  if (Number(fCount) === 0 && SEED_FONCTIONS.length > 0) {
+    console.log("Seeding fonctions...");
+    await db.insert(schema.fonctions).values(SEED_FONCTIONS.map(name => ({ name })));
+  }
+  const [{ c: oCount }] = await db.select({ c: sql<number>`count(*)` }).from(schema.ouvrages);
+  if (Number(oCount) === 0 && SEED_OUVRAGES.length > 0) {
+    console.log("Seeding ouvrages...");
+    await db.insert(schema.ouvrages).values(SEED_OUVRAGES.map(name => ({ name })));
+  }
+  const [{ c: dCount }] = await db.select({ c: sql<number>`count(*)` }).from(schema.domainesTension);
+  if (Number(dCount) === 0 && SEED_DOMAINES.length > 0) {
+    console.log("Seeding domaines de tension...");
+    await db.insert(schema.domainesTension).values(SEED_DOMAINES.map(name => ({ name })));
+  }
+  const [{ c: iCount }] = await db.select({ c: sql<number>`count(*)` }).from(schema.indications);
+  if (Number(iCount) === 0 && SEED_INDICATIONS.length > 0) {
+    console.log("Seeding indications...");
+    await db.insert(schema.indications).values(SEED_INDICATIONS.map(name => ({ name })));
+  }
+}
+
 export async function initializeDatabase() {
   try {
     console.log("Initializing SQLite database...");
@@ -251,6 +353,8 @@ export async function initializeDatabase() {
       console.log(`  Password: ${adminPassword}`);
       console.log("============================================================");
     }
+
+    await seedRefDataIfEmpty();
 
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })

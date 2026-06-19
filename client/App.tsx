@@ -32,6 +32,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import RenewalForm from "./pages/RenewalForm";
 import OrgSettings from "./pages/OrgSettings";
+import RefDataSettings from "./pages/RefDataSettings";
 
 const queryClient = new QueryClient();
 
@@ -179,6 +180,14 @@ function App() {
             }
           />
 
+          <Route
+            path="/ref-data"
+            element={
+              <ProtectedRoute>
+                <RefDataSettings />
+              </ProtectedRoute>
+            }
+          />
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

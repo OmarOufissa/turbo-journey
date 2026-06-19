@@ -10,6 +10,7 @@ import {
   Trash2,
   Building2,
   DatabaseBackup,
+  BookOpen,
 } from "lucide-react";
 import {
   Sidebar,
@@ -159,6 +160,14 @@ export function AppSidebar() {
                   <Link to="/org-settings">
                     <Building2 className="w-4 h-4" />
                     <span>Structure organisationnelle</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/ref-data")}>
+                  <Link to="/ref-data">
+                    <BookOpen className="w-4 h-4" />
+                    <span>Données de référence</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

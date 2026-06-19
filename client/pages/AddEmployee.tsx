@@ -12,8 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { createEmployee } from "@/api/employees";
 import { setLastAction } from "@/components/UndoButton";
 import { ST_CODES, HT_CODES } from "@/types/habilitation";
-import { VALID_FONCTIONS } from "@/types/fonctions";
-import { DOMAINE_OPTIONS, OUVRAGE_OPTIONS, INDICATION_OPTIONS } from "@/types/habRows";
+import { VALID_FONCTIONS as FALLBACK_FONCTIONS } from "@/types/fonctions";
+import { DOMAINE_OPTIONS as FALLBACK_DOMAINES, OUVRAGE_OPTIONS as FALLBACK_OUVRAGES, INDICATION_OPTIONS as FALLBACK_INDICATIONS } from "@/types/habRows";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { HabRows } from "@/types/employee";
 
@@ -40,6 +40,10 @@ export default function AddEmployee() {
   const [divisions, setDivisions] = useState<OrgItem[]>([]);
   const [services, setServices] = useState<OrgItem[]>([]);
   const [equipes, setEquipes] = useState<OrgItem[]>([]);
+  const [fonctionsList, setFonctionsList] = useState<string[]>([...FALLBACK_FONCTIONS]);
+  const [domainesList, setDomainesList] = useState<string[]>([...FALLBACK_DOMAINES]);
+  const [ouvragesList, setOuvragesList] = useState<string[]>([...FALLBACK_OUVRAGES]);
+  const [indicationsList, setIndicationsList] = useState<string[]>([...FALLBACK_INDICATIONS]);
   const [isLoading, setIsLoading] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,10 +73,11 @@ export default function AddEmployee() {
   };
 
   useEffect(() => {
-    fetch("/api/divisions")
-      .then(r => r.json())
-      .then(d => setDivisions(d.data ?? d))
-      .catch(console.error);
+    fetch("/api/divisions").then(r => r.json()).then(d => setDivisions(d.data ?? d)).catch(console.error);
+    fetch("/api/ref/fonctions").then(r => r.json()).then(d => { if (d.success) setFonctionsList(d.data.map((i: any) => i.name)); }).catch(console.error);
+    fetch("/api/ref/domaines").then(r => r.json()).then(d => { if (d.success) setDomainesList(d.data.map((i: any) => i.name)); }).catch(console.error);
+    fetch("/api/ref/ouvrages").then(r => r.json()).then(d => { if (d.success) setOuvragesList(d.data.map((i: any) => i.name)); }).catch(console.error);
+    fetch("/api/ref/indications").then(r => r.json()).then(d => { if (d.success) setIndicationsList(d.data.map((i: any) => i.name)); }).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -196,7 +201,7 @@ export default function AddEmployee() {
                 <Select value={form.fonction} onValueChange={v => setForm(f => ({ ...f, fonction: v }))}>
                   <SelectTrigger><SelectValue placeholder="Sélectionner une fonction" /></SelectTrigger>
                   <SelectContent>
-                    {VALID_FONCTIONS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                    {fonctionsList.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -299,13 +304,13 @@ export default function AddEmployee() {
                           <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__clear__" className="text-muted-foreground italic">— Aucun —</SelectItem>
-                            {DOMAINE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                            {domainesList.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Ouvrages Concernés</Label>
-                        <SearchableSelect value={habRows[r.key]?.ouvrage ?? ''} onChange={v => setHabField(r.key, 'ouvrage', v)} options={OUVRAGE_OPTIONS} />
+                        <SearchableSelect value={habRows[r.key]?.ouvrage ?? ''} onChange={v => setHabField(r.key, 'ouvrage', v)} options={ouvragesList} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Indications Complémentaires</Label>
@@ -313,7 +318,7 @@ export default function AddEmployee() {
                           <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__clear__" className="text-muted-foreground italic">— Aucun —</SelectItem>
-                            {INDICATION_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                            {indicationsList.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>

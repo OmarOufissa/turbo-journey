@@ -694,6 +694,184 @@ export function createServer() {
   });
 
   // ============================================================================
+  // REFERENCE DATA (Fonctions, Ouvrages, Domaines, Indications)
+  // ============================================================================
+
+  app.get("/api/ref/fonctions", async (_req, res) => {
+    try {
+      const { db } = await import("./db-pg");
+      const schema = await import("./schema");
+      const rows = await db.select().from(schema.fonctions).orderBy(schema.fonctions.name);
+      res.json({ success: true, data: rows, error: null });
+    } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+  });
+
+  app.post("/api/ref/fonctions", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { name } = req.body;
+        if (!name?.trim()) return res.status(400).json({ success: false, error: "Nom requis", data: null });
+        const [row] = await db.insert(schema.fonctions).values({ name: name.trim() }).returning();
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "CREATE_FONCTION", row.id, null, row as any);
+        res.json({ success: true, data: row, error: null });
+      } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+    });
+  });
+
+  app.delete("/api/ref/fonctions/:id", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq, count, like } = await import("drizzle-orm");
+        const id = parseInt(req.params.id);
+        const [item] = await db.select().from(schema.fonctions).where(eq(schema.fonctions.id, id));
+        if (!item) return res.status(404).json({ success: false, error: "Fonction non trouvée", data: null });
+        const [{ total }] = await db.select({ total: count() }).from(schema.employeeVersions).where(eq(schema.employeeVersions.fonction, item.name));
+        if (Number(total) > 0) return res.status(409).json({ success: false, error: `Impossible de supprimer: ${total} version(s) d'employé utilisent cette fonction.`, data: null });
+        await db.delete(schema.fonctions).where(eq(schema.fonctions.id, id));
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "DELETE_FONCTION", id, item as any, null);
+        res.json({ success: true, data: { deleted: true }, error: null });
+      } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+    });
+  });
+
+  app.get("/api/ref/ouvrages", async (_req, res) => {
+    try {
+      const { db } = await import("./db-pg");
+      const schema = await import("./schema");
+      const rows = await db.select().from(schema.ouvrages).orderBy(schema.ouvrages.name);
+      res.json({ success: true, data: rows, error: null });
+    } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+  });
+
+  app.post("/api/ref/ouvrages", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { name } = req.body;
+        if (!name?.trim()) return res.status(400).json({ success: false, error: "Nom requis", data: null });
+        const [row] = await db.insert(schema.ouvrages).values({ name: name.trim() }).returning();
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "CREATE_OUVRAGE", row.id, null, row as any);
+        res.json({ success: true, data: row, error: null });
+      } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+    });
+  });
+
+  app.delete("/api/ref/ouvrages/:id", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq } = await import("drizzle-orm");
+        const id = parseInt(req.params.id);
+        const [item] = await db.select().from(schema.ouvrages).where(eq(schema.ouvrages.id, id));
+        if (!item) return res.status(404).json({ success: false, error: "Ouvrage non trouvé", data: null });
+        await db.delete(schema.ouvrages).where(eq(schema.ouvrages.id, id));
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "DELETE_OUVRAGE", id, item as any, null);
+        res.json({ success: true, data: { deleted: true }, error: null });
+      } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+    });
+  });
+
+  app.get("/api/ref/domaines", async (_req, res) => {
+    try {
+      const { db } = await import("./db-pg");
+      const schema = await import("./schema");
+      const rows = await db.select().from(schema.domainesTension).orderBy(schema.domainesTension.name);
+      res.json({ success: true, data: rows, error: null });
+    } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+  });
+
+  app.post("/api/ref/domaines", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { name } = req.body;
+        if (!name?.trim()) return res.status(400).json({ success: false, error: "Nom requis", data: null });
+        const [row] = await db.insert(schema.domainesTension).values({ name: name.trim() }).returning();
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "CREATE_DOMAINE", row.id, null, row as any);
+        res.json({ success: true, data: row, error: null });
+      } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+    });
+  });
+
+  app.delete("/api/ref/domaines/:id", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq } = await import("drizzle-orm");
+        const id = parseInt(req.params.id);
+        const [item] = await db.select().from(schema.domainesTension).where(eq(schema.domainesTension.id, id));
+        if (!item) return res.status(404).json({ success: false, error: "Domaine non trouvé", data: null });
+        await db.delete(schema.domainesTension).where(eq(schema.domainesTension.id, id));
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "DELETE_DOMAINE", id, item as any, null);
+        res.json({ success: true, data: { deleted: true }, error: null });
+      } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+    });
+  });
+
+  app.get("/api/ref/indications", async (_req, res) => {
+    try {
+      const { db } = await import("./db-pg");
+      const schema = await import("./schema");
+      const rows = await db.select().from(schema.indications).orderBy(schema.indications.name);
+      res.json({ success: true, data: rows, error: null });
+    } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+  });
+
+  app.post("/api/ref/indications", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { name } = req.body;
+        if (!name?.trim()) return res.status(400).json({ success: false, error: "Nom requis", data: null });
+        const [row] = await db.insert(schema.indications).values({ name: name.trim() }).returning();
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "CREATE_INDICATION", row.id, null, row as any);
+        res.json({ success: true, data: row, error: null });
+      } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+    });
+  });
+
+  app.delete("/api/ref/indications/:id", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq } = await import("drizzle-orm");
+        const id = parseInt(req.params.id);
+        const [item] = await db.select().from(schema.indications).where(eq(schema.indications.id, id));
+        if (!item) return res.status(404).json({ success: false, error: "Indication non trouvée", data: null });
+        await db.delete(schema.indications).where(eq(schema.indications.id, id));
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "DELETE_INDICATION", id, item as any, null);
+        res.json({ success: true, data: { deleted: true }, error: null });
+      } catch (err: any) { res.status(500).json({ success: false, error: err.message, data: null }); }
+    });
+  });
+
+  // ============================================================================
   // RENEWALS
   // ============================================================================
 

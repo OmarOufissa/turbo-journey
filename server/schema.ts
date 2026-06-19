@@ -122,6 +122,38 @@ export const auditLogs = sqliteTable("audit_logs", {
   createdAtIdx: index("audit_logs_created_at_idx").on(table.createdAt),
 }));
 
+export const fonctions = sqliteTable("fonctions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull().unique(),
+  createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+}, (table) => ({
+  nameIdx: uniqueIndex("fonctions_name_idx").on(table.name),
+}));
+
+export const ouvrages = sqliteTable("ouvrages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull().unique(),
+  createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+}, (table) => ({
+  nameIdx: uniqueIndex("ouvrages_name_idx").on(table.name),
+}));
+
+export const domainesTension = sqliteTable("domaines_tension", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull().unique(),
+  createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+}, (table) => ({
+  nameIdx: uniqueIndex("domaines_tension_name_idx").on(table.name),
+}));
+
+export const indications = sqliteTable("indications", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull().unique(),
+  createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
+}, (table) => ({
+  nameIdx: uniqueIndex("indications_name_idx").on(table.name),
+}));
+
 // Simple key-value app configuration (e.g. GitHub backup token/repo).
 // Intentionally NOT included in backups, so config survives a restore/reseed.
 export const appSettings = sqliteTable("app_settings", {
