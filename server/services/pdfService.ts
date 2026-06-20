@@ -343,6 +343,14 @@ function fillPage2(
     const lineHeight = SZ * 1.4;
     let y = P2.autorisationY;
 
+    // Bold header before the text
+    const header = "AUTORISATION SPECIALES VERSO";
+    const headerSize = SZ + 1;
+    const headerW = bold.widthOfTextAtSize(header, headerSize);
+    const headerX = (page.getWidth() - headerW) / 2;
+    drawText(page, header, headerX, y, bold, headerSize);
+    y -= lineHeight * 1.6;
+
     const words = text.split(/\s+/);
     let line = '';
     for (const word of words) {
