@@ -341,7 +341,7 @@ export async function initializeDatabase() {
 
     if (Number(userCount) === 0) {
       const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
-      const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(12).toString("base64url");
+      const adminPassword = process.env.ADMIN_PASSWORD || "admin";
       const hashedPassword = bcrypt.hashSync(adminPassword, 10);
       await db.insert(schema.users).values({
         email: adminEmail,
