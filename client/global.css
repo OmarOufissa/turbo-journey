@@ -302,3 +302,78 @@
     }
   }
 }
+
+/* ─── Print / "Télécharger PDF" report layout ──────────────────────────────── */
+@media print {
+  /* Force background colors and chart fills to render */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Force a clean light theme on paper even if the app is in dark mode */
+  :root,
+  .dark {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 5%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 35%;
+    --border: 0 0% 85%;
+  }
+
+  /* A4 with comfortable margins */
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+
+  /* Hide everything that isn't the report content */
+  [data-sidebar],
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset app shell so the report takes the full page width */
+  html,
+  body {
+    background: #fff !important;
+    width: 100% !important;
+  }
+
+  main,
+  main > div {
+    overflow: visible !important;
+    max-width: none !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Print-only document header (org title block) */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Keep cards and table rows from splitting across pages */
+  .print-avoid-break,
+  table,
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Tighten spacing a touch for paper */
+  .print-section {
+    break-inside: avoid;
+  }
+}
+
+/* Hidden on screen, shown only when printing */
+.print-only {
+  display: none;
+}

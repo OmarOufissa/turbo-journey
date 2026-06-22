@@ -15,7 +15,7 @@ import {
 import {
   RefreshCw, Users, FileText, Shield, TrendingUp,
   AlertTriangle, CheckCircle2, Clock, Activity, BarChart3, PenTool,
-  Layers, Building2, Zap, Info, ArrowUpRight, ArrowDownRight, Minus,
+  Layers, Building2, Zap, Info, ArrowUpRight, ArrowDownRight, Minus, Download,
 } from "lucide-react";
 import { apiClient } from "@/api/client";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -179,11 +179,21 @@ export default function Reports() {
   const fromDate = new Date(data.period.from).toLocaleDateString("fr-FR");
   const toDate = new Date(data.period.to).toLocaleDateString("fr-FR");
 
+  const generatedOn = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+
   return (
     <Layout>
       <div className="p-6 space-y-8 max-w-[1600px] mx-auto">
+        {/* Print-only document header — appears at the top of the exported PDF */}
+        <div className="print-only" style={{ marginBottom: "16px", borderBottom: "2px solid #1e293b", paddingBottom: "12px" }}>
+          <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#0f172a" }}>Rapport de Gestion des Habilitations</h1>
+          <p style={{ fontSize: "12px", color: "#475569", marginTop: "4px" }}>
+            Période : {periodLabel} ({fromDate} au {toDate}) — Édité le {generatedOn}
+          </p>
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between no-print">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Rapports</h1>
             <p className="text-muted-foreground mt-1">Tableau de bord de gestion — {fromDate} au {toDate}</p>
@@ -202,6 +212,9 @@ export default function Reports() {
             </Select>
             <Button variant="outline" size="sm" onClick={load}>
               <RefreshCw className="w-4 h-4 mr-1" />Actualiser
+            </Button>
+            <Button size="sm" onClick={() => window.print()}>
+              <Download className="w-4 h-4 mr-1" />Télécharger PDF
             </Button>
           </div>
         </div>
