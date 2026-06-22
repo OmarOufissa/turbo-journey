@@ -3,9 +3,8 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Legend, Cell } from "recharts";
 import { getStats } from "@/api/employees";
 import { RefreshCw } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -27,14 +26,14 @@ interface StatsData {
   byService: Array<{ name: string; count: number }>;
 }
 
-function StatCard({ title, value, color, sub }: { title: string; value: number; color?: string; sub?: string }) {
+function StatCard({ title, value, sub }: { title: string; value: number; sub?: string }) {
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className={`text-3xl font-bold ${color ?? ""}`}>{value}</p>
+        <p className="text-3xl font-bold">{value}</p>
         {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
       </CardContent>
     </Card>
@@ -45,13 +44,6 @@ function monthLabel(ym: string) {
   const [y, m] = ym.split("-");
   const months = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Aoû","Sep","Oct","Nov","Déc"];
   return `${months[parseInt(m) - 1]} ${y.slice(2)}`;
-}
-
-function barColor(count: number, max: number) {
-  const ratio = count / max;
-  if (ratio > 0.7) return "#ef4444";
-  if (ratio > 0.4) return "#f97316";
-  return "#3b82f6";
 }
 
 const PIE_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f97316", "#ef4444", "#ec4899", "#14b8a6", "#f59e0b", "#6366f1", "#84cc16"];
@@ -104,9 +96,6 @@ export default function Stats() {
     </Layout>
   );
 
-  const maxDiv = Math.max(...stats.byDivision.map(d => d.total), 1);
-  const maxForecast = Math.max(...(stats.monthlyForecast?.map(m => m.count) ?? []), 1);
-
   const codePieData = (stats.mostCommonCodes ?? []).map((c, i) => ({
     name: c.code,
     value: c.count,
@@ -124,14 +113,14 @@ export default function Stats() {
         {/* Stat cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           <StatCard title="Total employés" value={stats.total} />
-          <StatCard title="Expirés" value={stats.expired} color="text-red-600" />
-          <StatCard title="< 3 mois" value={stats.lessThan3Months} color="text-orange-600" />
-          <StatCard title="< 6 mois" value={stats.lessThan6Months} color="text-yellow-600" />
-          <StatCard title="< 9 mois" value={stats.lessThan9Months} color="text-blue-600" />
+          <StatCard title="Expirés" value={stats.expired} />
+          <StatCard title="< 3 mois" value={stats.lessThan3Months} />
+          <StatCard title="< 6 mois" value={stats.lessThan6Months} />
+          <StatCard title="< 9 mois" value={stats.lessThan9Months} />
           <StatCard title="ST uniquement" value={stats.stOnly} />
           <StatCard title="HT uniquement" value={stats.htOnly} />
           <StatCard title="ST + HT" value={stats.both} />
-          <StatCard title="Sans PDF" value={stats.missingPdf} color={stats.missingPdf > 0 ? "text-amber-600" : ""} sub="version actuelle" />
+          <StatCard title="Sans PDF" value={stats.missingPdf} sub="version actuelle" />
         </div>
 
         {/* Monthly forecast */}
@@ -147,11 +136,7 @@ export default function Stats() {
                     formatter={(val: number) => [`${val} employé(s)`, "Expirations"]}
                     labelFormatter={(label) => `Mois : ${label}`}
                   />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {stats.monthlyForecast.map((entry, i) => (
-                      <Cell key={i} fill={barColor(entry.count, maxForecast)} />
-                    ))}
-                  </Bar>
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]} fill="#3b82f6" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -179,29 +164,26 @@ export default function Stats() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* By division with risk heatmap */}
+          {/* By division */}
           <Card>
-            <CardHeader><CardTitle>Par division (risque)</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
-              {stats.byDivision.sort((a, b) => b.total - a.total).map(d => (
-                <div key={d.name} className="space-y-1">
-                  <div className="flex justify-between text-sm items-center">
-                    <span className="font-medium">{d.name}</span>
-                    <div className="flex gap-1 items-center">
-                      {d.expired > 0 && <Badge variant="destructive" className="text-xs px-1">{d.expired} exp.</Badge>}
-                      {d.critical > 0 && <Badge className="text-xs px-1 bg-orange-500">{d.critical} &lt;3m</Badge>}
-                      <span className="text-muted-foreground ml-1">{d.total}</span>
-                    </div>
-                  </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full flex overflow-hidden">
-                      <div className="h-full bg-red-500" style={{ width: `${(d.expired / maxDiv) * 100}%` }} />
-                      <div className="h-full bg-orange-400" style={{ width: `${(d.critical / maxDiv) * 100}%` }} />
-                      <div className="h-full bg-primary" style={{ width: `${((d.total - d.expired - d.critical) / maxDiv) * 100}%` }} />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <CardHeader><CardTitle>Par division</CardTitle></CardHeader>
+            <CardContent>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="text-left pb-2">Division</th>
+                    <th className="text-right pb-2">Effectif</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.byDivision.sort((a, b) => b.total - a.total).map(d => (
+                    <tr key={d.name} className="border-t">
+                      <td className="py-1">{d.name}</td>
+                      <td className="text-right py-1 font-mono">{d.total}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </CardContent>
           </Card>
 
