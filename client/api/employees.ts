@@ -11,6 +11,9 @@ export async function getEmployees(params?: {
   hasPdf?: string;
   stCode?: string;
   htCode?: string;
+  divisionId?: string;
+  serviceId?: string;
+  fonction?: string;
   sort?: string;
   sortDir?: string;
 }): Promise<{ success: boolean; data: EmployeesPage; error: null }> {
@@ -24,6 +27,9 @@ export async function getEmployees(params?: {
   if (params?.hasPdf) qs.set('hasPdf', params.hasPdf);
   if (params?.stCode) qs.set('stCode', params.stCode);
   if (params?.htCode) qs.set('htCode', params.htCode);
+  if (params?.divisionId) qs.set('divisionId', params.divisionId);
+  if (params?.serviceId) qs.set('serviceId', params.serviceId);
+  if (params?.fonction) qs.set('fonction', params.fonction);
   if (params?.sort) qs.set('sort', params.sort);
   if (params?.sortDir) qs.set('sortDir', params.sortDir);
   const query = qs.toString() ? `?${qs}` : '';

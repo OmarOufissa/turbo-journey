@@ -176,6 +176,9 @@ export const getEmployees: RequestHandler = async (req, res) => {
     const hasPdf = req.query.hasPdf as string | undefined;
     const stCode = req.query.stCode as string | undefined;
     const htCode = req.query.htCode as string | undefined;
+    const divisionId = req.query.divisionId ? parseInt(req.query.divisionId as string) : undefined;
+    const serviceId = req.query.serviceId ? parseInt(req.query.serviceId as string) : undefined;
+    const fonctionFilter = req.query.fonction as string | undefined;
 
     const conditions: any[] = [eq(schema.employees.deleted, showDeleted)];
 
@@ -193,6 +196,9 @@ export const getEmployees: RequestHandler = async (req, res) => {
     if (hasPdf === "false") conditions.push(isNull(schema.employeeVersions.pdfPath));
     if (stCode) conditions.push(like(schema.employeeVersions.stCodes, `%"${stCode}"%`));
     if (htCode) conditions.push(like(schema.employeeVersions.htCodes, `%"${htCode}"%`));
+    if (divisionId) conditions.push(eq(schema.employeeVersions.divisionId, divisionId));
+    if (serviceId) conditions.push(eq(schema.employeeVersions.serviceId, serviceId));
+    if (fonctionFilter) conditions.push(eq(schema.employeeVersions.fonction, fonctionFilter));
 
     const whereClause = conditions.length === 1 ? conditions[0] : and(...conditions);
 

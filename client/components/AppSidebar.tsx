@@ -2,6 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Users,
+  Zap,
+  ZapOff,
   Calendar,
   BarChart3,
   Settings,
@@ -42,9 +44,19 @@ const navigationItems = [
         url: "/home",
       },
       {
-        title: "Employés",
+        title: "Tous les Employés",
         icon: Users,
         url: "/employees",
+      },
+      {
+        title: "Employés HT",
+        icon: ZapOff,
+        url: "/employees-ht",
+      },
+      {
+        title: "Employés ST",
+        icon: Zap,
+        url: "/employees-st",
       },
       {
         title: "Calendrier",

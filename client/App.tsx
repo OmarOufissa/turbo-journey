@@ -19,6 +19,7 @@ import { UndoToast } from "./components/UndoButton";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Employees from "./pages/Employees";
+import EmployeeList from "./pages/EmployeeList";
 import AddEmployee from "./pages/AddEmployee";
 import EditEmployee from "./pages/EditEmployee";
 import EmployeeCard from "./pages/EmployeeCard";
@@ -78,6 +79,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Employees />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employees-ht"
+            element={
+              <ProtectedRoute>
+                <EmployeeList habType="HT" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employees-st"
+            element={
+              <ProtectedRoute>
+                <EmployeeList habType="ST" />
               </ProtectedRoute>
             }
           />
