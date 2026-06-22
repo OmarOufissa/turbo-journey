@@ -96,6 +96,7 @@ async function buildVersionResponse(version: typeof schema.employeeVersions.$inf
     dateValidation: version.dateValidation,
     dateExpiration: version.dateExpiration,
     pdfPath: version.pdfPath ?? null,
+    pdfStatus: version.pdfStatus ?? null,
     createdAt: version.createdAt,
   };
 }
@@ -232,6 +233,7 @@ export const getEmployees: RequestHandler = async (req, res) => {
         dateValidation: schema.employeeVersions.dateValidation,
         dateExpiration: schema.employeeVersions.dateExpiration,
         pdfPath: schema.employeeVersions.pdfPath,
+        pdfStatus: schema.employeeVersions.pdfStatus,
         verCreatedAt: schema.employeeVersions.createdAt,
         divisionName: schema.divisions.name,
         serviceName: schema.services.name,
@@ -277,6 +279,7 @@ export const getEmployees: RequestHandler = async (req, res) => {
         dateValidation: row.dateValidation,
         dateExpiration: row.dateExpiration,
         pdfPath: row.pdfPath ?? null,
+        pdfStatus: row.pdfStatus ?? null,
         createdAt: row.verCreatedAt,
       } : null,
     }));

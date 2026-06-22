@@ -78,6 +78,7 @@ export const employeeVersions = sqliteTable("employee_versions", {
   habRows: text("hab_rows", { mode: "json" }).$type<HabRows | null>(),
   autorisationSpecialesVerso: text("autorisation_speciales_verso"),
   pdfPath: text("pdf_path"),
+  pdfStatus: text("pdf_status").$type<"draft" | "signed">(),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   createdBy: integer("created_by").references(() => users.id),
   auditLogId: integer("audit_log_id"),

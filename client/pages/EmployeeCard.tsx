@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Edit2, History, RotateCcw, FileText, Download, Eye, Trash2, RefreshCw } from "lucide-react";
+import { ArrowLeft, Edit2, History, RotateCcw, FileText, Download, Eye, Trash2, RefreshCw, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Employee, EmployeeVersion } from "@/types/employee";
@@ -31,6 +31,10 @@ export default function EmployeeCard() {
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [versionPdfLoading, setVersionPdfLoading] = useState<Record<number, boolean>>({});
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
+  const [signedUploading, setSignedUploading] = useState(false);
+  const signedFileRef = useRef<HTMLInputElement>(null);
+  const versionSignedFileRef = useRef<HTMLInputElement>(null);
+  const [uploadingVersionId, setUploadingVersionId] = useState<number | null>(null);
   const token = localStorage.getItem("token");
 
   const reload = async () => {
@@ -106,6 +110,43 @@ export default function EmployeeCard() {
       }
     } catch {
       toast({ title: "Erreur", description: "Impossible de supprimer le PDF", variant: "destructive" });
+    }
+  };
+
+  const handleUploadSigned = async (file: File, versionId?: number) => {
+    if (!employee) return;
+    setSignedUploading(true);
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const body: any = { pdfBase64: base64 };
+      if (versionId) body.versionId = versionId;
+
+      const res = await fetch(`/api/employees/${employee.id}/upload-signed-pdf`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Succès", description: "PDF signé uploadé" });
+        await reload();
+      } else {
+        toast({ title: "Erreur", description: data.error ?? "Impossible d'uploader", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Erreur", description: "Impossible d'uploader le PDF signé", variant: "destructive" });
+    } finally {
+      setSignedUploading(false);
+      setUploadingVersionId(null);
     }
   };
 
@@ -297,35 +338,56 @@ export default function EmployeeCard() {
                 <div className="pt-3 border-t">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Document PDF</span>
-                    <div className="flex gap-1 flex-wrap justify-end">
-                      {ver.pdfPath ? (
-                        <>
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
-                              <Eye className="w-3 h-3 mr-1" />Voir
-                            </a>
-                          </Button>
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} download>
-                              <Download className="w-3 h-3 mr-1" />Télécharger
-                            </a>
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
-                            <RefreshCw className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />Régénérer
-                          </Button>
-                          <Button variant="destructive" size="sm" onClick={handleDeletePdf}>
-                            <Trash2 className="w-3 h-3 mr-1" />Supprimer
-                          </Button>
-                        </>
-                      ) : (
-                        <Button size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
-                          <FileText className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />
-                          {pdfGenerating ? "Génération..." : "Générer PDF"}
-                        </Button>
-                      )}
-                    </div>
+                    {ver.pdfPath && (
+                      <Badge variant={ver.pdfStatus === "signed" ? "default" : "secondary"}>
+                        {ver.pdfStatus === "signed" ? "Signé" : "Brouillon"}
+                      </Badge>
+                    )}
                   </div>
-                  {ver.pdfPath && <p className="text-xs text-muted-foreground mt-1">{ver.pdfPath}</p>}
+                  <div className="flex gap-1 flex-wrap mt-2">
+                    {ver.pdfPath ? (
+                      <>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
+                            <Eye className="w-3 h-3 mr-1" />Voir
+                          </a>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} download>
+                            <Download className="w-3 h-3 mr-1" />Télécharger
+                          </a>
+                        </Button>
+                        {ver.pdfStatus !== "signed" && (
+                          <Button variant="outline" size="sm" onClick={() => signedFileRef.current?.click()} disabled={signedUploading}>
+                            <Upload className={cn("w-3 h-3 mr-1", signedUploading && "animate-spin")} />
+                            {signedUploading ? "Upload..." : "Uploader signé"}
+                          </Button>
+                        )}
+                        <Button variant="outline" size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
+                          <RefreshCw className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />Régénérer
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={handleDeletePdf}>
+                          <Trash2 className="w-3 h-3 mr-1" />Supprimer
+                        </Button>
+                      </>
+                    ) : (
+                      <Button size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
+                        <FileText className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />
+                        {pdfGenerating ? "Génération..." : "Générer PDF"}
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={signedFileRef}
+                    type="file"
+                    accept=".pdf"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUploadSigned(file);
+                      e.target.value = "";
+                    }}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -402,6 +464,11 @@ export default function EmployeeCard() {
                         {/* Per-version PDF actions */}
                         <div className="mt-2 pt-2 border-t flex items-center gap-1 flex-wrap">
                           <span className="text-xs text-muted-foreground mr-1">PDF :</span>
+                          {v.pdfPath && (
+                            <Badge variant={v.pdfStatus === "signed" ? "default" : "secondary"} className="text-xs mr-1">
+                              {v.pdfStatus === "signed" ? "Signé" : "Brouillon"}
+                            </Badge>
+                          )}
                           {v.pdfPath ? (
                             <>
                               <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
@@ -414,6 +481,11 @@ export default function EmployeeCard() {
                                   <Download className="w-3 h-3 mr-1" />Télécharger
                                 </a>
                               </Button>
+                              {v.pdfStatus !== "signed" && (
+                                <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => { setUploadingVersionId(v.id); versionSignedFileRef.current?.click(); }} disabled={signedUploading}>
+                                  <Upload className="w-3 h-3 mr-1" />Signé
+                                </Button>
+                              )}
                               <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionGeneratePdf(v.id)} disabled={pdfLoading}>
                                 <RefreshCw className={cn("w-3 h-3 mr-1", pdfLoading && "animate-spin")} />Régénérer
                               </Button>
@@ -465,6 +537,18 @@ export default function EmployeeCard() {
             </CardContent>
           </Card>
         )}
+
+        <input
+          ref={versionSignedFileRef}
+          type="file"
+          accept=".pdf"
+          className="hidden"
+          onChange={e => {
+            const file = e.target.files?.[0];
+            if (file && uploadingVersionId) handleUploadSigned(file, uploadingVersionId);
+            e.target.value = "";
+          }}
+        />
 
         <ConfirmDialog
           open={pendingConfirm !== null}

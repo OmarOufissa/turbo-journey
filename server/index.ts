@@ -472,6 +472,61 @@ export function createServer() {
     });
   });
 
+  // Upload signed PDF — replaces draft, sets status to "signed"
+  app.post("/api/employees/:id/upload-signed-pdf", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      try {
+        const employeeId = parseInt(req.params.id);
+        const { pdfBase64, versionId } = req.body as { pdfBase64: string; versionId?: number };
+        if (!pdfBase64) return res.status(400).json({ success: false, error: "pdfBase64 required" });
+
+        const { db } = await import("./db-pg");
+        const schema = await import("./schema");
+        const { eq, desc } = await import("drizzle-orm");
+        const fs = await import("fs");
+        const { sanitizeFilename, resolvePdfPath } = await import("./utils/pathUtils");
+
+        let ver;
+        if (versionId) {
+          [ver] = await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, versionId));
+          if (!ver || ver.employeeId !== employeeId) return res.status(404).json({ success: false, error: "Version introuvable" });
+        } else {
+          const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, employeeId));
+          if (!emp || !emp.currentVersionId) return res.status(404).json({ success: false, error: "Employé introuvable" });
+          [ver] = await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId));
+        }
+        if (!ver) return res.status(404).json({ success: false, error: "Version introuvable" });
+
+        const emp = await db.query.employees.findFirst({ where: eq(schema.employees.id, employeeId) });
+        if (!emp) return res.status(404).json({ success: false, error: "Employé introuvable" });
+
+        // Delete old draft PDF if it exists
+        if (ver.pdfPath) {
+          try {
+            const oldPath = resolvePdfPath(ver.pdfPath);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+          } catch { /* ignore */ }
+        }
+
+        const filename = sanitizeFilename(`hab${emp.matricule}_v${ver.versionNumber}_signed.pdf`);
+        const filePath = resolvePdfPath(filename);
+        const buffer = Buffer.from(pdfBase64, "base64");
+        fs.writeFileSync(filePath, buffer);
+
+        await db.update(schema.employeeVersions).set({ pdfPath: filename, pdfStatus: "signed" }).where(eq(schema.employeeVersions.id, ver.id));
+
+        const { logAuditActionSafe } = await import("./services/auditService");
+        await logAuditActionSafe(null, "UPLOAD_SIGNED_PDF", employeeId, null, { pdfPath: filename, pdfStatus: "signed", versionId: ver.id, versionNumber: ver.versionNumber });
+
+        return res.json({ success: true, data: { pdfPath: filename, pdfStatus: "signed" } });
+      } catch (err: any) {
+        logger.error("app", "upload-signed-pdf error", { error: String(err) });
+        return res.status(500).json({ success: false, error: err.message });
+      }
+    });
+  });
+
   // ============================================================================
   // ORG STRUCTURE
   // ============================================================================
@@ -1191,10 +1246,10 @@ export function createServer() {
           dateExpiration: ver.dateExpiration,
         }, ver.versionNumber);
 
-        await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath }).where(eq(schema.employeeVersions.id, ver.id));
+        await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath, pdfStatus: "draft" }).where(eq(schema.employeeVersions.id, ver.id));
 
         const { logAuditActionSafe } = await import("./services/auditService");
-        await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, versionId: ver.id, versionNumber: ver.versionNumber });
+        await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, pdfStatus: "draft", versionId: ver.id, versionNumber: ver.versionNumber });
 
         res.json({ success: true, data: result, error: null });
       } catch (err) {
@@ -1245,10 +1300,10 @@ export function createServer() {
           dateExpiration: ver.dateExpiration,
         }, ver.versionNumber);
 
-        await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath }).where(eq(schema.employeeVersions.id, verId));
+        await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath, pdfStatus: "draft" }).where(eq(schema.employeeVersions.id, verId));
 
         const { logAuditActionSafe } = await import("./services/auditService");
-        await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, versionId: verId, versionNumber: ver.versionNumber });
+        await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, pdfStatus: "draft", versionId: verId, versionNumber: ver.versionNumber });
 
         res.json({ success: true, data: result, error: null });
       } catch (err) {
