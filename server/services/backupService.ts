@@ -253,6 +253,29 @@ export function listBackups(backupDir: string = BACKUPS_DIR): {
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
+export function deleteBackup(backupId: string, backupDir: string = BACKUPS_DIR): {
+  deleted: boolean;
+  error?: string;
+} {
+  // Resolve through the backups dir and verify the path stays inside it
+  // (defends against "../" traversal in backupId).
+  const filename = path.basename(`${backupId}.json`);
+  const filePath = path.join(backupDir, filename);
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(path.resolve(backupDir) + path.sep)) {
+    return { deleted: false, error: "Identifiant de sauvegarde invalide" };
+  }
+  if (!fs.existsSync(resolved)) {
+    return { deleted: false, error: "Sauvegarde introuvable" };
+  }
+  try {
+    fs.unlinkSync(resolved);
+    return { deleted: true };
+  } catch (err) {
+    return { deleted: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 export function cleanupOldBackups(keepCount: number = 30, backupDir: string = BACKUPS_DIR): {
   deletedCount: number;
   remainingCount: number;

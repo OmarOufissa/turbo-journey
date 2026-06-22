@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Download, CheckCircle, AlertTriangle, HardDrive, RefreshCw, Plus, Github, Database, Package } from "lucide-react";
+import { Download, CheckCircle, AlertTriangle, HardDrive, RefreshCw, Plus, Github, Database, Package, Trash2 } from "lucide-react";
 
 interface Backup {
   backupId: string;
@@ -67,6 +67,11 @@ export default function BackupRestore() {
   const [verifying, setVerifying] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [restoreDialog, setRestoreDialog] = useState<{ open: boolean; backupId: string | null }>({
+    open: false,
+    backupId: null,
+  });
+  const [deleting, setDeleting] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; backupId: string | null }>({
     open: false,
     backupId: null,
   });
@@ -394,6 +399,41 @@ export default function BackupRestore() {
       });
     } finally {
       setRestoring(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteDialog.backupId) return;
+
+    try {
+      setDeleting(true);
+      const response = await fetch(`/api/backups/${deleteDialog.backupId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Échec de la suppression");
+      }
+
+      toast({
+        title: "Succès",
+        description: "Sauvegarde supprimée",
+      });
+
+      setDeleteDialog({ open: false, backupId: null });
+      await fetchBackups();
+    } catch (error) {
+      console.error("Error deleting backup:", error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Échec de la suppression",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -729,6 +769,18 @@ export default function BackupRestore() {
                     >
                       Restore
                     </Button>
+
+                    <Button
+                      onClick={() =>
+                        setDeleteDialog({ open: true, backupId: backup.backupId })
+                      }
+                      variant="destructive"
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Supprimer
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -963,6 +1015,37 @@ export default function BackupRestore() {
               }}
             >
               {restoring ? "Restoring..." : "Restore"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) =>
+        setDeleteDialog({ ...deleteDialog, open })
+      }>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette sauvegarde ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le fichier de sauvegarde sera définitivement supprimé du disque. Cette action est
+              irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="bg-red-50 p-3 rounded border border-red-200 my-4">
+            <p className="text-sm text-red-900 font-mono break-all">{deleteDialog.backupId}</p>
+          </div>
+          <div className="flex gap-2">
+            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleting}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+            >
+              {deleting ? "Suppression..." : "Supprimer"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

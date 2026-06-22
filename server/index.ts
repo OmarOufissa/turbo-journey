@@ -1103,6 +1103,14 @@ export function createServer() {
     });
   });
 
+  app.delete("/api/backups/:backupId", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { deleteBackup_Handler } = await import("./routes/backup");
+      deleteBackup_Handler(req, res, () => {});
+    });
+  });
+
   app.get("/api/backups/statistics", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     authMiddleware(req, res, async () => {

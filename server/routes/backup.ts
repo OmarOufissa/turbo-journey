@@ -14,6 +14,7 @@ import {
   restoreFromBackup,
   listBackups,
   cleanupOldBackups,
+  deleteBackup,
   getBackupStatistics,
 } from "../services/backupService";
 import {
@@ -178,6 +179,36 @@ export const restoreBackup_Handler: RequestHandler = async (req, res) => {
     console.error("Error restoring backup:", err);
     const errorMsg = err instanceof Error ? err.message : String(err);
     res.status(500).json({ message: `Error restoring backup: ${errorMsg}` });
+  }
+};
+
+/**
+ * DELETE /api/backups/:backupId
+ * Delete a single local backup file
+ */
+export const deleteBackup_Handler: RequestHandler = async (req, res) => {
+  try {
+    const { backupId } = req.params;
+    const result = deleteBackup(backupId);
+
+    if (!result.deleted) {
+      const notFound = result.error === "Sauvegarde introuvable";
+      return res.status(notFound ? 404 : 400).json({ message: result.error });
+    }
+
+    await logAuditActionSafe(
+      1,
+      "EXPORT_EMPLOYEES",
+      null,
+      null,
+      { action: "Local backup deleted", backupId }
+    );
+
+    res.json({ message: "Sauvegarde supprimée", backupId, deleted: true });
+  } catch (err) {
+    console.error("Error deleting backup:", err);
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ message: `Error deleting backup: ${errorMsg}` });
   }
 };
 
@@ -626,6 +657,7 @@ export default {
   downloadBackup_Handler,
   verifyBackup_Handler,
   restoreBackup_Handler,
+  deleteBackup_Handler,
   getBackupStatistics_Handler,
   cleanupBackups_Handler,
   getCloudBackupStatus_Handler,
