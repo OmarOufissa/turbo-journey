@@ -350,9 +350,11 @@ export function createServer() {
         const total = rows.length;
         const errors: string[] = [];
 
+        const tstCodeSet = new Set(['H1N', 'H1T', 'H2N', 'H2T']);
+
         for (const row of rows) {
           try {
-            const result = await generateHabilitationPdf({
+            const snapshot = {
               matricule: row.matricule,
               nom: row.nom,
               prenom: row.prenom,
@@ -367,9 +369,20 @@ export function createServer() {
               autorisationSpecialesVerso: row.autorisationSpecialesVerso ?? null,
               dateValidation: row.dateValidation,
               dateExpiration: row.dateExpiration,
-            }, row.versionNumber);
+            };
 
-            await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath }).where(eq(schema.employeeVersions.id, row.verId));
+            const isTst = snapshot.stCodes.some(c => tstCodeSet.has(c));
+            if (isTst) {
+              const htResult = await generateHabilitationPdf(snapshot, row.versionNumber, 'ht');
+              const stResult = await generateHabilitationPdf(snapshot, row.versionNumber, 'st');
+              await db.update(schema.employeeVersions).set({
+                pdfPath: htResult.pdfPath, pdfStatus: "draft",
+                pdfPathSt: stResult.pdfPath, pdfStatusSt: "draft",
+              }).where(eq(schema.employeeVersions.id, row.verId));
+            } else {
+              const result = await generateHabilitationPdf(snapshot, row.versionNumber);
+              await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath, pdfStatus: "draft" }).where(eq(schema.employeeVersions.id, row.verId));
+            }
             generated++;
           } catch (err) {
             failed++;
@@ -486,7 +499,7 @@ export function createServer() {
     authMiddleware(req, res, async () => {
       try {
         const employeeId = parseInt(req.params.id);
-        const { pdfBase64, versionId } = req.body as { pdfBase64: string; versionId?: number };
+        const { pdfBase64, versionId, pdfType } = req.body as { pdfBase64: string; versionId?: number; pdfType?: 'ht' | 'st' };
         if (!pdfBase64) return res.status(400).json({ success: false, error: "pdfBase64 required" });
 
         const { db } = await import("./db-pg");
@@ -509,25 +522,30 @@ export function createServer() {
         const emp = await db.query.employees.findFirst({ where: eq(schema.employees.id, employeeId) });
         if (!emp) return res.status(404).json({ success: false, error: "Employé introuvable" });
 
-        // Delete old draft PDF if it exists
-        if (ver.pdfPath) {
+        const isStUpload = pdfType === 'st';
+        const oldPath = isStUpload ? ver.pdfPathSt : ver.pdfPath;
+        if (oldPath) {
           try {
-            const oldPath = resolvePdfPath(ver.pdfPath);
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            const resolved = resolvePdfPath(oldPath);
+            if (fs.existsSync(resolved)) fs.unlinkSync(resolved);
           } catch { /* ignore */ }
         }
 
-        const filename = sanitizeFilename(`hab${emp.matricule}_v${ver.versionNumber}_signed.pdf`);
+        const suffix = isStUpload ? '_ST_signed' : '_signed';
+        const filename = sanitizeFilename(`hab${emp.matricule}_v${ver.versionNumber}${suffix}.pdf`);
         const filePath = resolvePdfPath(filename);
         const buffer = Buffer.from(pdfBase64, "base64");
         fs.writeFileSync(filePath, buffer);
 
-        await db.update(schema.employeeVersions).set({ pdfPath: filename, pdfStatus: "signed" }).where(eq(schema.employeeVersions.id, ver.id));
+        const updateFields = isStUpload
+          ? { pdfPathSt: filename, pdfStatusSt: "signed" as const }
+          : { pdfPath: filename, pdfStatus: "signed" as const };
+        await db.update(schema.employeeVersions).set(updateFields).where(eq(schema.employeeVersions.id, ver.id));
 
         const { logAuditActionSafe } = await import("./services/auditService");
-        await logAuditActionSafe(null, "UPLOAD_SIGNED_PDF", employeeId, null, { pdfPath: filename, pdfStatus: "signed", versionId: ver.id, versionNumber: ver.versionNumber });
+        await logAuditActionSafe(null, "UPLOAD_SIGNED_PDF", employeeId, null, { ...updateFields, pdfType: pdfType ?? 'ht', versionId: ver.id, versionNumber: ver.versionNumber });
 
-        return res.json({ success: true, data: { pdfPath: filename, pdfStatus: "signed" } });
+        return res.json({ success: true, data: updateFields });
       } catch (err: any) {
         logger.error("app", "upload-signed-pdf error", { error: String(err) });
         return res.status(500).json({ success: false, error: err.message });
@@ -1237,7 +1255,7 @@ export function createServer() {
           ? (await db.select({ name: schema.equipes.name }).from(schema.equipes).where(eq(schema.equipes.id, ver.equipeId)))[0]
           : null;
 
-        const result = await generateHabilitationPdf({
+        const snapshot = {
           matricule: emp.matricule,
           nom: emp.nom,
           prenom: emp.prenom,
@@ -1252,14 +1270,30 @@ export function createServer() {
           autorisationSpecialesVerso: ver.autorisationSpecialesVerso ?? null,
           dateValidation: ver.dateValidation,
           dateExpiration: ver.dateExpiration,
-        }, ver.versionNumber);
+        };
 
-        await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath, pdfStatus: "draft" }).where(eq(schema.employeeVersions.id, ver.id));
+        const tstCodes = ['H1N', 'H1T', 'H2N', 'H2T'];
+        const isTst = snapshot.stCodes.some(c => tstCodes.includes(c));
 
         const { logAuditActionSafe } = await import("./services/auditService");
-        await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, pdfStatus: "draft", versionId: ver.id, versionNumber: ver.versionNumber });
 
-        res.json({ success: true, data: result, error: null });
+        if (isTst) {
+          const htResult = await generateHabilitationPdf(snapshot, ver.versionNumber, 'ht');
+          const stResult = await generateHabilitationPdf(snapshot, ver.versionNumber, 'st');
+
+          await db.update(schema.employeeVersions).set({
+            pdfPath: htResult.pdfPath, pdfStatus: "draft",
+            pdfPathSt: stResult.pdfPath, pdfStatusSt: "draft",
+          }).where(eq(schema.employeeVersions.id, ver.id));
+
+          await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: htResult.pdfPath, pdfPathSt: stResult.pdfPath, pdfStatus: "draft", versionId: ver.id, versionNumber: ver.versionNumber, dual: true });
+          res.json({ success: true, data: { ht: htResult, st: stResult }, error: null });
+        } else {
+          const result = await generateHabilitationPdf(snapshot, ver.versionNumber);
+          await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath, pdfStatus: "draft" }).where(eq(schema.employeeVersions.id, ver.id));
+          await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, pdfStatus: "draft", versionId: ver.id, versionNumber: ver.versionNumber });
+          res.json({ success: true, data: result, error: null });
+        }
       } catch (err) {
         console.error("PDF generation error:", err);
         res.status(500).json({ success: false, data: null, error: (err as Error).message });
@@ -1291,7 +1325,7 @@ export function createServer() {
           ? (await db.select({ name: schema.equipes.name }).from(schema.equipes).where(eq(schema.equipes.id, ver.equipeId)))[0]
           : null;
 
-        const result = await generateHabilitationPdf({
+        const snapshot = {
           matricule: emp.matricule,
           nom: emp.nom,
           prenom: emp.prenom,
@@ -1306,14 +1340,30 @@ export function createServer() {
           autorisationSpecialesVerso: ver.autorisationSpecialesVerso ?? null,
           dateValidation: ver.dateValidation,
           dateExpiration: ver.dateExpiration,
-        }, ver.versionNumber);
+        };
 
-        await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath, pdfStatus: "draft" }).where(eq(schema.employeeVersions.id, verId));
+        const tstCodes = ['H1N', 'H1T', 'H2N', 'H2T'];
+        const isTst = snapshot.stCodes.some(c => tstCodes.includes(c));
 
         const { logAuditActionSafe } = await import("./services/auditService");
-        await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, pdfStatus: "draft", versionId: verId, versionNumber: ver.versionNumber });
 
-        res.json({ success: true, data: result, error: null });
+        if (isTst) {
+          const htResult = await generateHabilitationPdf(snapshot, ver.versionNumber, 'ht');
+          const stResult = await generateHabilitationPdf(snapshot, ver.versionNumber, 'st');
+
+          await db.update(schema.employeeVersions).set({
+            pdfPath: htResult.pdfPath, pdfStatus: "draft",
+            pdfPathSt: stResult.pdfPath, pdfStatusSt: "draft",
+          }).where(eq(schema.employeeVersions.id, verId));
+
+          await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: htResult.pdfPath, pdfPathSt: stResult.pdfPath, pdfStatus: "draft", versionId: verId, versionNumber: ver.versionNumber, dual: true });
+          res.json({ success: true, data: { ht: htResult, st: stResult }, error: null });
+        } else {
+          const result = await generateHabilitationPdf(snapshot, ver.versionNumber);
+          await db.update(schema.employeeVersions).set({ pdfPath: result.pdfPath, pdfStatus: "draft" }).where(eq(schema.employeeVersions.id, verId));
+          await logAuditActionSafe(null, "GENERATE_PDF", empId, null, { pdfPath: result.pdfPath, pdfStatus: "draft", versionId: verId, versionNumber: ver.versionNumber });
+          res.json({ success: true, data: result, error: null });
+        }
       } catch (err) {
         console.error("Version PDF generation error:", err);
         res.status(500).json({ success: false, data: null, error: (err as Error).message });
@@ -1335,16 +1385,17 @@ export function createServer() {
 
         const [ver] = await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, verId));
         if (!ver || ver.employeeId !== empId) return res.status(404).json({ success: false, data: null, error: "Version introuvable" });
-        if (!ver.pdfPath) return res.status(404).json({ success: false, data: null, error: "Aucun PDF pour cette version" });
+        if (!ver.pdfPath && !ver.pdfPathSt) return res.status(404).json({ success: false, data: null, error: "Aucun PDF pour cette version" });
 
-        deletePdfFile(ver.pdfPath);
-        await db.update(schema.employeeVersions).set({ pdfPath: null }).where(eq(schema.employeeVersions.id, verId));
+        if (ver.pdfPath) deletePdfFile(ver.pdfPath);
+        if (ver.pdfPathSt) deletePdfFile(ver.pdfPathSt);
+        await db.update(schema.employeeVersions).set({ pdfPath: null, pdfStatus: null, pdfPathSt: null, pdfStatusSt: null }).where(eq(schema.employeeVersions.id, verId));
 
         const [auditLog] = await db.insert(schema.auditLogs).values({
           action: "DELETE_PDF",
           entityId: empId,
-          snapshotOld: { pdfPath: ver.pdfPath, versionId: verId } as any,
-          snapshotNew: { pdfPath: null } as any,
+          snapshotOld: { pdfPath: ver.pdfPath, pdfPathSt: ver.pdfPathSt, versionId: verId } as any,
+          snapshotNew: { pdfPath: null, pdfPathSt: null } as any,
         }).returning();
 
         res.json({ success: true, data: { auditLogId: auditLog.id }, error: null });

@@ -79,6 +79,8 @@ export const employeeVersions = sqliteTable("employee_versions", {
   autorisationSpecialesVerso: text("autorisation_speciales_verso"),
   pdfPath: text("pdf_path"),
   pdfStatus: text("pdf_status").$type<"draft" | "signed">(),
+  pdfPathSt: text("pdf_path_st"),
+  pdfStatusSt: text("pdf_status_st").$type<"draft" | "signed">(),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   createdBy: integer("created_by").references(() => users.id),
   auditLogId: integer("audit_log_id"),

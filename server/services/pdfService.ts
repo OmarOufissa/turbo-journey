@@ -119,6 +119,20 @@ const TABLE_ROWS: TableRow[] = [
   { stKey: null,  htKey: 'SF6', rowKey: 'SF6'       },
 ];
 
+const TST_ROWS: TableRow[] = [
+  { stKey: 'H1N', htKey: null, rowKey: 'H1N' },
+  { stKey: 'H1T', htKey: null, rowKey: 'H1T' },
+  { stKey: 'H2N', htKey: null, rowKey: 'H2N' },
+  { stKey: 'H2T', htKey: null, rowKey: 'H2T' },
+];
+
+const TST_PERSONNEL_LABELS = [
+  'Exécutant\nSous Tension (N)',
+  'Exécutant\nSous Tension (T)',
+  'Chargé de Travaux\nSous Tension (N)',
+  'Chargé de Travaux\nSous Tension (T)',
+];
+
 // ─── Draw helpers ─────────────────────────────────────────────────────────────
 
 function drawText(
@@ -208,6 +222,8 @@ function drawDynamicTable(
   page: PDFPage,
   snapshot: VersionSnapshot,
   fonts: { regular: any; bold: any },
+  tableRows: TableRow[] = TABLE_ROWS,
+  personnelLabels: string[] = PERSONNEL_LABELS,
 ) {
   const { regular, bold } = fonts;
   const allCodes = [...(snapshot.stCodes ?? []), ...(snapshot.htCodes ?? [])];
@@ -220,7 +236,7 @@ function drawDynamicTable(
   const wInd = T.right - T.cInd - 2 * CELL_PAD;
 
   // Build row data + calculate heights
-  const rows = TABLE_ROWS.map((row, idx) => {
+  const rows = tableRows.map((row, idx) => {
     const hasST = row.stKey != null && allCodes.includes(row.stKey);
     const hasHT = row.htKey != null && allCodes.includes(row.htKey);
     const isActive = hasST || hasHT;
@@ -234,7 +250,8 @@ function drawDynamicTable(
     const ouvrage    = isActive ? (rd?.ouvrage    || '') : 'XXX';
     const indication = isActive ? (rd?.indication || '') : 'XXX';
 
-    const labelLines = countLines(PERSONNEL_LABELS[idx], wPer, regular, SZ_CELL);
+    const label = personnelLabels[idx] ?? '';
+    const labelLines = countLines(label, wPer, regular, SZ_CELL);
     const symLines   = countLines(symbolText, wSym, isActive ? bold : regular, isActive ? SZ_SYM : SZ_CELL);
     const domLines   = countLines(domaine,    wDom, regular, SZ_CELL);
     const ouvLines   = countLines(ouvrage,    wOuv, regular, SZ_CELL);
@@ -243,7 +260,7 @@ function drawDynamicTable(
     const maxLines = Math.max(labelLines, symLines, domLines, ouvLines, indLines);
     const height   = Math.max(MIN_ROW_H, maxLines * CELL_LH + 2 * CELL_PAD);
 
-    return { row, label: PERSONNEL_LABELS[idx], isActive, hasST, hasHT, symbolText, domaine, ouvrage, indication, height };
+    return { row, label, isActive, hasST, hasHT, symbolText, domaine, ouvrage, indication, height };
   });
 
   const totalH    = rows.reduce((s, r) => s + r.height, 0);
@@ -301,6 +318,7 @@ function fillPage1(
   page: PDFPage,
   snapshot: VersionSnapshot,
   fonts: { regular: any; bold: any },
+  pdfType?: 'ht' | 'st',
 ) {
   const { regular, bold } = fonts;
   const SZ = 9;
@@ -320,7 +338,14 @@ function fillPage1(
   drawText(page, formatDateFrench(snapshot.dateExpiration), P1.valableJusquau.x,  P1.valableJusquau.y,  regular, SZ);
 
   // Dynamic table — variable-height rows based on content
-  drawDynamicTable(page, snapshot, fonts);
+  if (pdfType === 'st') {
+    const hasTstCodes = snapshot.stCodes.some(c => ['H1N', 'H1T', 'H2N', 'H2T'].includes(c));
+    const rows = hasTstCodes ? [...TABLE_ROWS, ...TST_ROWS] : TABLE_ROWS;
+    const labels = hasTstCodes ? [...PERSONNEL_LABELS, ...TST_PERSONNEL_LABELS] : PERSONNEL_LABELS;
+    drawDynamicTable(page, snapshot, fonts, rows, labels);
+  } else {
+    drawDynamicTable(page, snapshot, fonts);
+  }
 }
 
 // ─── Fill page 2 (AVIS page) ──────────────────────────────────────────────────
@@ -372,8 +397,10 @@ function fillPage2(
 export async function generateHabilitationPdf(
   snapshot: VersionSnapshot,
   versionNumber: number,
+  pdfType?: 'ht' | 'st',
 ): Promise<{ pdfPath: string; pdfSize: number }> {
-  validate(snapshot);
+  const filteredSnapshot = pdfType ? filterSnapshotByType(snapshot, pdfType) : snapshot;
+  validate(filteredSnapshot);
 
   const templateBytes = fs.readFileSync(TEMPLATE_PATH);
   const pdfDoc = await PDFDocument.load(templateBytes);
@@ -383,11 +410,12 @@ export async function generateHabilitationPdf(
   const fonts = { regular: helvetica, bold: helveticaBold };
 
   const pages = pdfDoc.getPages();
-  if (pages[0]) fillPage1(pages[0], snapshot, fonts);
-  if (pages[1]) fillPage2(pages[1], snapshot, fonts);
+  if (pages[0]) fillPage1(pages[0], filteredSnapshot, fonts, pdfType);
+  if (pages[1]) fillPage2(pages[1], filteredSnapshot, fonts);
 
   const pdfBytes = await pdfDoc.save();
-  const filename  = buildPdfFilename(snapshot.matricule, versionNumber);
+  const suffix = pdfType === 'st' ? '_ST' : pdfType === 'ht' ? '_HT' : '';
+  const filename  = buildPdfFilename(snapshot.matricule, versionNumber, suffix);
   const fullPath  = resolvePdfPath(filename);
   fs.writeFileSync(fullPath, pdfBytes);
 
@@ -395,6 +423,15 @@ export async function generateHabilitationPdf(
   if (stats.size === 0) throw new Error('Generated PDF is empty');
 
   return { pdfPath: filename, pdfSize: stats.size };
+}
+
+const TST_CODE_SET = new Set(['H1N', 'H1T', 'H2N', 'H2T']);
+
+function filterSnapshotByType(snapshot: VersionSnapshot, pdfType: 'ht' | 'st'): VersionSnapshot {
+  if (pdfType === 'ht') {
+    return { ...snapshot, stCodes: [], htCodes: snapshot.htCodes };
+  }
+  return { ...snapshot, htCodes: [], stCodes: snapshot.stCodes };
 }
 
 export function getPdfPath(filename: string): string {

@@ -117,9 +117,9 @@ export function sanitizeFilename(raw: string): string {
  * Generate the standard PDF filename for a given employee/version.
  * Pattern: hab{matricule}_v{versionNumber}.pdf
  */
-export function buildPdfFilename(matricule: string, versionNumber: number): string {
+export function buildPdfFilename(matricule: string, versionNumber: number, suffix: string = ''): string {
   const safeMat = sanitizeFilename(matricule);
-  return `hab${safeMat}_v${versionNumber}.pdf`;
+  return `hab${safeMat}_v${versionNumber}${suffix}.pdf`;
 }
 
 /**

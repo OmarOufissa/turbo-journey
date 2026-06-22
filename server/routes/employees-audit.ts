@@ -97,6 +97,8 @@ async function buildVersionResponse(version: typeof schema.employeeVersions.$inf
     dateExpiration: version.dateExpiration,
     pdfPath: version.pdfPath ?? null,
     pdfStatus: version.pdfStatus ?? null,
+    pdfPathSt: version.pdfPathSt ?? null,
+    pdfStatusSt: version.pdfStatusSt ?? null,
     createdAt: version.createdAt,
   };
 }
@@ -234,6 +236,8 @@ export const getEmployees: RequestHandler = async (req, res) => {
         dateExpiration: schema.employeeVersions.dateExpiration,
         pdfPath: schema.employeeVersions.pdfPath,
         pdfStatus: schema.employeeVersions.pdfStatus,
+        pdfPathSt: schema.employeeVersions.pdfPathSt,
+        pdfStatusSt: schema.employeeVersions.pdfStatusSt,
         verCreatedAt: schema.employeeVersions.createdAt,
         divisionName: schema.divisions.name,
         serviceName: schema.services.name,
@@ -280,6 +284,8 @@ export const getEmployees: RequestHandler = async (req, res) => {
         dateExpiration: row.dateExpiration,
         pdfPath: row.pdfPath ?? null,
         pdfStatus: row.pdfStatus ?? null,
+        pdfPathSt: row.pdfPathSt ?? null,
+        pdfStatusSt: row.pdfStatusSt ?? null,
         createdAt: row.verCreatedAt,
       } : null,
     }));
@@ -829,6 +835,7 @@ export const deletePdf: RequestHandler = async (req, res) => {
         dateValidation: ver.dateValidation,
         dateExpiration: ver.dateExpiration,
         pdfPath: null,
+        pdfPathSt: null,
         createdBy: getUserIdFromRequest(req),
       }).returning();
 

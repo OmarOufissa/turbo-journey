@@ -15,10 +15,59 @@ import { getExpirationStatus, EXPIRATION_COLOR_CONFIG } from "@/types/habilitati
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
+const TST_CODES = ['H1N', 'H1T', 'H2N', 'H2T'];
+function isTstEmployee(ver: EmployeeVersion): boolean {
+  return ver.stCodes.some(c => TST_CODES.includes(c));
+}
+
 type PendingConfirm =
   | { type: "revert"; versionId: number; versionNumber: number }
   | { type: "deletePdf" }
   | { type: "versionDeletePdf"; versionId: number };
+
+function PdfSection({ label, pdfPath, pdfStatus, token, onUploadSigned, signedUploading }: {
+  label: string;
+  pdfPath?: string | null;
+  pdfStatus?: "draft" | "signed" | null;
+  token: string | null;
+  onUploadSigned: () => void;
+  signedUploading: boolean;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-muted-foreground text-sm font-medium">{label}</span>
+        {pdfPath && (
+          <Badge variant={pdfStatus === "signed" ? "default" : "secondary"} className="text-xs">
+            {pdfStatus === "signed" ? "Signé" : "Brouillon"}
+          </Badge>
+        )}
+      </div>
+      {pdfPath ? (
+        <div className="flex gap-1 flex-wrap">
+          <Button variant="outline" size="sm" asChild>
+            <a href={`/api/pdfs/${encodeURIComponent(pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
+              <Eye className="w-3 h-3 mr-1" />Voir
+            </a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a href={`/api/pdfs/${encodeURIComponent(pdfPath)}?token=${token}`} download>
+              <Download className="w-3 h-3 mr-1" />Télécharger
+            </a>
+          </Button>
+          {pdfStatus !== "signed" && (
+            <Button variant="outline" size="sm" onClick={onUploadSigned} disabled={signedUploading}>
+              <Upload className={cn("w-3 h-3 mr-1", signedUploading && "animate-spin")} />
+              Signé
+            </Button>
+          )}
+        </div>
+      ) : (
+        <span className="text-xs text-muted-foreground">Pas encore généré</span>
+      )}
+    </div>
+  );
+}
 
 export default function EmployeeCard() {
   const { id } = useParams();
@@ -113,7 +162,9 @@ export default function EmployeeCard() {
     }
   };
 
-  const handleUploadSigned = async (file: File, versionId?: number) => {
+  const [uploadPdfType, setUploadPdfType] = useState<'ht' | 'st' | undefined>();
+
+  const handleUploadSigned = async (file: File, versionId?: number, pdfType?: 'ht' | 'st') => {
     if (!employee) return;
     setSignedUploading(true);
     try {
@@ -129,6 +180,7 @@ export default function EmployeeCard() {
 
       const body: any = { pdfBase64: base64 };
       if (versionId) body.versionId = versionId;
+      if (pdfType) body.pdfType = pdfType;
 
       const res = await fetch(`/api/employees/${employee.id}/upload-signed-pdf`, {
         method: "POST",
@@ -147,6 +199,7 @@ export default function EmployeeCard() {
     } finally {
       setSignedUploading(false);
       setUploadingVersionId(null);
+      setUploadPdfType(undefined);
     }
   };
 
@@ -335,48 +388,88 @@ export default function EmployeeCard() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Validation</span><span>{new Date(ver.dateValidation).toLocaleDateString("fr-FR")}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Expiration</span><span className={cn("font-medium", config.textColor)}>{new Date(ver.dateExpiration).toLocaleDateString("fr-FR")}</span></div>
 
-                <div className="pt-3 border-t">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Document PDF</span>
-                    {ver.pdfPath && (
-                      <Badge variant={ver.pdfStatus === "signed" ? "default" : "secondary"}>
-                        {ver.pdfStatus === "signed" ? "Signé" : "Brouillon"}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex gap-1 flex-wrap mt-2">
-                    {ver.pdfPath ? (
-                      <>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
-                            <Eye className="w-3 h-3 mr-1" />Voir
-                          </a>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} download>
-                            <Download className="w-3 h-3 mr-1" />Télécharger
-                          </a>
-                        </Button>
-                        {ver.pdfStatus !== "signed" && (
-                          <Button variant="outline" size="sm" onClick={() => signedFileRef.current?.click()} disabled={signedUploading}>
-                            <Upload className={cn("w-3 h-3 mr-1", signedUploading && "animate-spin")} />
-                            {signedUploading ? "Upload..." : "Uploader signé"}
+                <div className="pt-3 border-t space-y-3">
+                  {isTstEmployee(ver) ? (
+                    <>
+                      <PdfSection
+                        label="PDF HT (Hors Tension)"
+                        pdfPath={ver.pdfPath}
+                        pdfStatus={ver.pdfStatus}
+                        token={token}
+                        onUploadSigned={() => { setUploadPdfType('ht'); signedFileRef.current?.click(); }}
+                        signedUploading={signedUploading}
+                      />
+                      <PdfSection
+                        label="PDF ST (Sous Tension)"
+                        pdfPath={ver.pdfPathSt}
+                        pdfStatus={ver.pdfStatusSt}
+                        token={token}
+                        onUploadSigned={() => { setUploadPdfType('st'); signedFileRef.current?.click(); }}
+                        signedUploading={signedUploading}
+                      />
+                      <div className="flex gap-1 flex-wrap">
+                        {(ver.pdfPath || ver.pdfPathSt) ? (
+                          <>
+                            <Button variant="outline" size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
+                              <RefreshCw className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />Régénérer les 2 PDFs
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={handleDeletePdf}>
+                              <Trash2 className="w-3 h-3 mr-1" />Supprimer les PDFs
+                            </Button>
+                          </>
+                        ) : (
+                          <Button size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
+                            <FileText className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />
+                            {pdfGenerating ? "Génération..." : "Générer PDFs (HT + ST)"}
                           </Button>
                         )}
-                        <Button variant="outline" size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
-                          <RefreshCw className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />Régénérer
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={handleDeletePdf}>
-                          <Trash2 className="w-3 h-3 mr-1" />Supprimer
-                        </Button>
-                      </>
-                    ) : (
-                      <Button size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
-                        <FileText className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />
-                        {pdfGenerating ? "Génération..." : "Générer PDF"}
-                      </Button>
-                    )}
-                  </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Document PDF</span>
+                        {ver.pdfPath && (
+                          <Badge variant={ver.pdfStatus === "signed" ? "default" : "secondary"}>
+                            {ver.pdfStatus === "signed" ? "Signé" : "Brouillon"}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-1 flex-wrap mt-2">
+                        {ver.pdfPath ? (
+                          <>
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
+                                <Eye className="w-3 h-3 mr-1" />Voir
+                              </a>
+                            </Button>
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} download>
+                                <Download className="w-3 h-3 mr-1" />Télécharger
+                              </a>
+                            </Button>
+                            {ver.pdfStatus !== "signed" && (
+                              <Button variant="outline" size="sm" onClick={() => signedFileRef.current?.click()} disabled={signedUploading}>
+                                <Upload className={cn("w-3 h-3 mr-1", signedUploading && "animate-spin")} />
+                                {signedUploading ? "Upload..." : "Uploader signé"}
+                              </Button>
+                            )}
+                            <Button variant="outline" size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
+                              <RefreshCw className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />Régénérer
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={handleDeletePdf}>
+                              <Trash2 className="w-3 h-3 mr-1" />Supprimer
+                            </Button>
+                          </>
+                        ) : (
+                          <Button size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
+                            <FileText className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />
+                            {pdfGenerating ? "Génération..." : "Générer PDF"}
+                          </Button>
+                        )}
+                      </div>
+                    </>
+                  )}
                   <input
                     ref={signedFileRef}
                     type="file"
@@ -384,7 +477,7 @@ export default function EmployeeCard() {
                     className="hidden"
                     onChange={e => {
                       const file = e.target.files?.[0];
-                      if (file) handleUploadSigned(file);
+                      if (file) handleUploadSigned(file, undefined, uploadPdfType);
                       e.target.value = "";
                     }}
                   />
@@ -462,42 +555,110 @@ export default function EmployeeCard() {
                         </div>
 
                         {/* Per-version PDF actions */}
-                        <div className="mt-2 pt-2 border-t flex items-center gap-1 flex-wrap">
-                          <span className="text-xs text-muted-foreground mr-1">PDF :</span>
-                          {v.pdfPath && (
-                            <Badge variant={v.pdfStatus === "signed" ? "default" : "secondary"} className="text-xs mr-1">
-                              {v.pdfStatus === "signed" ? "Signé" : "Brouillon"}
-                            </Badge>
-                          )}
-                          {v.pdfPath ? (
+                        <div className="mt-2 pt-2 border-t space-y-1">
+                          {isTstEmployee(v) ? (
                             <>
-                              <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
-                                <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
-                                  <Eye className="w-3 h-3 mr-1" />Voir
-                                </a>
-                              </Button>
-                              <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
-                                <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} download>
-                                  <Download className="w-3 h-3 mr-1" />Télécharger
-                                </a>
-                              </Button>
-                              {v.pdfStatus !== "signed" && (
-                                <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => { setUploadingVersionId(v.id); versionSignedFileRef.current?.click(); }} disabled={signedUploading}>
-                                  <Upload className="w-3 h-3 mr-1" />Signé
-                                </Button>
-                              )}
-                              <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionGeneratePdf(v.id)} disabled={pdfLoading}>
-                                <RefreshCw className={cn("w-3 h-3 mr-1", pdfLoading && "animate-spin")} />Régénérer
-                              </Button>
-                              <Button variant="destructive" size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionDeletePdf(v.id)} disabled={pdfLoading}>
-                                <Trash2 className="w-3 h-3 mr-1" />Supprimer
-                              </Button>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <span className="text-xs text-muted-foreground mr-1">HT :</span>
+                                {v.pdfPath ? (
+                                  <>
+                                    <Badge variant={v.pdfStatus === "signed" ? "default" : "secondary"} className="text-xs mr-1">
+                                      {v.pdfStatus === "signed" ? "Signé" : "Brouillon"}
+                                    </Badge>
+                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
+                                      <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
+                                        <Eye className="w-3 h-3 mr-1" />Voir
+                                      </a>
+                                    </Button>
+                                    {v.pdfStatus !== "signed" && (
+                                      <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => { setUploadingVersionId(v.id); setUploadPdfType('ht'); versionSignedFileRef.current?.click(); }} disabled={signedUploading}>
+                                        <Upload className="w-3 h-3 mr-1" />Signé
+                                      </Button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">—</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <span className="text-xs text-muted-foreground mr-1">ST :</span>
+                                {v.pdfPathSt ? (
+                                  <>
+                                    <Badge variant={v.pdfStatusSt === "signed" ? "default" : "secondary"} className="text-xs mr-1">
+                                      {v.pdfStatusSt === "signed" ? "Signé" : "Brouillon"}
+                                    </Badge>
+                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
+                                      <a href={`/api/pdfs/${encodeURIComponent(v.pdfPathSt)}?token=${token}`} target="_blank" rel="noreferrer">
+                                        <Eye className="w-3 h-3 mr-1" />Voir
+                                      </a>
+                                    </Button>
+                                    {v.pdfStatusSt !== "signed" && (
+                                      <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => { setUploadingVersionId(v.id); setUploadPdfType('st'); versionSignedFileRef.current?.click(); }} disabled={signedUploading}>
+                                        <Upload className="w-3 h-3 mr-1" />Signé
+                                      </Button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">—</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {(v.pdfPath || v.pdfPathSt) ? (
+                                  <>
+                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionGeneratePdf(v.id)} disabled={pdfLoading}>
+                                      <RefreshCw className={cn("w-3 h-3 mr-1", pdfLoading && "animate-spin")} />Régénérer
+                                    </Button>
+                                    <Button variant="destructive" size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionDeletePdf(v.id)} disabled={pdfLoading}>
+                                      <Trash2 className="w-3 h-3 mr-1" />Supprimer
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionGeneratePdf(v.id)} disabled={pdfLoading}>
+                                    <FileText className={cn("w-3 h-3 mr-1", pdfLoading && "animate-spin")} />
+                                    {pdfLoading ? "Génération..." : "Générer PDFs"}
+                                  </Button>
+                                )}
+                              </div>
                             </>
                           ) : (
-                            <Button size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionGeneratePdf(v.id)} disabled={pdfLoading}>
-                              <FileText className={cn("w-3 h-3 mr-1", pdfLoading && "animate-spin")} />
-                              {pdfLoading ? "Génération..." : "Générer PDF"}
-                            </Button>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <span className="text-xs text-muted-foreground mr-1">PDF :</span>
+                              {v.pdfPath && (
+                                <Badge variant={v.pdfStatus === "signed" ? "default" : "secondary"} className="text-xs mr-1">
+                                  {v.pdfStatus === "signed" ? "Signé" : "Brouillon"}
+                                </Badge>
+                              )}
+                              {v.pdfPath ? (
+                                <>
+                                  <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
+                                    <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
+                                      <Eye className="w-3 h-3 mr-1" />Voir
+                                    </a>
+                                  </Button>
+                                  <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
+                                    <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} download>
+                                      <Download className="w-3 h-3 mr-1" />Télécharger
+                                    </a>
+                                  </Button>
+                                  {v.pdfStatus !== "signed" && (
+                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => { setUploadingVersionId(v.id); versionSignedFileRef.current?.click(); }} disabled={signedUploading}>
+                                      <Upload className="w-3 h-3 mr-1" />Signé
+                                    </Button>
+                                  )}
+                                  <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionGeneratePdf(v.id)} disabled={pdfLoading}>
+                                    <RefreshCw className={cn("w-3 h-3 mr-1", pdfLoading && "animate-spin")} />Régénérer
+                                  </Button>
+                                  <Button variant="destructive" size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionDeletePdf(v.id)} disabled={pdfLoading}>
+                                    <Trash2 className="w-3 h-3 mr-1" />Supprimer
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button size="sm" className="h-6 text-xs px-2" onClick={() => handleVersionGeneratePdf(v.id)} disabled={pdfLoading}>
+                                  <FileText className={cn("w-3 h-3 mr-1", pdfLoading && "animate-spin")} />
+                                  {pdfLoading ? "Génération..." : "Générer PDF"}
+                                </Button>
+                              )}
+                            </div>
                           )}
                         </div>
 
@@ -545,7 +706,7 @@ export default function EmployeeCard() {
           className="hidden"
           onChange={e => {
             const file = e.target.files?.[0];
-            if (file && uploadingVersionId) handleUploadSigned(file, uploadingVersionId);
+            if (file && uploadingVersionId) handleUploadSigned(file, uploadingVersionId, uploadPdfType);
             e.target.value = "";
           }}
         />

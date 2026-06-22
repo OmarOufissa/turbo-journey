@@ -24,6 +24,8 @@ export interface EmployeeVersion {
   dateExpiration: string;
   pdfPath?: string | null;
   pdfStatus?: "draft" | "signed" | null;
+  pdfPathSt?: string | null;
+  pdfStatusSt?: "draft" | "signed" | null;
   createdAt: string;
 }
 
