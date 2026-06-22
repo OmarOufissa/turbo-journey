@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { db } from "../db-pg";
 import * as schema from "../schema";
-import { eq, and, lte, gte } from "drizzle-orm";
+import { eq, and, lte, gte, desc, sql, isNull, isNotNull } from "drizzle-orm";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { daysUntilExpiration, todayISO } from "../utils/dateUtils";
 
@@ -367,5 +367,597 @@ export const downloadExpirationReportPdf: RequestHandler = async (
     res.send(Buffer.from(pdfBytes));
   } catch (err) {
     next(err);
+  }
+};
+
+// ============================================================================
+// COMPREHENSIVE REPORTS API
+// ============================================================================
+
+export const getReports: RequestHandler = async (req, res) => {
+  try {
+    const periodMonths = parseInt(req.query.period as string) || 12;
+    if (![3, 6, 9, 12].includes(periodMonths)) {
+      res.status(400).json({ success: false, data: null, error: "Period must be 3, 6, 9, or 12" });
+      return;
+    }
+
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+    const periodStart = new Date(now);
+    periodStart.setMonth(periodStart.getMonth() - periodMonths);
+    const fromDate = periodStart.toISOString().split("T")[0];
+
+    const in3m = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const in6m = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const in9m = new Date(Date.now() + 270 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    // ========================================================================
+    // Fetch all current active employees with their current version data
+    // ========================================================================
+    const activeEmployees = await db
+      .select({
+        id: schema.employees.id,
+        matricule: schema.employees.matricule,
+        nom: schema.employees.nom,
+        prenom: schema.employees.prenom,
+        createdAt: schema.employees.createdAt,
+        deleted: schema.employees.deleted,
+        dateExpiration: schema.employeeVersions.dateExpiration,
+        stCodes: schema.employeeVersions.stCodes,
+        htCodes: schema.employeeVersions.htCodes,
+        pdfPath: schema.employeeVersions.pdfPath,
+        pdfStatus: schema.employeeVersions.pdfStatus,
+        divisionId: schema.employeeVersions.divisionId,
+        serviceId: schema.employeeVersions.serviceId,
+        divisionName: schema.divisions.name,
+        serviceName: schema.services.name,
+      })
+      .from(schema.employees)
+      .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+      .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
+      .leftJoin(schema.services, eq(schema.employeeVersions.serviceId, schema.services.id))
+      .where(eq(schema.employees.deleted, false));
+
+    // ========================================================================
+    // Employee Activity
+    // ========================================================================
+    const [{ atStart }] = await db
+      .select({ atStart: sql<number>`count(*)` })
+      .from(schema.employees)
+      .where(and(
+        lte(schema.employees.createdAt, fromDate),
+        sql`(${schema.employees.deleted} = 0 OR ${schema.employees.deletedAt} >= ${fromDate})`
+      ));
+
+    const atEnd = activeEmployees.length;
+
+    const [{ added }] = await db
+      .select({ added: sql<number>`count(*)` })
+      .from(schema.employees)
+      .where(and(
+        gte(schema.employees.createdAt, fromDate),
+        lte(schema.employees.createdAt, today + "T23:59:59")
+      ));
+
+    // Audit log counts for the period
+    const auditCounts = await db
+      .select({
+        action: schema.auditLogs.action,
+        cnt: sql<number>`count(*)`,
+      })
+      .from(schema.auditLogs)
+      .where(and(
+        gte(schema.auditLogs.createdAt, fromDate),
+        lte(schema.auditLogs.createdAt, today + "T23:59:59")
+      ))
+      .groupBy(schema.auditLogs.action);
+
+    const auditMap: Record<string, number> = {};
+    for (const row of auditCounts) {
+      auditMap[row.action] = Number(row.cnt);
+    }
+
+    const deleted = auditMap["DELETE_EMPLOYEE"] ?? 0;
+    const restored = auditMap["RESTORE_EMPLOYEE"] ?? 0;
+    const netGrowth = Number(added) - deleted + restored;
+
+    const employeeActivity = {
+      atStart: Number(atStart),
+      atEnd,
+      added: Number(added),
+      deleted,
+      restored,
+      netGrowth,
+    };
+
+    // ========================================================================
+    // Habilitation Activity
+    // ========================================================================
+    let expired = 0, expiringSoon = 0, stOnly = 0, htOnly = 0, bothCodes = 0;
+    for (const emp of activeEmployees) {
+      if (emp.dateExpiration < today) expired++;
+      else if (emp.dateExpiration <= in3m) expiringSoon++;
+
+      const hasSt = (emp.stCodes ?? []).length > 0;
+      const hasHt = (emp.htCodes ?? []).length > 0;
+      if (hasSt && hasHt) bothCodes++;
+      else if (hasSt) stOnly++;
+      else if (hasHt) htOnly++;
+    }
+
+    const [{ renewed }] = await db
+      .select({ renewed: sql<number>`count(*)` })
+      .from(schema.employeeVersions)
+      .where(and(
+        gte(schema.employeeVersions.createdAt, fromDate),
+        lte(schema.employeeVersions.createdAt, today + "T23:59:59"),
+        sql`${schema.employeeVersions.versionNumber} > 1`
+      ));
+
+    const habilitationActivity = {
+      totalActive: atEnd,
+      renewed: Number(renewed),
+      expired,
+      expiringSoon,
+      stOnly,
+      htOnly,
+      both: bothCodes,
+    };
+
+    // ========================================================================
+    // Renewal Activity
+    // ========================================================================
+    const [{ enteringWarning }] = await db
+      .select({ enteringWarning: sql<number>`count(*)` })
+      .from(schema.employees)
+      .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+      .where(and(
+        eq(schema.employees.deleted, false),
+        gte(schema.employeeVersions.dateExpiration, fromDate),
+        lte(schema.employeeVersions.dateExpiration, today)
+      ));
+
+    const currentlyNeeded = expired + expiringSoon;
+
+    const renewalsByDivision = await db
+      .select({
+        name: schema.divisions.name,
+        count: sql<number>`count(*)`,
+      })
+      .from(schema.employeeVersions)
+      .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
+      .where(and(
+        gte(schema.employeeVersions.createdAt, fromDate),
+        lte(schema.employeeVersions.createdAt, today + "T23:59:59"),
+        sql`${schema.employeeVersions.versionNumber} > 1`
+      ))
+      .groupBy(schema.divisions.name);
+
+    const renewalsByService = await db
+      .select({
+        name: schema.services.name,
+        count: sql<number>`count(*)`,
+      })
+      .from(schema.employeeVersions)
+      .leftJoin(schema.services, eq(schema.employeeVersions.serviceId, schema.services.id))
+      .where(and(
+        gte(schema.employeeVersions.createdAt, fromDate),
+        lte(schema.employeeVersions.createdAt, today + "T23:59:59"),
+        sql`${schema.employeeVersions.versionNumber} > 1`
+      ))
+      .groupBy(schema.services.name);
+
+    const renewalActivity = {
+      enteringWarning: Number(enteringWarning),
+      completed: Number(renewed),
+      currentlyNeeded,
+      byDivision: renewalsByDivision.map(r => ({ name: r.name ?? "Unknown", count: Number(r.count) })),
+      byService: renewalsByService.map(r => ({ name: r.name ?? "Unknown", count: Number(r.count) })),
+    };
+
+    // ========================================================================
+    // Versioning Activity
+    // ========================================================================
+    const [{ versionsCreated }] = await db
+      .select({ versionsCreated: sql<number>`count(*)` })
+      .from(schema.employeeVersions)
+      .where(and(
+        gte(schema.employeeVersions.createdAt, fromDate),
+        lte(schema.employeeVersions.createdAt, today + "T23:59:59")
+      ));
+
+    const [{ employeesModified }] = await db
+      .select({ employeesModified: sql<number>`count(distinct ${schema.employeeVersions.employeeId})` })
+      .from(schema.employeeVersions)
+      .where(and(
+        gte(schema.employeeVersions.createdAt, fromDate),
+        lte(schema.employeeVersions.createdAt, today + "T23:59:59")
+      ));
+
+    const reverts = auditMap["REVERT_VERSION"] ?? 0;
+
+    const avgVersionsPerEmployee = Number(employeesModified) > 0
+      ? Math.round((Number(versionsCreated) / Number(employeesModified)) * 100) / 100
+      : 0;
+
+    const mostModifiedRows = await db
+      .select({
+        employeeId: schema.employeeVersions.employeeId,
+        versions: sql<number>`count(*)`,
+      })
+      .from(schema.employeeVersions)
+      .where(and(
+        gte(schema.employeeVersions.createdAt, fromDate),
+        lte(schema.employeeVersions.createdAt, today + "T23:59:59")
+      ))
+      .groupBy(schema.employeeVersions.employeeId)
+      .orderBy(desc(sql`count(*)`))
+      .limit(5);
+
+    const mostModified: Array<{ matricule: string; nom: string; prenom: string; versions: number }> = [];
+    for (const row of mostModifiedRows) {
+      const [emp] = await db
+        .select({ matricule: schema.employees.matricule, nom: schema.employees.nom, prenom: schema.employees.prenom })
+        .from(schema.employees)
+        .where(eq(schema.employees.id, row.employeeId))
+        .limit(1);
+      if (emp) {
+        mostModified.push({ matricule: emp.matricule, nom: emp.nom, prenom: emp.prenom, versions: Number(row.versions) });
+      }
+    }
+
+    const versioningActivity = {
+      versionsCreated: Number(versionsCreated),
+      employeesModified: Number(employeesModified),
+      reverts,
+      avgVersionsPerEmployee,
+      mostModified,
+    };
+
+    // ========================================================================
+    // PDF Activity
+    // ========================================================================
+    const pdfGenerated = auditMap["GENERATE_PDF"] ?? 0;
+    const pdfSigned = auditMap["UPLOAD_SIGNED_PDF"] ?? 0;
+
+    let awaitingSigning = 0, missingPdf = 0;
+    for (const emp of activeEmployees) {
+      if (emp.pdfStatus === "draft") awaitingSigning++;
+      if (!emp.pdfPath) missingPdf++;
+    }
+
+    const signatureRate = (pdfSigned + awaitingSigning) > 0
+      ? Math.round((pdfSigned / (pdfSigned + awaitingSigning)) * 10000) / 100
+      : 0;
+
+    const pdfActivity = {
+      generated: pdfGenerated,
+      signed: pdfSigned,
+      awaitingSigning,
+      missingPdf,
+      signatureRate,
+    };
+
+    // ========================================================================
+    // Expiration Analytics (current state)
+    // ========================================================================
+    let expAnalExpired = 0, within3m = 0, within6m = 0, within9m = 0, valid = 0;
+    for (const emp of activeEmployees) {
+      const exp = emp.dateExpiration;
+      if (exp < today) expAnalExpired++;
+      else if (exp <= in3m) within3m++;
+      else if (exp <= in6m) within6m++;
+      else if (exp <= in9m) within9m++;
+      else valid++;
+    }
+
+    const expirationAnalytics = {
+      expired: expAnalExpired,
+      within3m,
+      within6m,
+      within9m,
+      valid,
+      distribution: [
+        { label: "Expired", value: expAnalExpired },
+        { label: "Within 3 months", value: within3m },
+        { label: "Within 6 months", value: within6m },
+        { label: "Within 9 months", value: within9m },
+        { label: "Valid", value: valid },
+      ],
+    };
+
+    // ========================================================================
+    // Organizational Analytics - By Division
+    // ========================================================================
+    const divisionMap: Record<string, {
+      total: number; expired: number; expiringSoon: number;
+      renewalsCompleted: number; pdfsGenerated: number; pdfsSigned: number;
+    }> = {};
+
+    for (const emp of activeEmployees) {
+      const div = emp.divisionName ?? "Unknown";
+      if (!divisionMap[div]) divisionMap[div] = { total: 0, expired: 0, expiringSoon: 0, renewalsCompleted: 0, pdfsGenerated: 0, pdfsSigned: 0 };
+      divisionMap[div].total++;
+      if (emp.dateExpiration < today) divisionMap[div].expired++;
+      else if (emp.dateExpiration <= in3m) divisionMap[div].expiringSoon++;
+    }
+
+    for (const r of renewalsByDivision) {
+      const div = r.name ?? "Unknown";
+      if (divisionMap[div]) divisionMap[div].renewalsCompleted = Number(r.count);
+    }
+
+    // PDF audit logs by division
+    const pdfByDivision = await db
+      .select({
+        action: schema.auditLogs.action,
+        divisionName: schema.divisions.name,
+        cnt: sql<number>`count(*)`,
+      })
+      .from(schema.auditLogs)
+      .innerJoin(schema.employeeVersions, eq(schema.auditLogs.entityId, schema.employeeVersions.employeeId))
+      .innerJoin(schema.employees, and(
+        eq(schema.employeeVersions.employeeId, schema.employees.id),
+        eq(schema.employees.currentVersionId, schema.employeeVersions.id)
+      ))
+      .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
+      .where(and(
+        gte(schema.auditLogs.createdAt, fromDate),
+        lte(schema.auditLogs.createdAt, today + "T23:59:59"),
+        sql`${schema.auditLogs.action} IN ('GENERATE_PDF', 'UPLOAD_SIGNED_PDF')`
+      ))
+      .groupBy(schema.auditLogs.action, schema.divisions.name);
+
+    for (const row of pdfByDivision) {
+      const div = row.divisionName ?? "Unknown";
+      if (!divisionMap[div]) divisionMap[div] = { total: 0, expired: 0, expiringSoon: 0, renewalsCompleted: 0, pdfsGenerated: 0, pdfsSigned: 0 };
+      if (row.action === "GENERATE_PDF") divisionMap[div].pdfsGenerated = Number(row.cnt);
+      if (row.action === "UPLOAD_SIGNED_PDF") divisionMap[div].pdfsSigned = Number(row.cnt);
+    }
+
+    const byDivision = Object.entries(divisionMap).map(([name, v]) => ({ name, ...v }));
+
+    // ========================================================================
+    // Organizational Analytics - By Service
+    // ========================================================================
+    const serviceMap: Record<string, {
+      divisionName: string; total: number; expired: number; expiringSoon: number; renewalsCompleted: number;
+    }> = {};
+
+    for (const emp of activeEmployees) {
+      const svc = emp.serviceName ?? "Unknown";
+      const div = emp.divisionName ?? "Unknown";
+      if (!serviceMap[svc]) serviceMap[svc] = { divisionName: div, total: 0, expired: 0, expiringSoon: 0, renewalsCompleted: 0 };
+      serviceMap[svc].total++;
+      if (emp.dateExpiration < today) serviceMap[svc].expired++;
+      else if (emp.dateExpiration <= in3m) serviceMap[svc].expiringSoon++;
+    }
+
+    for (const r of renewalsByService) {
+      const svc = r.name ?? "Unknown";
+      if (serviceMap[svc]) serviceMap[svc].renewalsCompleted = Number(r.count);
+    }
+
+    const byService = Object.entries(serviceMap).map(([name, v]) => ({ name, ...v }));
+
+    // ========================================================================
+    // Code Analytics
+    // ========================================================================
+    const stCodeCounts: Record<string, number> = {};
+    const htCodeCounts: Record<string, number> = {};
+
+    for (const emp of activeEmployees) {
+      for (const c of (emp.stCodes ?? [])) {
+        stCodeCounts[c] = (stCodeCounts[c] ?? 0) + 1;
+      }
+      for (const c of (emp.htCodes ?? [])) {
+        htCodeCounts[c] = (htCodeCounts[c] ?? 0) + 1;
+      }
+    }
+
+    const codeAnalytics = {
+      stCodes: Object.entries(stCodeCounts)
+        .map(([code, count]) => ({ code, count }))
+        .sort((a, b) => b.count - a.count),
+      htCodes: Object.entries(htCodeCounts)
+        .map(([code, count]) => ({ code, count }))
+        .sort((a, b) => b.count - a.count),
+    };
+
+    // ========================================================================
+    // Audit Activity
+    // ========================================================================
+    const auditActivity = {
+      creations: auditMap["CREATE_EMPLOYEE"] ?? 0,
+      edits: auditMap["UPDATE_EMPLOYEE"] ?? 0,
+      deletions: auditMap["DELETE_EMPLOYEE"] ?? 0,
+      restorations: auditMap["RESTORE_EMPLOYEE"] ?? 0,
+      renewals: (auditMap["CREATE_RENEWAL"] ?? 0) || Number(renewed),
+      pdfGenerations: auditMap["GENERATE_PDF"] ?? 0,
+      pdfSignatures: auditMap["UPLOAD_SIGNED_PDF"] ?? 0,
+      reverts: auditMap["REVERT_VERSION"] ?? 0,
+    };
+
+    // ========================================================================
+    // Trends (monthly data points within the period)
+    // ========================================================================
+    const monthLabels: string[] = [];
+    const trendStart = new Date(periodStart);
+    trendStart.setDate(1);
+    while (trendStart <= now) {
+      monthLabels.push(`${trendStart.getFullYear()}-${String(trendStart.getMonth() + 1).padStart(2, "0")}`);
+      trendStart.setMonth(trendStart.getMonth() + 1);
+    }
+
+    const addedByMonth = await db
+      .select({
+        month: sql<string>`substr(${schema.employees.createdAt}, 1, 7)`,
+        cnt: sql<number>`count(*)`,
+      })
+      .from(schema.employees)
+      .where(and(
+        gte(schema.employees.createdAt, fromDate),
+        lte(schema.employees.createdAt, today + "T23:59:59")
+      ))
+      .groupBy(sql`substr(${schema.employees.createdAt}, 1, 7)`);
+
+    const addedByMonthMap: Record<string, number> = {};
+    for (const row of addedByMonth) addedByMonthMap[row.month] = Number(row.cnt);
+
+    const auditByMonth = await db
+      .select({
+        month: sql<string>`substr(${schema.auditLogs.createdAt}, 1, 7)`,
+        action: schema.auditLogs.action,
+        cnt: sql<number>`count(*)`,
+      })
+      .from(schema.auditLogs)
+      .where(and(
+        gte(schema.auditLogs.createdAt, fromDate),
+        lte(schema.auditLogs.createdAt, today + "T23:59:59")
+      ))
+      .groupBy(sql`substr(${schema.auditLogs.createdAt}, 1, 7)`, schema.auditLogs.action);
+
+    const auditMonthMap: Record<string, Record<string, number>> = {};
+    for (const row of auditByMonth) {
+      if (!auditMonthMap[row.month]) auditMonthMap[row.month] = {};
+      auditMonthMap[row.month][row.action] = Number(row.cnt);
+    }
+
+    const versionsByMonth = await db
+      .select({
+        month: sql<string>`substr(${schema.employeeVersions.createdAt}, 1, 7)`,
+        cnt: sql<number>`count(*)`,
+      })
+      .from(schema.employeeVersions)
+      .where(and(
+        gte(schema.employeeVersions.createdAt, fromDate),
+        lte(schema.employeeVersions.createdAt, today + "T23:59:59")
+      ))
+      .groupBy(sql`substr(${schema.employeeVersions.createdAt}, 1, 7)`);
+
+    const versionsByMonthMap: Record<string, number> = {};
+    for (const row of versionsByMonth) versionsByMonthMap[row.month] = Number(row.cnt);
+
+    const expirationsByMonth = await db
+      .select({
+        month: sql<string>`substr(${schema.employeeVersions.dateExpiration}, 1, 7)`,
+        cnt: sql<number>`count(*)`,
+      })
+      .from(schema.employees)
+      .innerJoin(schema.employeeVersions, eq(schema.employees.currentVersionId, schema.employeeVersions.id))
+      .where(and(
+        eq(schema.employees.deleted, false),
+        gte(schema.employeeVersions.dateExpiration, fromDate),
+        lte(schema.employeeVersions.dateExpiration, today)
+      ))
+      .groupBy(sql`substr(${schema.employeeVersions.dateExpiration}, 1, 7)`);
+
+    const expirationsByMonthMap: Record<string, number> = {};
+    for (const row of expirationsByMonth) expirationsByMonthMap[row.month] = Number(row.cnt);
+
+    const renewalsByMonth = await db
+      .select({
+        month: sql<string>`substr(${schema.employeeVersions.createdAt}, 1, 7)`,
+        cnt: sql<number>`count(*)`,
+      })
+      .from(schema.employeeVersions)
+      .where(and(
+        gte(schema.employeeVersions.createdAt, fromDate),
+        lte(schema.employeeVersions.createdAt, today + "T23:59:59"),
+        sql`${schema.employeeVersions.versionNumber} > 1`
+      ))
+      .groupBy(sql`substr(${schema.employeeVersions.createdAt}, 1, 7)`);
+
+    const renewalsByMonthMap: Record<string, number> = {};
+    for (const row of renewalsByMonth) renewalsByMonthMap[row.month] = Number(row.cnt);
+
+    const trends = {
+      months: monthLabels,
+      added: monthLabels.map(m => addedByMonthMap[m] ?? 0),
+      deleted: monthLabels.map(m => auditMonthMap[m]?.["DELETE_EMPLOYEE"] ?? 0),
+      renewals: monthLabels.map(m => renewalsByMonthMap[m] ?? 0),
+      expirations: monthLabels.map(m => expirationsByMonthMap[m] ?? 0),
+      pdfsGenerated: monthLabels.map(m => auditMonthMap[m]?.["GENERATE_PDF"] ?? 0),
+      pdfsSigned: monthLabels.map(m => auditMonthMap[m]?.["UPLOAD_SIGNED_PDF"] ?? 0),
+      versionsCreated: monthLabels.map(m => versionsByMonthMap[m] ?? 0),
+    };
+
+    // ========================================================================
+    // Management Insights
+    // ========================================================================
+    const insights: Array<{ type: "warning" | "info" | "success"; text: string }> = [];
+
+    if (expAnalExpired > 0) {
+      insights.push({ type: "warning", text: `${expAnalExpired} employee(s) have expired habilitations and need immediate attention.` });
+    }
+
+    if (within3m > 0) {
+      insights.push({ type: "warning", text: `${within3m} employee(s) have habilitations expiring within the next 3 months.` });
+    }
+
+    if (missingPdf > 0) {
+      insights.push({ type: "warning", text: `${missingPdf} employee(s) are missing PDF documents.` });
+    }
+
+    if (awaitingSigning > 0) {
+      insights.push({ type: "info", text: `${awaitingSigning} PDF(s) are in draft status and awaiting signature.` });
+    }
+
+    const divWithMostExpiring = byDivision
+      .filter(d => d.expiringSoon > 0)
+      .sort((a, b) => b.expiringSoon - a.expiringSoon)[0];
+    if (divWithMostExpiring) {
+      insights.push({ type: "info", text: `Division "${divWithMostExpiring.name}" has the most upcoming expirations (${divWithMostExpiring.expiringSoon}).` });
+    }
+
+    const divWithMostRenewals = byDivision
+      .filter(d => d.renewalsCompleted > 0)
+      .sort((a, b) => b.renewalsCompleted - a.renewalsCompleted)[0];
+    if (divWithMostRenewals) {
+      insights.push({ type: "success", text: `Division "${divWithMostRenewals.name}" completed the most renewals (${divWithMostRenewals.renewalsCompleted}) during this period.` });
+    }
+
+    if (netGrowth > 0) {
+      insights.push({ type: "success", text: `Net employee growth of ${netGrowth} during the period (${Number(added)} added, ${deleted} deleted, ${restored} restored).` });
+    } else if (netGrowth < 0) {
+      insights.push({ type: "warning", text: `Net employee decrease of ${Math.abs(netGrowth)} during the period (${Number(added)} added, ${deleted} deleted, ${restored} restored).` });
+    }
+
+    if (signatureRate >= 80) {
+      insights.push({ type: "success", text: `PDF signature rate is strong at ${signatureRate}%.` });
+    } else if (signatureRate > 0 && signatureRate < 50) {
+      insights.push({ type: "warning", text: `PDF signature rate is low at ${signatureRate}%. Consider following up on unsigned documents.` });
+    }
+
+    if (insights.length === 0) {
+      insights.push({ type: "info", text: `${atEnd} active employees in the system across ${byDivision.length} division(s).` });
+    }
+
+    // ========================================================================
+    // Response
+    // ========================================================================
+    res.json({
+      success: true,
+      data: {
+        period: { months: periodMonths, from: fromDate, to: today },
+        employeeActivity,
+        habilitationActivity,
+        renewalActivity,
+        versioningActivity,
+        pdfActivity,
+        expirationAnalytics,
+        byDivision,
+        byService,
+        codeAnalytics,
+        auditActivity,
+        trends,
+        insights,
+      },
+      error: null,
+    });
+  } catch (err) {
+    console.error("getReports error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };

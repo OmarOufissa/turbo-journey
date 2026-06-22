@@ -25,6 +25,7 @@ import EditEmployee from "./pages/EditEmployee";
 import EmployeeCard from "./pages/EmployeeCard";
 import Trash from "./pages/Trash";
 import Stats from "./pages/Stats";
+import Reports from "./pages/Reports";
 import Calendar from "./pages/Calendar";
 import AuditLog from "./pages/AuditLog";
 import EmployeeHistory from "./pages/EmployeeHistory";
@@ -151,6 +152,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Stats />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
               </ProtectedRoute>
             }
           />

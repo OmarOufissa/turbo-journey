@@ -6,6 +6,7 @@ import {
   ZapOff,
   Calendar,
   BarChart3,
+  FileBarChart,
   Settings,
   Shield,
   LogOut,
@@ -68,6 +69,11 @@ const navigationItems = [
   {
     title: "Analyses",
     items: [
+      {
+        title: "Rapports",
+        icon: FileBarChart,
+        url: "/reports",
+      },
       {
         title: "Statistiques",
         icon: BarChart3,

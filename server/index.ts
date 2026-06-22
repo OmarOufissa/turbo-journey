@@ -144,6 +144,14 @@ export function createServer() {
     authMiddleware(req, res, () => getStats(req, res, () => {}));
   });
 
+  app.get("/api/reports", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const { getReports } = await import("./routes/reports");
+      getReports(req, res, () => {});
+    });
+  });
+
   app.get("/api/analytics", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     authMiddleware(req, res, async () => {
