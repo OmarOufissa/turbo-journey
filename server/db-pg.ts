@@ -166,6 +166,35 @@ async function createTablesIfNotExist() {
   await uniquifyPendingRenewalsIndex();
   await makeAuditLogsEntityIdNullable();
   await removeSf6FromStCodes();
+  await ensureAuthSecrets();
+}
+
+// Desktop installs have no environment variables, so JWT/refresh signing keys
+// would otherwise fall back to a shared hardcoded default (forgeable tokens).
+// Generate a strong random secret once per install, persist it in app_settings,
+// and expose it via process.env so auth signing/verification uses it. A real
+// env var, if set, always wins and is left untouched.
+async function ensureAuthSecrets() {
+  const ensure = async (envKey: string, settingKey: string) => {
+    if (process.env[envKey]) return; // explicit env var takes precedence
+    const { rows } = await client.execute({
+      sql: `SELECT value FROM app_settings WHERE key = ?`,
+      args: [settingKey],
+    });
+    let secret = (rows[0] as any)?.value as string | undefined;
+    if (!secret) {
+      secret = crypto.randomBytes(48).toString("hex");
+      const nowStr = new Date().toISOString().replace("T", " ").substring(0, 19);
+      await client.execute({
+        sql: `INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, ?)
+              ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+        args: [settingKey, secret, nowStr],
+      });
+    }
+    process.env[envKey] = secret;
+  };
+  await ensure("JWT_SECRET", "jwt_secret");
+  await ensure("REFRESH_SECRET", "refresh_secret");
 }
 
 // SF6 is a Hors-Tension code. A seeding bug previously added it to st_codes as

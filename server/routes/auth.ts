@@ -4,8 +4,16 @@ import bcrypt from "bcrypt";
 import { dbGet, dbRun } from "../db";
 import { logAuditActionSafe } from "../services/auditService";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
-const REFRESH_SECRET = process.env.REFRESH_SECRET || "your-refresh-secret-key";
+// Read lazily so a secret generated/persisted at startup (set into process.env
+// by ensureAuthSecrets in db-pg) is always picked up, regardless of import order.
+const JWT_FALLBACK = "your-secret-key-change-in-production";
+const REFRESH_FALLBACK = "your-refresh-secret-key";
+function getJwtSecret(): string {
+  return process.env.JWT_SECRET || JWT_FALLBACK;
+}
+function getRefreshSecret(): string {
+  return process.env.REFRESH_SECRET || REFRESH_FALLBACK;
+}
 
 interface LoginRequest {
   email: string;
@@ -55,8 +63,8 @@ export const handleLogin: RequestHandler = async (req, res) => {
       email: user.email,
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
-    const refreshToken = jwt.sign(payload, REFRESH_SECRET, {
+    const token = jwt.sign(payload, getJwtSecret(), { expiresIn: "24h" });
+    const refreshToken = jwt.sign(payload, getRefreshSecret(), {
       expiresIn: "7d",
     });
 
@@ -105,11 +113,11 @@ export const handleRefresh: RequestHandler = (req, res) => {
       });
     }
 
-    const payload = jwt.verify(refreshToken, REFRESH_SECRET) as AuthPayload;
+    const payload = jwt.verify(refreshToken, getRefreshSecret()) as AuthPayload;
 
     const newToken = jwt.sign(
       { id: payload.id, email: payload.email },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: "24h" }
     );
 
@@ -126,7 +134,7 @@ export const handleRefresh: RequestHandler = (req, res) => {
 
 export function verifyToken(token: string): AuthPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
+    const decoded = jwt.verify(token, getJwtSecret()) as AuthPayload;
     return decoded;
   } catch (err) {
     return null;
