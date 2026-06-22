@@ -35,7 +35,7 @@ function getExpirationRange(filter: string): { expirationFrom?: string; expirati
 interface OrgItem { id: number; name: string; }
 
 const HT_CODE_OPTIONS = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"];
-const ST_CODE_OPTIONS = ["H0V", "H1V", "BR", "H2V", "HC", "SF6", "H1N", "H1T", "H2N", "H2T"];
+const ST_CODE_OPTIONS = ["H0V", "H1V", "BR", "H2V", "HC", "H1N", "H1T", "H2N", "H2T"];
 
 export type HabType = "HT" | "ST";
 

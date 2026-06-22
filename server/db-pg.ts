@@ -165,6 +165,28 @@ async function createTablesIfNotExist() {
   await addEmployeesCurrentVersionForeignKey();
   await uniquifyPendingRenewalsIndex();
   await makeAuditLogsEntityIdNullable();
+  await removeSf6FromStCodes();
+}
+
+// SF6 is a Hors-Tension code. A seeding bug previously added it to st_codes as
+// well as ht_codes whenever a cell's free text mentioned "SF6", making SF6-only
+// employees show up on the Sous-Tension list. Strip SF6 out of every st_codes
+// array so existing installs are corrected on launch (idempotent).
+async function removeSf6FromStCodes() {
+  const { rows } = await client.execute(
+    `SELECT id, st_codes FROM employee_versions WHERE st_codes LIKE '%SF6%'`
+  );
+  for (const row of rows as any[]) {
+    let codes: string[];
+    try { codes = JSON.parse(row.st_codes ?? "[]"); } catch { continue; }
+    if (!Array.isArray(codes)) continue;
+    const cleaned = codes.filter((c) => c !== "SF6");
+    if (cleaned.length === codes.length) continue;
+    await client.execute({
+      sql: `UPDATE employee_versions SET st_codes = ? WHERE id = ?`,
+      args: [JSON.stringify(cleaned), row.id],
+    });
+  }
 }
 
 // pending_renewals_employee_id_idx was originally created as a non-unique index;

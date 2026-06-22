@@ -42,8 +42,8 @@ export const EXPIRATION_COLOR_CONFIG: Record<ExpirationStatus, ExpirationStatusC
   },
 };
 
-// All valid ST codes (includes sous-tension: H1N, H1T, H2N, H2T)
-export const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "SF6", "H1N", "H1T", "H2N", "H2T"];
+// All valid ST codes (includes sous-tension: H1N, H1T, H2N, H2T). SF6 is HT-only.
+export const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "H1N", "H1T", "H2N", "H2T"];
 
 // All valid HT codes
 export const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"];

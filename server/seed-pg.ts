@@ -79,7 +79,7 @@ const FONCTION_NORMALIZE: Record<string, string> = {
 };
 
 const KNOWN_HT_CODES = new Set(["H0V", "B0V", "H1V", "B1V", "H2V", "B2V", "HC", "BR", "BC", "SF6"]);
-const KNOWN_ST_CODES = new Set(["H1N", "H1T", "H2N", "H2T", "SF6"]);
+const KNOWN_ST_CODES = new Set(["H1N", "H1T", "H2N", "H2T"]);
 const CODE_TOKEN_REGEX = /(H0V|B0V|H1V|B1V|H2V|B2V|HC|BR|BC|SF6|H1N|H1T|H2N|H2T)/gi;
 
 const COLUMN_CODE_MAP: Record<string, { type: "HT" | "ST"; code: string }> = {

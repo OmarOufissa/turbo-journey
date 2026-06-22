@@ -7,7 +7,7 @@ import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
 import { getUserIdFromRequest } from "../utils/authHelpers";
 import { isUniqueConstraintError } from "../utils/dbErrors";
 
-const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "SF6"] as const;
+const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC"] as const;
 const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"] as const;
 
 const habRowDataSchema = z.object({
