@@ -34,8 +34,8 @@ function getExpirationRange(filter: string): { expirationFrom?: string; expirati
 
 interface OrgItem { id: number; name: string; }
 
-const HT_CODE_OPTIONS = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"];
-const ST_CODE_OPTIONS = ["H0V", "H1V", "BR", "H2V", "HC", "H1N", "H1T", "H2N", "H2T"];
+const HT_CODE_OPTIONS = ["H0V", "B0V", "H1V", "B1V", "H2V", "B2V", "HC", "BC", "BR", "SF6"];
+const ST_CODE_OPTIONS = ["H1N", "H2N", "H1T", "H2T"];
 
 export type HabType = "HT" | "ST";
 
@@ -111,9 +111,8 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
         const filtered = res.data.employees.filter(emp => {
           const ver = emp.currentVersion;
           if (!ver) return false;
-          const allCodes = [...(ver.htCodes || []), ...(ver.stCodes || [])];
-          if (habType === "HT") return allCodes.some(c => HT_CODE_OPTIONS.includes(c));
-          return allCodes.some(c => ST_CODE_OPTIONS.includes(c));
+          if (habType === "HT") return ver.htCodes && ver.htCodes.length > 0;
+          return ver.stCodes && ver.stCodes.length > 0;
         });
         setEmployees(filtered);
         setTotal(filtered.length);

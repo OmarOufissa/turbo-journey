@@ -42,11 +42,11 @@ export const EXPIRATION_COLOR_CONFIG: Record<ExpirationStatus, ExpirationStatusC
   },
 };
 
-// All valid ST codes (includes sous-tension: H1N, H1T, H2N, H2T). SF6 is HT-only.
-export const ST_CODES = ["H0V", "H1V", "BR", "H2V", "HC", "H1N", "H1T", "H2N", "H2T"];
+// ST (Sous Tension) codes — travaux sous tension only.
+export const ST_CODES = ["H1N", "H2N", "H1T", "H2T"];
 
-// All valid HT codes
-export const HT_CODES = ["B0V", "B1V", "BR", "B2V", "BC", "SF6"];
+// HT (Hors Tension) codes — everything else, incl. SF6.
+export const HT_CODES = ["H0V", "B0V", "H1V", "B1V", "H2V", "B2V", "HC", "BC", "BR", "SF6"];
 
 export function getExpirationStatus(dateExpiration: string): ExpirationStatus {
   return getExpirationThreshold(dateExpiration);
