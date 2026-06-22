@@ -4,7 +4,7 @@ export interface HabRowData {
   indication: string;
 }
 
-export type HabRows = Partial<Record<'H0V_B0V' | 'H1V_B1V' | 'H2V_B2V' | 'HC_BC' | 'BR' | 'SF6', HabRowData>>;
+export type HabRows = Partial<Record<'H0V_B0V' | 'H1V_B1V' | 'H2V_B2V' | 'HC_BC' | 'BR' | 'SF6' | 'H1N' | 'H1T' | 'H2N' | 'H2T', HabRowData>>;
 
 export interface EmployeeVersion {
   id: number;

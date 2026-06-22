@@ -24,6 +24,10 @@ const HAB_ROWS_META = [
   { key: 'H2V_B2V' as const, label: 'Chargé de Travaux',            stKey: 'H2V', htKey: 'B2V' },
   { key: 'HC_BC'   as const, label: 'Chargé de Consignation',       stKey: 'HC',  htKey: 'BC'  },
   { key: 'SF6'     as const, label: 'Habilités Spéciaux',           stKey: null,  htKey: 'SF6' },
+  { key: 'H1N'     as const, label: 'Exécutant Sous Tension (N)',    stKey: 'H1N', htKey: null  },
+  { key: 'H1T'     as const, label: 'Exécutant Sous Tension (T)',    stKey: 'H1T', htKey: null  },
+  { key: 'H2N'     as const, label: 'Chargé de Travaux ST (N)',      stKey: 'H2N', htKey: null  },
+  { key: 'H2T'     as const, label: 'Chargé de Travaux ST (T)',      stKey: 'H2T', htKey: null  },
 ];
 
 function getActiveRows(stCodes: string[], htCodes: string[]) {
