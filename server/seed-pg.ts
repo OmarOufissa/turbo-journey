@@ -558,7 +558,7 @@ export async function seedDatabasePG() {
 }
 
 // Merge TST Excel data (ST habilitation info) into existing employee versions
-async function mergeTstData() {
+export async function mergeTstData() {
   const dir = path.dirname(fileURLToPath(import.meta.url));
   const tstPath = path.join(dir, "seeds", "data", "employees_tst.xlsx");
   if (!fs.existsSync(tstPath)) {

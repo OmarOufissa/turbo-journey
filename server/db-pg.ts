@@ -166,7 +166,34 @@ async function createTablesIfNotExist() {
   await uniquifyPendingRenewalsIndex();
   await makeAuditLogsEntityIdNullable();
   await removeSf6FromStCodes();
+  await backfillTstCodes();
   await ensureAuthSecrets();
+}
+
+// A build bug previously omitted employees_tst.xlsx from the packaged app, so
+// existing installs were seeded without any sous-tension codes (H1N/H1T/H2N/H2T)
+// and the "Employés ST" page was empty. If the DB has employees but none carry a
+// TST code, re-run the (idempotent) TST merge to backfill from the now-bundled
+// Excel file. No-op once any TST code is present.
+async function backfillTstCodes() {
+  const { rows: empRows } = await client.execute(
+    `SELECT COUNT(*) AS c FROM employees`
+  );
+  if (Number((empRows[0] as any)?.c ?? 0) === 0) return; // not seeded yet
+
+  const { rows: tstRows } = await client.execute(
+    `SELECT COUNT(*) AS c FROM employee_versions
+     WHERE st_codes LIKE '%H1N%' OR st_codes LIKE '%H1T%'
+        OR st_codes LIKE '%H2N%' OR st_codes LIKE '%H2T%'`
+  );
+  if (Number((tstRows[0] as any)?.c ?? 0) > 0) return; // already has TST data
+
+  try {
+    const { mergeTstData } = await import("./seed-pg");
+    await mergeTstData();
+  } catch (err) {
+    console.warn("[MIGRATION] TST backfill skipped:", err);
+  }
 }
 
 // Desktop installs have no environment variables, so JWT/refresh signing keys
