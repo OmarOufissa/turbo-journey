@@ -87,7 +87,7 @@ function App() {
             path="/employees-ht"
             element={
               <ProtectedRoute>
-                <EmployeeList habType="HT" />
+                <EmployeeList key="ht" habType="HT" />
               </ProtectedRoute>
             }
           />
@@ -95,7 +95,7 @@ function App() {
             path="/employees-st"
             element={
               <ProtectedRoute>
-                <EmployeeList habType="ST" />
+                <EmployeeList key="st" habType="ST" />
               </ProtectedRoute>
             }
           />

@@ -111,8 +111,9 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
         const filtered = res.data.employees.filter(emp => {
           const ver = emp.currentVersion;
           if (!ver) return false;
-          if (habType === "HT") return ver.htCodes && ver.htCodes.length > 0;
-          return ver.stCodes && ver.stCodes.length > 0;
+          const allCodes = [...(ver.htCodes || []), ...(ver.stCodes || [])];
+          if (habType === "HT") return allCodes.some(c => HT_CODE_OPTIONS.includes(c));
+          return allCodes.some(c => ST_CODE_OPTIONS.includes(c));
         });
         setEmployees(filtered);
         setTotal(filtered.length);

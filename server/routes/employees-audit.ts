@@ -197,8 +197,14 @@ export const getEmployees: RequestHandler = async (req, res) => {
     if (expirationTo) conditions.push(lte(schema.employeeVersions.dateExpiration, expirationTo));
     if (hasPdf === "true") conditions.push(isNotNull(schema.employeeVersions.pdfPath));
     if (hasPdf === "false") conditions.push(isNull(schema.employeeVersions.pdfPath));
-    if (stCode) conditions.push(like(schema.employeeVersions.stCodes, `%"${stCode}"%`));
-    if (htCode) conditions.push(like(schema.employeeVersions.htCodes, `%"${htCode}"%`));
+    if (stCode) conditions.push(or(
+      like(schema.employeeVersions.stCodes, `%"${stCode}"%`),
+      like(schema.employeeVersions.htCodes, `%"${stCode}"%`)
+    )!);
+    if (htCode) conditions.push(or(
+      like(schema.employeeVersions.htCodes, `%"${htCode}"%`),
+      like(schema.employeeVersions.stCodes, `%"${htCode}"%`)
+    )!);
     if (divisionId) conditions.push(eq(schema.employeeVersions.divisionId, divisionId));
     if (serviceId) conditions.push(eq(schema.employeeVersions.serviceId, serviceId));
     if (fonctionFilter) conditions.push(eq(schema.employeeVersions.fonction, fonctionFilter));
