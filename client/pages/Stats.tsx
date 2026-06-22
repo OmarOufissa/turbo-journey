@@ -7,10 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from "recharts";
 import { getStats } from "@/api/employees";
-import { FileText, RefreshCw } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface StatsData {
   total: number;
@@ -56,16 +54,13 @@ function barColor(count: number, max: number) {
   return "#3b82f6";
 }
 
+const PIE_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f97316", "#ef4444", "#ec4899", "#14b8a6", "#f59e0b", "#6366f1", "#84cc16"];
+
 export default function Stats() {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [bulkLoading, setBulkLoading] = useState(false);
-  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; current: string } | null>(null);
-  const [confirmBulkPdf, setConfirmBulkPdf] = useState(false);
-  const token = localStorage.getItem("token");
 
   const load = () => {
     setLoading(true);
@@ -78,61 +73,11 @@ export default function Stats() {
 
   useEffect(load, []);
 
-  // Refresh when tab becomes visible again
   useEffect(() => {
     const onVisible = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
-
-  const handleBulkPdf = () => setConfirmBulkPdf(true);
-
-  const doBulkPdf = async () => {
-    setBulkLoading(true);
-    setBulkProgress(null);
-    try {
-      const res = await fetch("/api/employees/bulk-generate-pdf", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.body) throw new Error("No response body");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let lastEvent: any = null;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const evt = JSON.parse(line.slice(6));
-              lastEvent = evt;
-              if (!evt.finished) {
-                setBulkProgress({ done: evt.generated, total: evt.total, current: evt.current });
-              }
-            } catch { /* ignore parse errors */ }
-          }
-        }
-      }
-
-      if (lastEvent?.error) {
-        toast({ title: "Erreur", description: lastEvent.error, variant: "destructive" });
-      } else {
-        toast({ title: "Génération terminée", description: `${lastEvent?.generated ?? 0} PDF(s) générés, ${lastEvent?.failed ?? 0} erreur(s)` });
-      }
-      load();
-    } catch {
-      toast({ title: "Erreur", description: "Erreur lors de la génération", variant: "destructive" });
-    } finally {
-      setBulkLoading(false);
-      setBulkProgress(null);
-    }
-  };
 
   if (loading) return (
     <Layout>
@@ -162,27 +107,18 @@ export default function Stats() {
   const maxDiv = Math.max(...stats.byDivision.map(d => d.total), 1);
   const maxForecast = Math.max(...(stats.monthlyForecast?.map(m => m.count) ?? []), 1);
 
-  const pieData = [
-    { name: "ST uniquement", value: stats.stOnly, color: "#3b82f6" },
-    { name: "HT uniquement", value: stats.htOnly, color: "#10b981" },
-    { name: "ST + HT", value: stats.both, color: "#8b5cf6" },
-  ];
+  const codePieData = (stats.mostCommonCodes ?? []).map((c, i) => ({
+    name: c.code,
+    value: c.count,
+    color: PIE_COLORS[i % PIE_COLORS.length],
+  }));
 
   return (
     <Layout>
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Statistiques</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={load}><RefreshCw className="w-4 h-4 mr-1" />Actualiser</Button>
-            <Button size="sm" onClick={handleBulkPdf} disabled={bulkLoading} className="min-w-48">
-              <FileText className="w-4 h-4 mr-1" />
-              {bulkProgress
-                ? `${bulkProgress.done}/${bulkProgress.total} — ${bulkProgress.current}`
-                : bulkLoading ? "Démarrage..."
-                : "Générer tous les PDFs"}
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" onClick={load}><RefreshCw className="w-4 h-4 mr-1" />Actualiser</Button>
         </div>
 
         {/* Stat cards */}
@@ -222,23 +158,25 @@ export default function Stats() {
           </Card>
         )}
 
-        {/* ST / HT pie chart */}
-        <Card>
-          <CardHeader><CardTitle>Répartition ST / HT</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
-                  {pieData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Legend />
-                <Tooltip formatter={(val: number, name: string) => [`${val}`, name]} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {/* Most common codes — pie chart */}
+        {codePieData.length > 0 && (
+          <Card>
+            <CardHeader><CardTitle>Codes les plus fréquents</CardTitle></CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie data={codePieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, value }) => `${name} (${value})`}>
+                    {codePieData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                  <Tooltip formatter={(val: number, name: string) => [`${val} employé(s)`, name]} />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* By division with risk heatmap */}
@@ -290,33 +228,6 @@ export default function Stats() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Most common codes */}
-        {stats.mostCommonCodes && stats.mostCommonCodes.length > 0 && (
-          <Card>
-            <CardHeader><CardTitle>Codes les plus fréquents</CardTitle></CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {stats.mostCommonCodes.map(({ code, count }) => (
-                  <div key={code} className="flex items-center gap-1 px-3 py-1 rounded-full border bg-muted/50 text-sm">
-                    <span className="font-mono font-semibold">{code}</span>
-                    <Badge variant="secondary" className="text-xs">{count}</Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <ConfirmDialog
-          open={confirmBulkPdf}
-          onOpenChange={setConfirmBulkPdf}
-          title="Générer tous les PDFs"
-          description="Générer les PDFs pour tous les employés actifs ? Cela peut prendre quelques minutes."
-          confirmText="Générer"
-          variant="warning"
-          onConfirm={doBulkPdf}
-        />
       </div>
     </Layout>
   );
