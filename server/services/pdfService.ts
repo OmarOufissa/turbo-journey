@@ -243,12 +243,12 @@ function drawDynamicTable(
 
     const symbolText = isActive
       ? (hasST && hasHT ? `${row.stKey} – ${row.htKey}` : hasST ? row.stKey! : row.htKey!)
-      : 'XXX';
+      : '';
 
     const rd = isActive ? snapshot.habRows?.[row.rowKey] : null;
-    const domaine    = isActive ? (rd?.domaine    || '') : 'XXX';
-    const ouvrage    = isActive ? (rd?.ouvrage    || '') : 'XXX';
-    const indication = isActive ? (rd?.indication || '') : 'XXX';
+    const domaine    = isActive ? (rd?.domaine    || '') : '';
+    const ouvrage    = isActive ? (rd?.ouvrage    || '') : '';
+    const indication = isActive ? (rd?.indication || '') : '';
 
     const label = personnelLabels[idx] ?? '';
     const labelLines = countLines(label, wPer, regular, SZ_CELL);
@@ -291,13 +291,8 @@ function drawDynamicTable(
     const symCY   = (rowTop + rowBottom) / 2 - symSz * 0.35;
     drawCentered(page, ri.symbolText, symCX, symCY, symFont, symSz);
 
-    // Data columns — XXX centered for inactive rows, wrapped text for active rows
-    const midY = (rowTop + rowBottom) / 2 - SZ_CELL * 0.35;
-    if (!ri.isActive) {
-      drawCentered(page, 'XXX', (T.cDom + T.cOuv) / 2, midY, regular, SZ_CELL);
-      drawCentered(page, 'XXX', (T.cOuv + T.cInd) / 2, midY, regular, SZ_CELL);
-      drawCentered(page, 'XXX', (T.cInd + T.right) / 2, midY, regular, SZ_CELL);
-    } else {
+    // Data columns — empty for inactive rows, wrapped text for active rows
+    if (ri.isActive) {
       drawCellText(page, ri.domaine,    T.cDom, rowTop, wDom, regular, SZ_CELL);
       drawCellText(page, ri.ouvrage,    T.cOuv, rowTop, wOuv, regular, SZ_CELL);
       drawCellText(page, ri.indication, T.cInd, rowTop, wInd, regular, SZ_CELL);
