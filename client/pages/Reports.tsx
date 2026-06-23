@@ -44,9 +44,24 @@ function monthLabel(ym: string) {
   return `${months[parseInt(m) - 1]} ${y.slice(2)}`;
 }
 
-function KpiCard({ title, value, icon: Icon, delta, sub }: { title: string; value: number | string; icon: any; delta?: number; sub?: string }) {
+type Tone = "blue" | "emerald" | "amber" | "red" | "violet" | "cyan" | "rose" | "indigo";
+
+const TONES: Record<Tone, { bar: string; tile: string; icon: string }> = {
+  blue:    { bar: "bg-blue-500",    tile: "bg-blue-100 dark:bg-blue-950",       icon: "text-blue-600 dark:text-blue-400" },
+  emerald: { bar: "bg-emerald-500", tile: "bg-emerald-100 dark:bg-emerald-950", icon: "text-emerald-600 dark:text-emerald-400" },
+  amber:   { bar: "bg-amber-500",   tile: "bg-amber-100 dark:bg-amber-950",     icon: "text-amber-600 dark:text-amber-400" },
+  red:     { bar: "bg-red-500",     tile: "bg-red-100 dark:bg-red-950",         icon: "text-red-600 dark:text-red-400" },
+  violet:  { bar: "bg-violet-500",  tile: "bg-violet-100 dark:bg-violet-950",   icon: "text-violet-600 dark:text-violet-400" },
+  cyan:    { bar: "bg-cyan-500",    tile: "bg-cyan-100 dark:bg-cyan-950",       icon: "text-cyan-600 dark:text-cyan-400" },
+  rose:    { bar: "bg-rose-500",    tile: "bg-rose-100 dark:bg-rose-950",       icon: "text-rose-600 dark:text-rose-400" },
+  indigo:  { bar: "bg-indigo-500",  tile: "bg-indigo-100 dark:bg-indigo-950",   icon: "text-indigo-600 dark:text-indigo-400" },
+};
+
+function KpiCard({ title, value, icon: Icon, delta, sub, tone = "blue" }: { title: string; value: number | string; icon: any; delta?: number; sub?: string; tone?: Tone }) {
+  const t = TONES[tone];
   return (
     <Card className="relative overflow-hidden">
+      <div className={`absolute inset-x-0 top-0 h-1 ${t.bar}`} />
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -65,8 +80,8 @@ function KpiCard({ title, value, icon: Icon, delta, sub }: { title: string; valu
             )}
             {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
           </div>
-          <div className="p-3 rounded-xl bg-primary/10">
-            <Icon className="w-5 h-5 text-primary" />
+          <div className={`p-3 rounded-xl ${t.tile}`}>
+            <Icon className={`w-5 h-5 ${t.icon}`} />
           </div>
         </div>
       </CardContent>
@@ -234,18 +249,18 @@ export default function Reports() {
 
         {/* KPI Row 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KpiCard title="Total Employés" value={ea.atEnd} icon={Users} delta={ea.netGrowth} sub={`${ea.added} ajoutés, ${ea.deleted} supprimés`} />
-          <KpiCard title="Expirés" value={ex.expired} icon={AlertTriangle} sub="habilitations expirées" />
-          <KpiCard title="Renouvellements" value={ra.completed} icon={RefreshCw} sub={`sur la période`} />
-          <KpiCard title="Taux de signature" value={`${pa.signatureRate}%`} icon={PenTool} sub={`${pa.signed} signés / ${pa.signed + pa.awaitingSigning} total`} />
+          <KpiCard tone="blue" title="Total Employés" value={ea.atEnd} icon={Users} delta={ea.netGrowth} sub={`${ea.added} ajoutés, ${ea.deleted} supprimés`} />
+          <KpiCard tone="red" title="Expirés" value={ex.expired} icon={AlertTriangle} sub="habilitations expirées" />
+          <KpiCard tone="emerald" title="Renouvellements" value={ra.completed} icon={RefreshCw} sub={`sur la période`} />
+          <KpiCard tone="violet" title="Taux de signature" value={`${pa.signatureRate}%`} icon={PenTool} sub={`${pa.signed} signés / ${pa.signed + pa.awaitingSigning} total`} />
         </div>
 
         {/* KPI Row 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KpiCard title="PDFs Générés" value={pa.generated} icon={FileText} sub="sur la période" />
-          <KpiCard title="PDFs Signés" value={pa.signed} icon={CheckCircle2} sub={`${pa.awaitingSigning} en attente`} />
-          <KpiCard title="Sans PDF" value={pa.missingPdf} icon={FileText} sub="employés sans document" />
-          <KpiCard title="Expirent < 3 mois" value={ex.within3m} icon={Clock} sub="renouvellements urgents" />
+          <KpiCard tone="cyan" title="PDFs Générés" value={pa.generated} icon={FileText} sub="sur la période" />
+          <KpiCard tone="emerald" title="PDFs Signés" value={pa.signed} icon={CheckCircle2} sub={`${pa.awaitingSigning} en attente`} />
+          <KpiCard tone="rose" title="Sans PDF" value={pa.missingPdf} icon={FileText} sub="employés sans document" />
+          <KpiCard tone="amber" title="Expirent < 3 mois" value={ex.within3m} icon={Clock} sub="renouvellements urgents" />
         </div>
 
         {/* Insights */}

@@ -26,14 +26,30 @@ interface StatsData {
   byService: Array<{ name: string; count: number }>;
 }
 
-function StatCard({ title, value, sub }: { title: string; value: number; sub?: string }) {
+type Tone = "blue" | "emerald" | "amber" | "red" | "violet" | "cyan" | "rose" | "indigo" | "orange";
+
+const TONES: Record<Tone, { bar: string; value: string }> = {
+  blue:    { bar: "bg-blue-500",    value: "text-blue-600 dark:text-blue-400" },
+  emerald: { bar: "bg-emerald-500", value: "text-emerald-600 dark:text-emerald-400" },
+  amber:   { bar: "bg-amber-500",   value: "text-amber-600 dark:text-amber-400" },
+  red:     { bar: "bg-red-500",     value: "text-red-600 dark:text-red-400" },
+  violet:  { bar: "bg-violet-500",  value: "text-violet-600 dark:text-violet-400" },
+  cyan:    { bar: "bg-cyan-500",    value: "text-cyan-600 dark:text-cyan-400" },
+  rose:    { bar: "bg-rose-500",    value: "text-rose-600 dark:text-rose-400" },
+  indigo:  { bar: "bg-indigo-500",  value: "text-indigo-600 dark:text-indigo-400" },
+  orange:  { bar: "bg-orange-500",  value: "text-orange-600 dark:text-orange-400" },
+};
+
+function StatCard({ title, value, sub, tone = "blue" }: { title: string; value: number; sub?: string; tone?: Tone }) {
+  const t = TONES[tone];
   return (
-    <Card>
+    <Card className="relative overflow-hidden">
+      <div className={`absolute inset-x-0 top-0 h-1 ${t.bar}`} />
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-bold">{value}</p>
+        <p className={`text-3xl font-bold ${t.value}`}>{value}</p>
         {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
       </CardContent>
     </Card>
@@ -112,15 +128,15 @@ export default function Stats() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          <StatCard title="Total employés" value={stats.total} />
-          <StatCard title="Expirés" value={stats.expired} />
-          <StatCard title="< 3 mois" value={stats.lessThan3Months} />
-          <StatCard title="< 6 mois" value={stats.lessThan6Months} />
-          <StatCard title="< 9 mois" value={stats.lessThan9Months} />
-          <StatCard title="ST uniquement" value={stats.stOnly} />
-          <StatCard title="HT uniquement" value={stats.htOnly} />
-          <StatCard title="ST + HT" value={stats.both} />
-          <StatCard title="Sans PDF" value={stats.missingPdf} sub="version actuelle" />
+          <StatCard tone="blue" title="Total employés" value={stats.total} />
+          <StatCard tone="red" title="Expirés" value={stats.expired} />
+          <StatCard tone="orange" title="< 3 mois" value={stats.lessThan3Months} />
+          <StatCard tone="amber" title="< 6 mois" value={stats.lessThan6Months} />
+          <StatCard tone="emerald" title="< 9 mois" value={stats.lessThan9Months} />
+          <StatCard tone="violet" title="ST uniquement" value={stats.stOnly} />
+          <StatCard tone="cyan" title="HT uniquement" value={stats.htOnly} />
+          <StatCard tone="indigo" title="ST + HT" value={stats.both} />
+          <StatCard tone="rose" title="Sans PDF" value={stats.missingPdf} sub="version actuelle" />
         </div>
 
         {/* Monthly forecast */}
@@ -136,7 +152,11 @@ export default function Stats() {
                     formatter={(val: number) => [`${val} employé(s)`, "Expirations"]}
                     labelFormatter={(label) => `Mois : ${label}`}
                   />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]} fill="#3b82f6" />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {stats.monthlyForecast.map((_, i) => (
+                      <Cell key={i} fill={i < 3 ? "#ef4444" : i < 6 ? "#f59e0b" : "#3b82f6"} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
