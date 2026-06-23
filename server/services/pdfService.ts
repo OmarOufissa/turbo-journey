@@ -436,12 +436,13 @@ function fillPage2(
 
   drawText(page, snapshot.nDeTitre, P2.nDeTitre.x, P2.nDeTitre.y, bold, SZ);
 
-  // Write the text below the template's "Autorisations (ou restrictions) spéciales :" label
+  // Write the text below the "Autorisations (ou restrictions) spéciales :" header
   if (snapshot.autorisationSpecialesVerso) {
     const text = snapshot.autorisationSpecialesVerso;
     const margin = 35;
     const maxWidth = page.getWidth() - 2 * margin;
     const lineHeight = SZ * 1.4;
+    drawText(page, 'Autorisations (ou restrictions) spéciales :', margin, P2.autorisationY + lineHeight, bold, SZ);
     let y = P2.autorisationY;
 
     const words = text.split(/\s+/);
