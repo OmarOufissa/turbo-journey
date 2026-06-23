@@ -119,20 +119,6 @@ const TABLE_ROWS: TableRow[] = [
   { stKey: null,  htKey: 'SF6', rowKey: 'SF6'       },
 ];
 
-const TST_ROWS: TableRow[] = [
-  { stKey: 'H1N', htKey: null, rowKey: 'H1N' },
-  { stKey: 'H1T', htKey: null, rowKey: 'H1T' },
-  { stKey: 'H2N', htKey: null, rowKey: 'H2N' },
-  { stKey: 'H2T', htKey: null, rowKey: 'H2T' },
-];
-
-const TST_PERSONNEL_LABELS = [
-  'Exécutant\nSous Tension (N)',
-  'Exécutant\nSous Tension (T)',
-  'Chargé de Travaux\nSous Tension (N)',
-  'Chargé de Travaux\nSous Tension (T)',
-];
-
 // ─── Draw helpers ─────────────────────────────────────────────────────────────
 
 function drawText(
@@ -313,7 +299,6 @@ function fillPage1(
   page: PDFPage,
   snapshot: VersionSnapshot,
   fonts: { regular: any; bold: any },
-  pdfType?: 'ht' | 'st',
 ) {
   const { regular, bold } = fonts;
   const SZ = 9;
@@ -333,14 +318,7 @@ function fillPage1(
   drawText(page, formatDateFrench(snapshot.dateExpiration), P1.valableJusquau.x,  P1.valableJusquau.y,  regular, SZ);
 
   // Dynamic table — variable-height rows based on content
-  if (pdfType === 'st') {
-    const hasTstCodes = snapshot.stCodes.some(c => ['H1N', 'H1T', 'H2N', 'H2T'].includes(c));
-    const rows = hasTstCodes ? [...TABLE_ROWS, ...TST_ROWS] : TABLE_ROWS;
-    const labels = hasTstCodes ? [...PERSONNEL_LABELS, ...TST_PERSONNEL_LABELS] : PERSONNEL_LABELS;
-    drawDynamicTable(page, snapshot, fonts, rows, labels);
-  } else {
-    drawDynamicTable(page, snapshot, fonts);
-  }
+  drawDynamicTable(page, snapshot, fonts);
 }
 
 // ─── Fill page 2 (AVIS page) ──────────────────────────────────────────────────
@@ -405,7 +383,7 @@ export async function generateHabilitationPdf(
   const fonts = { regular: helvetica, bold: helveticaBold };
 
   const pages = pdfDoc.getPages();
-  if (pages[0]) fillPage1(pages[0], filteredSnapshot, fonts, pdfType);
+  if (pages[0]) fillPage1(pages[0], filteredSnapshot, fonts);
   if (pages[1]) fillPage2(pages[1], filteredSnapshot, fonts);
 
   const pdfBytes = await pdfDoc.save();

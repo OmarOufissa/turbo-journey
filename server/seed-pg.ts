@@ -557,14 +557,34 @@ export async function seedDatabasePG() {
   }
 }
 
+// Resolve employees_tst.xlsx across dev and packaged-Electron layouts. In the
+// packaged app this module is bundled into dist/electron/ while the seed data
+// lives in dist/server/seeds/data, so a path relative to import.meta.url misses.
+// The Electron main passes the employees.xlsx location via HABILITATIONS_EXCEL_URL;
+// the TST file sits next to it, so derive from there first, then fall back to the
+// relative locations used in dev.
+function resolveTstExcelPath(): string | null {
+  const dir = path.dirname(fileURLToPath(import.meta.url));
+  const empExcel = process.env.HABILITATIONS_EXCEL_URL;
+  const candidates = [
+    process.env.HABILITATIONS_TST_EXCEL_URL,
+    empExcel && !empExcel.startsWith("http")
+      ? path.join(path.dirname(empExcel), "employees_tst.xlsx")
+      : undefined,
+    path.join(dir, "seeds", "data", "employees_tst.xlsx"),
+    path.join(dir, "..", "server", "seeds", "data", "employees_tst.xlsx"),
+  ].filter(Boolean) as string[];
+  return candidates.find((p) => fs.existsSync(p)) ?? null;
+}
+
 // Merge TST Excel data (ST habilitation info) into existing employee versions
 export async function mergeTstData() {
-  const dir = path.dirname(fileURLToPath(import.meta.url));
-  const tstPath = path.join(dir, "seeds", "data", "employees_tst.xlsx");
-  if (!fs.existsSync(tstPath)) {
+  const tstPath = resolveTstExcelPath();
+  if (!tstPath) {
     console.log("⚠ No TST Excel file found, skipping ST merge");
     return;
   }
+  console.log(`Loading TST Excel file from: ${tstPath}`);
 
   const wb = XLSX.read(fs.readFileSync(tstPath), { type: "buffer" });
   const ws = wb.Sheets[wb.SheetNames[0]];
