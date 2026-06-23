@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Edit2, History, RotateCcw, FileText, Download, Eye, Trash2, RefreshCw, Upload } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, Edit2, History, RotateCcw, FileText, Download, Eye, Trash2, RefreshCw, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Employee, EmployeeVersion } from "@/types/employee";
@@ -25,14 +26,16 @@ type PendingConfirm =
   | { type: "deletePdf" }
   | { type: "versionDeletePdf"; versionId: number };
 
-function PdfSection({ label, pdfPath, pdfStatus, token, onUploadSigned, signedUploading }: {
+function PdfSection({ label, pdfPath, pdfStatus, token, onUploadSigned, signedUploading, onView }: {
   label: string;
   pdfPath?: string | null;
   pdfStatus?: "draft" | "signed" | null;
   token: string | null;
   onUploadSigned: () => void;
   signedUploading: boolean;
+  onView: (url: string, title: string) => void;
 }) {
+  const pdfUrl = pdfPath ? `/api/pdfs/${encodeURIComponent(pdfPath)}?token=${token}` : null;
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
@@ -43,15 +46,13 @@ function PdfSection({ label, pdfPath, pdfStatus, token, onUploadSigned, signedUp
           </Badge>
         )}
       </div>
-      {pdfPath ? (
+      {pdfUrl ? (
         <div className="flex gap-1 flex-wrap">
-          <Button variant="outline" size="sm" asChild>
-            <a href={`/api/pdfs/${encodeURIComponent(pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
-              <Eye className="w-3 h-3 mr-1" />Voir
-            </a>
+          <Button variant="outline" size="sm" onClick={() => onView(pdfUrl, label)}>
+            <Eye className="w-3 h-3 mr-1" />Voir
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <a href={`/api/pdfs/${encodeURIComponent(pdfPath)}?token=${token}`} download>
+            <a href={pdfUrl} download>
               <Download className="w-3 h-3 mr-1" />Télécharger
             </a>
           </Button>
@@ -90,6 +91,7 @@ export default function EmployeeCard() {
   const signedFileRef = useRef<HTMLInputElement>(null);
   const versionSignedFileRef = useRef<HTMLInputElement>(null);
   const [uploadingVersionId, setUploadingVersionId] = useState<number | null>(null);
+  const [pdfViewer, setPdfViewer] = useState<{ url: string; title: string } | null>(null);
   const token = localStorage.getItem("token");
 
   const reload = async () => {
@@ -409,6 +411,7 @@ export default function EmployeeCard() {
                           token={token}
                           onUploadSigned={() => { setUploadPdfType('ht'); signedFileRef.current?.click(); }}
                           signedUploading={signedUploading}
+                          onView={(url, title) => setPdfViewer({ url, title })}
                         />
                       )}
                       {showSt && (
@@ -419,22 +422,25 @@ export default function EmployeeCard() {
                           token={token}
                           onUploadSigned={() => { setUploadPdfType('st'); signedFileRef.current?.click(); }}
                           signedUploading={signedUploading}
+                          onView={(url, title) => setPdfViewer({ url, title })}
                         />
                       )}
                       <div className="flex gap-1 flex-wrap">
                         {(ver.pdfPath || ver.pdfPathSt) ? (
                           <>
                             <Button variant="outline" size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
-                              <RefreshCw className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />Régénérer les 2 PDFs
+                              <RefreshCw className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />
+                              {viewType === "st" ? "Régénérer PDF ST" : viewType === "ht" ? "Régénérer PDF HT" : "Régénérer les 2 PDFs"}
                             </Button>
                             <Button variant="destructive" size="sm" onClick={handleDeletePdf}>
-                              <Trash2 className="w-3 h-3 mr-1" />Supprimer les PDFs
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              {viewType === "st" ? "Supprimer PDF ST" : viewType === "ht" ? "Supprimer PDF HT" : "Supprimer les PDFs"}
                             </Button>
                           </>
                         ) : (
                           <Button size="sm" onClick={handleGeneratePdf} disabled={pdfGenerating}>
                             <FileText className={cn("w-3 h-3 mr-1", pdfGenerating && "animate-spin")} />
-                            {pdfGenerating ? "Génération..." : "Générer PDFs (HT + ST)"}
+                            {pdfGenerating ? "Génération..." : viewType === "st" ? "Générer PDF ST" : viewType === "ht" ? "Générer PDF HT" : "Générer PDFs (HT + ST)"}
                           </Button>
                         )}
                       </div>
@@ -452,10 +458,8 @@ export default function EmployeeCard() {
                       <div className="flex gap-1 flex-wrap mt-2">
                         {ver.pdfPath ? (
                           <>
-                            <Button variant="outline" size="sm" asChild>
-                              <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
-                                <Eye className="w-3 h-3 mr-1" />Voir
-                              </a>
+                            <Button variant="outline" size="sm" onClick={() => setPdfViewer({ url: `/api/pdfs/${encodeURIComponent(ver.pdfPath!)}?token=${token}`, title: "PDF" })}>
+                              <Eye className="w-3 h-3 mr-1" />Voir
                             </Button>
                             <Button variant="outline" size="sm" asChild>
                               <a href={`/api/pdfs/${encodeURIComponent(ver.pdfPath)}?token=${token}`} download>
@@ -580,10 +584,8 @@ export default function EmployeeCard() {
                                     <Badge variant={v.pdfStatus === "signed" ? "default" : "secondary"} className="text-xs mr-1">
                                       {v.pdfStatus === "signed" ? "Signé" : "Brouillon"}
                                     </Badge>
-                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
-                                      <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
-                                        <Eye className="w-3 h-3 mr-1" />Voir
-                                      </a>
+                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => setPdfViewer({ url: `/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`, title: "PDF HT" })}>
+                                      <Eye className="w-3 h-3 mr-1" />Voir
                                     </Button>
                                     {v.pdfStatus !== "signed" && (
                                       <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => { setUploadingVersionId(v.id); setUploadPdfType('ht'); versionSignedFileRef.current?.click(); }} disabled={signedUploading}>
@@ -604,10 +606,8 @@ export default function EmployeeCard() {
                                     <Badge variant={v.pdfStatusSt === "signed" ? "default" : "secondary"} className="text-xs mr-1">
                                       {v.pdfStatusSt === "signed" ? "Signé" : "Brouillon"}
                                     </Badge>
-                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
-                                      <a href={`/api/pdfs/${encodeURIComponent(v.pdfPathSt)}?token=${token}`} target="_blank" rel="noreferrer">
-                                        <Eye className="w-3 h-3 mr-1" />Voir
-                                      </a>
+                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => setPdfViewer({ url: `/api/pdfs/${encodeURIComponent(v.pdfPathSt!)}?token=${token}`, title: "PDF ST" })}>
+                                      <Eye className="w-3 h-3 mr-1" />Voir
                                     </Button>
                                     {v.pdfStatusSt !== "signed" && (
                                       <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => { setUploadingVersionId(v.id); setUploadPdfType('st'); versionSignedFileRef.current?.click(); }} disabled={signedUploading}>
@@ -648,10 +648,8 @@ export default function EmployeeCard() {
                               )}
                               {v.pdfPath ? (
                                 <>
-                                  <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
-                                    <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} target="_blank" rel="noreferrer">
-                                      <Eye className="w-3 h-3 mr-1" />Voir
-                                    </a>
+                                  <Button variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => setPdfViewer({ url: `/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`, title: "PDF" })}>
+                                    <Eye className="w-3 h-3 mr-1" />Voir
                                   </Button>
                                   <Button variant="outline" size="sm" className="h-6 text-xs px-2" asChild>
                                     <a href={`/api/pdfs/${encodeURIComponent(v.pdfPath)}?token=${token}`} download>
@@ -736,6 +734,35 @@ export default function EmployeeCard() {
           {...getConfirmDialogProps()}
         />
       </div>
+
+      {/* Inline PDF viewer dialog */}
+      <Dialog open={!!pdfViewer} onOpenChange={(open) => { if (!open) setPdfViewer(null); }}>
+        <DialogContent className="max-w-4xl w-[90vw] h-[85vh] p-0 flex flex-col">
+          <DialogHeader className="px-4 py-3 border-b flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle>{pdfViewer?.title ?? "PDF"}</DialogTitle>
+              <div className="flex gap-2">
+                {pdfViewer && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={pdfViewer.url} download>
+                      <Download className="w-3 h-3 mr-1" />Télécharger
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 min-h-0">
+            {pdfViewer && (
+              <iframe
+                src={pdfViewer.url}
+                className="w-full h-full border-0"
+                title={pdfViewer.title}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
