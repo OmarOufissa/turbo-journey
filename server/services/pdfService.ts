@@ -293,12 +293,111 @@ function drawDynamicTable(
   }
 }
 
+// ─── ST (TST) titre table ─────────────────────────────────────────────────────
+// Same 6 personnel rows as the HT titre. TST codes land in the row matching
+// their indice: indice 1 (H1N, H1T) → Électricien Exécutant, indice 2
+// (H2N, H2T) → Chargé de Travaux. A row holding both the N and T code stacks
+// them as sub-bands (own symbole/domaine/indication); the ouvrage is shared.
+const ST_ROW_CODES: string[][] = [
+  [],              // Non Électricien Habilité
+  ['H1N', 'H1T'],  // Électricien Exécutant
+  [],              // Chargé des Interventions
+  ['H2N', 'H2T'],  // Chargé de Travaux
+  [],              // Chargé de Consignation
+  [],              // Habilités Spéciaux
+];
+
+function drawStTable(
+  page: PDFPage,
+  snapshot: VersionSnapshot,
+  fonts: { regular: any; bold: any },
+) {
+  const { regular, bold } = fonts;
+  const active = new Set(snapshot.stCodes ?? []);
+
+  const wPer = T.cSym - T.left - 2 * CELL_PAD;
+  const wSym = T.cDom - T.cSym - 2 * CELL_PAD;
+  const wDom = T.cOuv - T.cDom - 2 * CELL_PAD;
+  const wOuv = T.cInd - T.cOuv - 2 * CELL_PAD;
+  const wInd = T.right - T.cInd - 2 * CELL_PAD;
+
+  const rows = PERSONNEL_LABELS.map((label, idx) => {
+    const codes = (ST_ROW_CODES[idx] ?? []).filter((c) => active.has(c));
+    const entries = codes.map((code) => {
+      const rd = snapshot.habRows?.[code as keyof HabRows];
+      return { symbol: code, domaine: rd?.domaine || '', indication: rd?.indication || '', ouvrage: rd?.ouvrage || '' };
+    });
+    // Codes within a personnel row share the same ouvrage value
+    const ouvrage = entries.find((e) => e.ouvrage)?.ouvrage || '';
+
+    const bandHeights = entries.map((e) => {
+      const lines = Math.max(
+        countLines(e.symbol, wSym, bold, SZ_SYM),
+        countLines(e.domaine, wDom, regular, SZ_CELL),
+        countLines(e.indication, wInd, regular, SZ_CELL),
+      );
+      return Math.max(MIN_ROW_H, lines * CELL_LH + 2 * CELL_PAD);
+    });
+    const entriesH = bandHeights.reduce((s, h) => s + h, 0);
+    const labelH = countLines(label, wPer, regular, SZ_CELL) * CELL_LH + 2 * CELL_PAD;
+    const ouvH = countLines(ouvrage, wOuv, regular, SZ_CELL) * CELL_LH + 2 * CELL_PAD;
+    const height = Math.max(MIN_ROW_H, entriesH, labelH, ouvH);
+
+    return { label, entries, bandHeights, ouvrage, height };
+  });
+
+  const totalH = rows.reduce((s, r) => s + r.height, 0);
+  const tableBottom = T.dataTop - totalH;
+
+  clearRect(page, T.left, tableBottom - 2, T.right - T.left, T.dataTop - tableBottom + 2);
+  drawLine(page, T.left, T.dataTop, T.right, T.dataTop);
+
+  let curY: number = T.dataTop;
+  for (const ri of rows) {
+    const rowTop = curY;
+    const rowBottom = curY - ri.height;
+
+    drawLine(page, T.left, rowBottom, T.right, rowBottom);
+
+    // Personnel label — top-aligned, spans full row
+    drawCellText(page, ri.label, T.left, rowTop, wPer, regular, SZ_CELL);
+
+    // Shared ouvrage — vertically centred across the row
+    if (ri.ouvrage) {
+      const ouvLines = countLines(ri.ouvrage, wOuv, regular, SZ_CELL);
+      const ouvTop = (rowTop + rowBottom) / 2 + (ouvLines * CELL_LH) / 2 + CELL_PAD;
+      drawCellText(page, ri.ouvrage, T.cOuv, ouvTop, wOuv, regular, SZ_CELL);
+    }
+
+    // Entry bands (symbole / domaine / indication), stacked top to bottom
+    let bandY = rowTop;
+    ri.entries.forEach((e, i) => {
+      const bandTop = bandY;
+      const bandBottom = bandY - ri.bandHeights[i];
+      const midY = (bandTop + bandBottom) / 2;
+
+      drawCentered(page, e.symbol, (T.cSym + T.cDom) / 2, midY - SZ_SYM * 0.35, bold, SZ_SYM);
+      if (e.domaine) drawCentered(page, e.domaine, (T.cDom + T.cOuv) / 2, midY - SZ_CELL * 0.35, regular, SZ_CELL);
+      if (e.indication) drawCellText(page, e.indication, T.cInd, bandTop, wInd, regular, SZ_CELL);
+
+      bandY = bandBottom;
+    });
+
+    curY = rowBottom;
+  }
+
+  for (const x of [T.left, T.cSym, T.cDom, T.cOuv, T.cInd, T.right]) {
+    drawLine(page, x, tableBottom, x, T.dataTop);
+  }
+}
+
 // ─── Fill page 1 (certificate with table) ────────────────────────────────────
 
 function fillPage1(
   page: PDFPage,
   snapshot: VersionSnapshot,
   fonts: { regular: any; bold: any },
+  pdfType?: 'ht' | 'st',
 ) {
   const { regular, bold } = fonts;
   const SZ = 9;
@@ -317,8 +416,12 @@ function fillPage1(
   drawText(page, formatDateFrench(snapshot.dateValidation), P1.dateDelivrance.x, P1.dateDelivrance.y, regular, SZ);
   drawText(page, formatDateFrench(snapshot.dateExpiration), P1.valableJusquau.x,  P1.valableJusquau.y,  regular, SZ);
 
-  // Dynamic table — variable-height rows based on content
-  drawDynamicTable(page, snapshot, fonts);
+  // Dynamic table — ST titre uses the TST layout, otherwise the standard HT table
+  if (pdfType === 'st') {
+    drawStTable(page, snapshot, fonts);
+  } else {
+    drawDynamicTable(page, snapshot, fonts);
+  }
 }
 
 // ─── Fill page 2 (AVIS page) ──────────────────────────────────────────────────
@@ -333,21 +436,13 @@ function fillPage2(
 
   drawText(page, snapshot.nDeTitre, P2.nDeTitre.x, P2.nDeTitre.y, bold, SZ);
 
-  // Write AUTORISATION SPECIALES VERSO below the "Autorisations (ou restrictions) spéciales :" label
+  // Write the text below the template's "Autorisations (ou restrictions) spéciales :" label
   if (snapshot.autorisationSpecialesVerso) {
     const text = snapshot.autorisationSpecialesVerso;
     const margin = 35;
     const maxWidth = page.getWidth() - 2 * margin;
     const lineHeight = SZ * 1.4;
     let y = P2.autorisationY;
-
-    // Bold header before the text
-    const header = "AUTORISATION SPECIALES VERSO";
-    const headerSize = SZ + 1;
-    const headerW = bold.widthOfTextAtSize(header, headerSize);
-    const headerX = (page.getWidth() - headerW) / 2;
-    drawText(page, header, headerX, y, bold, headerSize);
-    y -= lineHeight * 1.6;
 
     const words = text.split(/\s+/);
     let line = '';
@@ -383,7 +478,7 @@ export async function generateHabilitationPdf(
   const fonts = { regular: helvetica, bold: helveticaBold };
 
   const pages = pdfDoc.getPages();
-  if (pages[0]) fillPage1(pages[0], filteredSnapshot, fonts);
+  if (pages[0]) fillPage1(pages[0], filteredSnapshot, fonts, pdfType);
   if (pages[1]) fillPage2(pages[1], filteredSnapshot, fonts);
 
   const pdfBytes = await pdfDoc.save();
