@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,6 +71,12 @@ function PdfSection({ label, pdfPath, pdfStatus, token, onUploadSigned, signedUp
 
 export default function EmployeeCard() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  // When opened from the HT/ST employee list, scope the view to that
+  // habilitation type so a TST employee only shows the relevant codes + PDF.
+  const viewType = searchParams.get("type"); // "ht" | "st" | null
+  const showHt = viewType !== "st";
+  const showSt = viewType !== "ht";
   const { toast } = useToast();
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -377,36 +383,44 @@ export default function EmployeeCard() {
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">N° titre</span><span className="font-mono">{ver.nDeTitre}</span></div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">ST codes</span>
-                  <span className="font-mono">{ver.stCodes.length > 0 ? ver.stCodes.join(", ") : "—"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">HT codes</span>
-                  <span className="font-mono">{ver.htCodes.length > 0 ? ver.htCodes.join(", ") : "—"}</span>
-                </div>
+                {showSt && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">ST codes</span>
+                    <span className="font-mono">{ver.stCodes.length > 0 ? ver.stCodes.join(", ") : "—"}</span>
+                  </div>
+                )}
+                {showHt && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">HT codes</span>
+                    <span className="font-mono">{ver.htCodes.length > 0 ? ver.htCodes.join(", ") : "—"}</span>
+                  </div>
+                )}
                 <div className="flex justify-between"><span className="text-muted-foreground">Validation</span><span>{new Date(ver.dateValidation).toLocaleDateString("fr-FR")}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Expiration</span><span className={cn("font-medium", config.textColor)}>{new Date(ver.dateExpiration).toLocaleDateString("fr-FR")}</span></div>
 
                 <div className="pt-3 border-t space-y-3">
                   {isTstEmployee(ver) ? (
                     <>
-                      <PdfSection
-                        label="PDF HT (Hors Tension)"
-                        pdfPath={ver.pdfPath}
-                        pdfStatus={ver.pdfStatus}
-                        token={token}
-                        onUploadSigned={() => { setUploadPdfType('ht'); signedFileRef.current?.click(); }}
-                        signedUploading={signedUploading}
-                      />
-                      <PdfSection
-                        label="PDF ST (Sous Tension)"
-                        pdfPath={ver.pdfPathSt}
-                        pdfStatus={ver.pdfStatusSt}
-                        token={token}
-                        onUploadSigned={() => { setUploadPdfType('st'); signedFileRef.current?.click(); }}
-                        signedUploading={signedUploading}
-                      />
+                      {showHt && (
+                        <PdfSection
+                          label="PDF HT (Hors Tension)"
+                          pdfPath={ver.pdfPath}
+                          pdfStatus={ver.pdfStatus}
+                          token={token}
+                          onUploadSigned={() => { setUploadPdfType('ht'); signedFileRef.current?.click(); }}
+                          signedUploading={signedUploading}
+                        />
+                      )}
+                      {showSt && (
+                        <PdfSection
+                          label="PDF ST (Sous Tension)"
+                          pdfPath={ver.pdfPathSt}
+                          pdfStatus={ver.pdfStatusSt}
+                          token={token}
+                          onUploadSigned={() => { setUploadPdfType('st'); signedFileRef.current?.click(); }}
+                          signedUploading={signedUploading}
+                        />
+                      )}
                       <div className="flex gap-1 flex-wrap">
                         {(ver.pdfPath || ver.pdfPathSt) ? (
                           <>
@@ -558,6 +572,7 @@ export default function EmployeeCard() {
                         <div className="mt-2 pt-2 border-t space-y-1">
                           {isTstEmployee(v) ? (
                             <>
+                              {showHt && (
                               <div className="flex items-center gap-1 flex-wrap">
                                 <span className="text-xs text-muted-foreground mr-1">HT :</span>
                                 {v.pdfPath ? (
@@ -580,6 +595,8 @@ export default function EmployeeCard() {
                                   <span className="text-xs text-muted-foreground">—</span>
                                 )}
                               </div>
+                              )}
+                              {showSt && (
                               <div className="flex items-center gap-1 flex-wrap">
                                 <span className="text-xs text-muted-foreground mr-1">ST :</span>
                                 {v.pdfPathSt ? (
@@ -602,6 +619,7 @@ export default function EmployeeCard() {
                                   <span className="text-xs text-muted-foreground">—</span>
                                 )}
                               </div>
+                              )}
                               <div className="flex items-center gap-1 flex-wrap">
                                 {(v.pdfPath || v.pdfPathSt) ? (
                                   <>

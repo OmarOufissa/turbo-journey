@@ -134,6 +134,19 @@ export default function Reports() {
 
   useEffect(load, [load]);
 
+  // In the Electron app, window.print() opens an OS print dialog that can't
+  // preview; save a real PDF via the main process instead. Fall back to the
+  // browser print dialog when running outside Electron (dev / web).
+  const handleExportPdf = () => {
+    const api = (window as any).electronAPI;
+    if (api?.exportPdf) {
+      api.exportPdf(`Rapport_Habilitations_${new Date().toISOString().slice(0, 10)}.pdf`)
+        .catch(() => window.print());
+    } else {
+      window.print();
+    }
+  };
+
   if (loading) return (
     <Layout>
       <div className="p-6 space-y-6">
@@ -213,7 +226,7 @@ export default function Reports() {
             <Button variant="outline" size="sm" onClick={load}>
               <RefreshCw className="w-4 h-4 mr-1" />Actualiser
             </Button>
-            <Button size="sm" onClick={() => window.print()}>
+            <Button size="sm" onClick={handleExportPdf}>
               <Download className="w-4 h-4 mr-1" />Télécharger PDF
             </Button>
           </div>

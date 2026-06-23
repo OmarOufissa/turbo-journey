@@ -7,7 +7,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 // Whitelist of allowed IPC channels
-const ALLOWED_RENDERER_TO_MAIN = ["app:quit", "app:minimize", "app:maximize", "app:get-version"] as const;
+const ALLOWED_RENDERER_TO_MAIN = ["app:quit", "app:minimize", "app:maximize", "app:get-version", "app:export-pdf"] as const;
 type AllowedChannel = (typeof ALLOWED_RENDERER_TO_MAIN)[number];
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -21,4 +21,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   /** Get the application version string. */
   getVersion: () => ipcRenderer.invoke("app:get-version"),
+
+  /** Save the current page as a PDF via a native save dialog. */
+  exportPdf: (defaultName?: string) => ipcRenderer.invoke("app:export-pdf", defaultName),
 });

@@ -46,6 +46,27 @@ if (!isDev) {
 // ─── IPC Handlers ─────────────────────────────────────────────────────────
 
 ipcMain.handle("app:get-version", () => app.getVersion());
+
+// Export the current page as a PDF file. The renderer's "Télécharger PDF"
+// button calls this so we save a real PDF instead of opening the OS print
+// dialog (which shows "this app doesn't support print preview" in Electron).
+ipcMain.handle("app:export-pdf", async (_event, defaultName?: string) => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (!win) return { ok: false };
+  const data = await win.webContents.printToPDF({
+    printBackground: true,
+    pageSize: "A4",
+    margins: { marginType: "default" },
+  });
+  const { canceled, filePath } = await dialog.showSaveDialog(win, {
+    title: "Enregistrer le rapport",
+    defaultPath: defaultName || "rapport.pdf",
+    filters: [{ name: "PDF", extensions: ["pdf"] }],
+  });
+  if (canceled || !filePath) return { ok: false };
+  fs.writeFileSync(filePath, data);
+  return { ok: true, filePath };
+});
 ipcMain.handle("app:quit", () => app.quit());
 ipcMain.handle("app:minimize", () => BrowserWindow.getFocusedWindow()?.minimize());
 ipcMain.handle("app:maximize", () => {

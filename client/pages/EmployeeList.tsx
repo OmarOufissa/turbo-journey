@@ -333,7 +333,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
                         "cursor-pointer hover:bg-muted/50 transition-colors",
                         colorCodingEnabled && config.bgColor
                       )}
-                      onClick={() => navigate(`/employees/${emp.id}`)}
+                      onClick={() => navigate(`/employees/${emp.id}?type=${habType.toLowerCase()}`)}
                     >
                       <TableCell onClick={e => e.stopPropagation()}>
                         <Checkbox
