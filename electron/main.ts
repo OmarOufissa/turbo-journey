@@ -109,7 +109,7 @@ async function startServer() {
 // ─── Window ───────────────────────────────────────────────────────────────
 
 function createWindow() {
-  const preloadPath = path.join(__dirname, "preload.js");
+  const preloadPath = path.join(__dirname, "preload.cjs");
 
   const win = new BrowserWindow({
     width: 1400,
@@ -130,6 +130,8 @@ function createWindow() {
       sandbox: true,
       // Security: disable web security only in dev (never in prod)
       webSecurity: !isDev,
+      // Enable Chromium's built-in PDF viewer so PDFs render inside iframes
+      plugins: true,
     },
   });
 
@@ -177,11 +179,12 @@ function applySecurityHeaders() {
           `img-src 'self' data: blob: http://localhost:${PORT};` +
           `font-src 'self';` +
           `connect-src 'self' http://localhost:${PORT};` +
-          `frame-src 'none';` +
-          `object-src 'none';`,
+          `frame-src 'self' http://localhost:${PORT};` +
+          `object-src 'self' http://localhost:${PORT};`,
         ],
         "X-Content-Type-Options": ["nosniff"],
-        "X-Frame-Options": ["DENY"],
+        // SAMEORIGIN (not DENY) so the app can show its own PDFs in an iframe
+        "X-Frame-Options": ["SAMEORIGIN"],
         "X-XSS-Protection": ["1; mode=block"],
       },
     });

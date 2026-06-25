@@ -1,13 +1,17 @@
 import { defineConfig } from "vite";
 import path from "path";
 
-// Compiles electron/main.ts → dist/electron/main.js (CJS, bundled)
+// Compiles electron/main.ts → dist/electron/main.cjs and
+// electron/preload.ts → dist/electron/preload.cjs (CJS, bundled)
 export default defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, "electron/main.ts"),
+      entry: {
+        main: path.resolve(__dirname, "electron/main.ts"),
+        preload: path.resolve(__dirname, "electron/preload.ts"),
+      },
       formats: ["cjs"],
-      fileName: () => "main.js",
+      fileName: (_format, entryName) => `${entryName}.cjs`,
     },
     outDir: "dist/electron",
     target: "node22",
