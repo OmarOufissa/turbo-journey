@@ -169,6 +169,14 @@ function createWindow() {
 
 function applySecurityHeaders() {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    // Only harden the app's own HTTP responses. Chromium's built-in PDF
+    // viewer renders inside a chrome-extension:// frame; injecting
+    // X-Frame-Options there blocks it and the PDF shows up blank. Leave
+    // non-HTTP schemes (chrome-extension://, devtools://) untouched.
+    const url = details.url;
+    if (!url.startsWith("http://localhost") && !url.startsWith("http://127.0.0.1")) {
+      return callback({ responseHeaders: details.responseHeaders });
+    }
     callback({
       responseHeaders: {
         ...details.responseHeaders,
