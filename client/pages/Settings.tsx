@@ -65,12 +65,6 @@ export default function Settings() {
   const [healthReport, setHealthReport] = useState<any>(null);
   const [healthLoading, setHealthLoading] = useState(false);
   const [backupLoading, setBackupLoading] = useState(false);
-  const [resyncLoading, setResyncLoading] = useState(false);
-  const [resyncResult, setResyncResult] = useState<{ updated: number; skipped: number } | null>(null);
-  const [syncNewLoading, setSyncNewLoading] = useState(false);
-  const [syncNewResult, setSyncNewResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null);
-  const [reseedConfirm, setReseedConfirm] = useState(false);
-  const [reseedLoading, setReseedLoading] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("—");
 
   // Load app version from package.json via server
@@ -102,70 +96,6 @@ export default function Settings() {
       toast({ title: "Erreur", description: "Impossible d'exécuter les vérifications", variant: "destructive" });
     } finally {
       setHealthLoading(false);
-    }
-  }
-
-  async function handleResyncNames() {
-    setResyncLoading(true);
-    setResyncResult(null);
-    try {
-      const res = await fetch("/api/resync-names", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token") ?? ""}` },
-      });
-      const json = await res.json();
-      if (json.success) {
-        setResyncResult(json.data);
-        toast({ title: "Noms synchronisés", description: `${json.data.updated} employés mis à jour` });
-      } else {
-        throw new Error(json.error ?? "Erreur");
-      }
-    } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
-    } finally {
-      setResyncLoading(false);
-    }
-  }
-
-  async function handleSyncNewEmployees() {
-    setSyncNewLoading(true);
-    setSyncNewResult(null);
-    try {
-      const res = await fetch("/api/sync-new-employees", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token") ?? ""}` },
-      });
-      const json = await res.json();
-      if (json.success) {
-        setSyncNewResult(json.data);
-        toast({ title: "Synchronisation terminée", description: `${json.data.created} nouveau(x) employé(s) ajouté(s)` });
-      } else {
-        throw new Error(json.error ?? "Erreur");
-      }
-    } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
-    } finally {
-      setSyncNewLoading(false);
-    }
-  }
-
-  async function handleReseed() {
-    setReseedLoading(true);
-    try {
-      const res = await fetch("/api/admin/reseed", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token") ?? ""}` },
-      });
-      const json = await res.json();
-      if (json.success) {
-        toast({ title: "Base réinitialisée", description: "Toutes les données ont été rechargées depuis le fichier Excel." });
-      } else {
-        throw new Error(json.error ?? "Erreur");
-      }
-    } catch (err: any) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
-    } finally {
-      setReseedLoading(false);
     }
   }
 
@@ -388,95 +318,6 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* ── Resync Names ──────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Corriger les noms des employés
-            </CardTitle>
-            <CardDescription>
-              Resynchronise les noms et prénoms depuis le fichier Excel source. À utiliser si des noms sont tronqués ou incorrects.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button
-              variant="outline"
-              onClick={handleResyncNames}
-              disabled={resyncLoading}
-              className="gap-2"
-            >
-              {resyncLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              {resyncLoading ? "Synchronisation en cours..." : "Corriger les noms maintenant"}
-            </Button>
-            {resyncResult && (
-              <p className="text-sm text-green-600 dark:text-green-400">
-                ✓ {resyncResult.updated} employés mis à jour, {resyncResult.skipped} ignorés
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ── Sync New Employees ───────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserPlus className="w-5 h-5" />
-              Ajouter les nouveaux employés
-            </CardTitle>
-            <CardDescription>
-              Recherche dans le fichier Excel source les employés absents de la base et les ajoute. N'affecte pas les employés existants.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button
-              variant="outline"
-              onClick={handleSyncNewEmployees}
-              disabled={syncNewLoading}
-              className="gap-2"
-            >
-              {syncNewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-              {syncNewLoading ? "Synchronisation en cours..." : "Synchroniser maintenant"}
-            </Button>
-            {syncNewResult && (
-              <div className="text-sm space-y-1">
-                <p className="text-green-600 dark:text-green-400">
-                  ✓ {syncNewResult.created} nouveau(x) employé(s) ajouté(s), {syncNewResult.skipped} ignoré(s)
-                </p>
-                {syncNewResult.errors.length > 0 && (
-                  <ul className="text-yellow-600 dark:text-yellow-400 list-disc list-inside">
-                    {syncNewResult.errors.map((e, i) => <li key={i}>{e}</li>)}
-                  </ul>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ── Reset & Reseed ───────────────────────────────────────── */}
-        <Card className="border-red-200 dark:border-red-800">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
-              <RefreshCw className="w-5 h-5" />
-              Réinitialiser la base de données
-            </CardTitle>
-            <CardDescription>
-              Supprime <strong>toutes</strong> les données (employés, habilitations, historique) et recharge depuis le fichier Excel intégré. Action irréversible.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="destructive"
-              onClick={() => setReseedConfirm(true)}
-              disabled={reseedLoading}
-              className="gap-2"
-            >
-              {reseedLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              {reseedLoading ? "Réinitialisation en cours..." : "Réinitialiser et recharger"}
-            </Button>
-          </CardContent>
-        </Card>
-
         <Button onClick={handleSave} size="lg" className="w-full">
           Sauvegarder tous les paramètres
         </Button>
@@ -562,17 +403,6 @@ export default function Settings() {
           </CardContent>
         </Card>
       </div>
-
-      <ConfirmDialog
-        open={reseedConfirm}
-        onOpenChange={setReseedConfirm}
-        title="Réinitialiser la base de données ?"
-        description="Cette action supprimera définitivement tous les employés, habilitations et l'historique complet, puis rechargera les données depuis le fichier Excel intégré. Cette opération est irréversible."
-        confirmText="Oui, tout réinitialiser"
-        cancelText="Annuler"
-        variant="danger"
-        onConfirm={handleReseed}
-      />
     </Layout>
   );
 }
