@@ -5,7 +5,7 @@
 
 import fs from "fs";
 import path from "path";
-import { ensureRequiredDirectories, getMissingDirectories, getUnwritableDirectories, PDFS_DIR } from "./pathUtils";
+import { ensureRequiredDirectories, getMissingDirectories, getUnwritableDirectories, PDFS_DIR, resolvePdfPath } from "./pathUtils";
 import { logger } from "./logger";
 import { db } from "../db-pg";
 import * as schema from "../schema";
@@ -154,7 +154,7 @@ async function checkOrphanedPdfs(): Promise<HealthCheckResult> {
     let missingCount = 0;
     for (const ver of versionsWithPdf) {
       if (ver.pdfPath) {
-        const filePath = path.join(PDFS_DIR, path.basename(ver.pdfPath));
+        const filePath = resolvePdfPath(ver.pdfPath);
         if (!fs.existsSync(filePath)) {
           missingCount++;
           await db.$client.execute({ sql: "UPDATE employee_versions SET pdf_path = NULL WHERE id = ?", args: [ver.id] });

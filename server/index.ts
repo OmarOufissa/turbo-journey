@@ -4,11 +4,13 @@ import cors from "cors";
 import path from "path";
 import rateLimit from "express-rate-limit";
 import { initializeDatabase } from "./db-pg";
-import { ensureRequiredDirectories } from "./utils/pathUtils";
+import { ensureRequiredDirectories, migrateLegacyPdfLayout } from "./utils/pathUtils";
 import { logger } from "./utils/logger";
 
 // Ensure required directories exist before anything else
 ensureRequiredDirectories();
+// Move any legacy PDFs (stored directly in pdfs/) into pdfs/generated and pdfs/signed
+migrateLegacyPdfLayout();
 
 let dbInitialized = false;
 
@@ -462,7 +464,7 @@ export function createServer() {
         const schema = await import("./schema");
         const { eq, desc } = await import("drizzle-orm");
         const fs = await import("fs");
-        const { sanitizeFilename, resolvePdfPath } = await import("./utils/pathUtils");
+        const { sanitizeFilename, resolveGeneratedPdfPath } = await import("./utils/pathUtils");
 
         const ver = await db.query.employeeVersions.findFirst({
           where: eq(schema.employeeVersions.employeeId, employeeId),
@@ -476,7 +478,7 @@ export function createServer() {
         if (!emp) return res.status(404).json({ success: false, error: "Employee not found" });
 
         const filename = sanitizeFilename(`hab${emp.matricule}_v${ver.versionNumber}_uploaded.pdf`);
-        const filePath = resolvePdfPath(filename);
+        const filePath = resolveGeneratedPdfPath(filename);
         const buffer = Buffer.from(pdfBase64, "base64");
         fs.writeFileSync(filePath, buffer);
 
@@ -506,7 +508,7 @@ export function createServer() {
         const schema = await import("./schema");
         const { eq, desc } = await import("drizzle-orm");
         const fs = await import("fs");
-        const { sanitizeFilename, resolvePdfPath } = await import("./utils/pathUtils");
+        const { sanitizeFilename, resolvePdfPath, resolveSignedPdfPath } = await import("./utils/pathUtils");
 
         let ver;
         if (versionId) {
@@ -533,7 +535,7 @@ export function createServer() {
 
         const suffix = isStUpload ? '_ST_signed' : '_signed';
         const filename = sanitizeFilename(`hab${emp.matricule}_v${ver.versionNumber}${suffix}.pdf`);
-        const filePath = resolvePdfPath(filename);
+        const filePath = resolveSignedPdfPath(filename);
         const buffer = Buffer.from(pdfBase64, "base64");
         fs.writeFileSync(filePath, buffer);
 

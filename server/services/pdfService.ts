@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import type { HabRows } from '../schema';
-import { PDFS_DIR, buildPdfFilename, resolvePdfPath } from '../utils/pathUtils';
+import { PDFS_DIR, buildPdfFilename, resolvePdfPath, resolveGeneratedPdfPath } from '../utils/pathUtils';
 import { formatDateFrench } from '../utils/dateUtils';
 
 export interface VersionSnapshot {
@@ -484,7 +484,7 @@ export async function generateHabilitationPdf(
   const pdfBytes = await pdfDoc.save();
   const suffix = pdfType === 'st' ? '_ST' : pdfType === 'ht' ? '_HT' : '';
   const filename  = buildPdfFilename(snapshot.matricule, versionNumber, suffix);
-  const fullPath  = resolvePdfPath(filename);
+  const fullPath  = resolveGeneratedPdfPath(filename);
   fs.writeFileSync(fullPath, pdfBytes);
 
   const stats = fs.statSync(fullPath);

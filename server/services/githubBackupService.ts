@@ -24,7 +24,7 @@ import { pipeline } from "stream/promises";
 import { ZipArchive } from "archiver";
 import { Open as unzipOpen } from "unzipper";
 import { exportAllData, restoreFromBackup, BackupMetadata } from "./backupService";
-import { PDFS_DIR } from "../utils/pathUtils";
+import { PDFS_DIR, GENERATED_PDFS_DIR, SIGNED_PDFS_DIR } from "../utils/pathUtils";
 
 const GITHUB_API = "https://api.github.com";
 const GITHUB_UPLOADS = "https://uploads.github.com";
@@ -329,14 +329,22 @@ export async function restoreFullFromGitHub(backupId: string): Promise<GitHubRes
     const dbResult = await restoreFromBackup(tmpDbPath);
     try { unlinkSync(tmpDbPath); } catch { /* gone */ }
 
-    // 4. Extract PDFs into the live PDFs directory
-    mkdirSync(PDFS_DIR, { recursive: true });
+    // 4. Extract PDFs into the live PDFs directory, preserving the
+    //    generated/ and signed/ sub-folders.
+    mkdirSync(GENERATED_PDFS_DIR, { recursive: true });
+    mkdirSync(SIGNED_PDFS_DIR, { recursive: true });
     let pdfCount = 0;
     for (const entry of directory.files) {
       if (entry.type !== "File" || !entry.path.startsWith("pdfs/")) continue;
       const name = path.basename(entry.path);
       if (!name.toLowerCase().endsWith(".pdf")) continue;
-      await pipeline(entry.stream(), createWriteStream(path.join(PDFS_DIR, name)));
+      const rel = entry.path.slice("pdfs/".length);
+      const targetDir = rel.startsWith("signed/")
+        ? SIGNED_PDFS_DIR
+        : rel.startsWith("generated/")
+          ? GENERATED_PDFS_DIR
+          : /_signed\.pdf$/i.test(name) ? SIGNED_PDFS_DIR : GENERATED_PDFS_DIR;
+      await pipeline(entry.stream(), createWriteStream(path.join(targetDir, name)));
       pdfCount++;
     }
 
