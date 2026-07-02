@@ -1,0 +1,1662 @@
+{
+  "epi_Équipe Conduite Postes": {
+    "label": "EPI standard – Équipe Conduite Postes",
+    "lines": [
+      {
+        "article_code": "EPI-014",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-002",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-003",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-005",
+        "qty": 2
+      },
+      {
+        "article_code": "EPI-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-017",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-018",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-002",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-003",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-009",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-010",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-004",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-005",
+        "qty": 1
+      }
+    ]
+  },
+  "epc_Équipe Conduite Postes": {
+    "label": "EPC standard – Équipe Conduite Postes",
+    "lines": [
+      {
+        "article_code": "ISO-005",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-029",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-006",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-019",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-016",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-030",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-022",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-025",
+        "qty": 5
+      },
+      {
+        "article_code": "ISO-014",
+        "qty": 6
+      },
+      {
+        "article_code": "ISO-031",
+        "qty": 9
+      },
+      {
+        "article_code": "ISO-032",
+        "qty": 15
+      },
+      {
+        "article_code": "ISO-018",
+        "qty": 2
+      },
+      {
+        "article_code": "ISO-027",
+        "qty": 2
+      },
+      {
+        "article_code": "ISO-033",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-034",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-035",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-036",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-020",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-037",
+        "qty": 5
+      },
+      {
+        "article_code": "ISO-038",
+        "qty": 6
+      },
+      {
+        "article_code": "ISO-013",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-011",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-024",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-012",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-010",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-023",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-028",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-011",
+        "qty": 10
+      },
+      {
+        "article_code": "EPC-001",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-002",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-003",
+        "qty": 10
+      },
+      {
+        "article_code": "CON-006",
+        "qty": 10
+      },
+      {
+        "article_code": "EPC-009",
+        "qty": 4
+      },
+      {
+        "article_code": "EPC-005",
+        "qty": 6
+      },
+      {
+        "article_code": "EPC-004",
+        "qty": 6
+      },
+      {
+        "article_code": "EPC-012",
+        "qty": 15
+      },
+      {
+        "article_code": "CON-008",
+        "qty": 1
+      },
+      {
+        "article_code": "EPC-013",
+        "qty": 6
+      },
+      {
+        "article_code": "CON-009",
+        "qty": 2
+      },
+      {
+        "article_code": "CON-010",
+        "qty": 2
+      },
+      {
+        "article_code": "CON-011",
+        "qty": 20
+      },
+      {
+        "article_code": "CON-012",
+        "qty": 10
+      },
+      {
+        "article_code": "CON-003",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-013",
+        "qty": 2
+      },
+      {
+        "article_code": "CON-014",
+        "qty": 3
+      }
+    ]
+  },
+  "epi_Équipe Contrôle Commande": {
+    "label": "EPI standard – Équipe Contrôle Commande",
+    "lines": [
+      {
+        "article_code": "EPI-014",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-002",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-005",
+        "qty": 2
+      },
+      {
+        "article_code": "EPI-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-007",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-008",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-004",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-003",
+        "qty": 1
+      }
+    ]
+  },
+  "epc_Équipe Contrôle Commande": {
+    "label": "EPC standard – Équipe Contrôle Commande",
+    "lines": [
+      {
+        "article_code": "ISO-022",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-028",
+        "qty": 1
+      }
+    ]
+  },
+  "epi_Équipe Exploitation et Conduite": {
+    "label": "EPI standard – Équipe Exploitation et Conduite",
+    "lines": [
+      {
+        "article_code": "EPI-014",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-003",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-005",
+        "qty": 2
+      },
+      {
+        "article_code": "EPI-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-017",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-019",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-002",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-004",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-008",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-009",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-011",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-012",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-013",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-003",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-004",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-003",
+        "qty": 1
+      }
+    ]
+  },
+  "epc_Équipe Exploitation et Conduite": {
+    "label": "EPC standard – Équipe Exploitation et Conduite",
+    "lines": [
+      {
+        "article_code": "ISO-005",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-009",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-010",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-011",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-029",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-006",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-019",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-016",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-020",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-021",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-022",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-010",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-023",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-011",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-024",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-039",
+        "qty": 3
+      },
+      {
+        "article_code": "ISO-014",
+        "qty": 9
+      },
+      {
+        "article_code": "ISO-031",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-032",
+        "qty": 9
+      },
+      {
+        "article_code": "ISO-018",
+        "qty": 2
+      },
+      {
+        "article_code": "ISO-027",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-001",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-002",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-003",
+        "qty": 10
+      },
+      {
+        "article_code": "CON-006",
+        "qty": 10
+      },
+      {
+        "article_code": "EPC-009",
+        "qty": 4
+      },
+      {
+        "article_code": "CON-015",
+        "qty": 1
+      },
+      {
+        "article_code": "EPC-004",
+        "qty": 2
+      }
+    ]
+  },
+  "epi_Équipe Lignes": {
+    "label": "EPI standard – Équipe Lignes",
+    "lines": [
+      {
+        "article_code": "EPI-001",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-002",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-003",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-004",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-005",
+        "qty": 2
+      },
+      {
+        "article_code": "VET-001",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-002",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-007",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-003",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-008",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-009",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-010",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-011",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-012",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-013",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-001",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-002",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-003",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-003",
+        "qty": 1
+      }
+    ]
+  },
+  "epc_Équipe Lignes": {
+    "label": "EPC standard – Équipe Lignes",
+    "lines": [
+      {
+        "article_code": "DIV-005",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-006",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-005",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-020",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-008",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-009",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-010",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-011",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-012",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-013",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-014",
+        "qty": 3
+      },
+      {
+        "article_code": "ISO-015",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-016",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-017",
+        "qty": 3
+      },
+      {
+        "article_code": "ISO-018",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-001",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-002",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-003",
+        "qty": 10
+      },
+      {
+        "article_code": "CON-006",
+        "qty": 10
+      },
+      {
+        "article_code": "EPC-004",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-005",
+        "qty": 6
+      },
+      {
+        "article_code": "EPC-006",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-007",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-008",
+        "qty": 2
+      }
+    ]
+  },
+  "epi_Équipe Maintenance Postes": {
+    "label": "EPI standard – Équipe Maintenance Postes",
+    "lines": [
+      {
+        "article_code": "EPI-014",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-003",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-005",
+        "qty": 2
+      },
+      {
+        "article_code": "EPI-015",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-016",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-017",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-002",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-005",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-006",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-008",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-009",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-011",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-012",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-013",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-004",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-003",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-004",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-003",
+        "qty": 1
+      }
+    ]
+  },
+  "epc_Équipe Maintenance Postes": {
+    "label": "EPC standard – Équipe Maintenance Postes",
+    "lines": [
+      {
+        "article_code": "DIV-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-021",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-007",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-005",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-005",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-008",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-006",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-019",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-016",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-020",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-021",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-022",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-010",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-023",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-011",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-024",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-025",
+        "qty": 3
+      },
+      {
+        "article_code": "ISO-014",
+        "qty": 9
+      },
+      {
+        "article_code": "ISO-026",
+        "qty": 9
+      },
+      {
+        "article_code": "ISO-018",
+        "qty": 2
+      },
+      {
+        "article_code": "ISO-027",
+        "qty": 2
+      },
+      {
+        "article_code": "ISO-028",
+        "qty": 1
+      },
+      {
+        "article_code": "EPC-001",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-002",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-003",
+        "qty": 10
+      },
+      {
+        "article_code": "CON-006",
+        "qty": 10
+      },
+      {
+        "article_code": "EPC-009",
+        "qty": 4
+      },
+      {
+        "article_code": "CON-007",
+        "qty": 1
+      },
+      {
+        "article_code": "EPC-004",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-010",
+        "qty": 1
+      }
+    ]
+  },
+  "epi_Équipe TST Lignes": {
+    "label": "EPI standard – Équipe TST Lignes",
+    "lines": [
+      {
+        "article_code": "EPI-001",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-002",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-003",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-004",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-005",
+        "qty": 2
+      },
+      {
+        "article_code": "VET-001",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-002",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-007",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-003",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-008",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-009",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-010",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-011",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-012",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-013",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-001",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-002",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-003",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-003",
+        "qty": 1
+      }
+    ]
+  },
+  "epc_Équipe TST Lignes": {
+    "label": "EPC standard – Équipe TST Lignes",
+    "lines": [
+      {
+        "article_code": "DIV-005",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-006",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-005",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-020",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-008",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-009",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-010",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-011",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-012",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-013",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-014",
+        "qty": 3
+      },
+      {
+        "article_code": "ISO-015",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-016",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-017",
+        "qty": 3
+      },
+      {
+        "article_code": "ISO-018",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-001",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-002",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-003",
+        "qty": 10
+      },
+      {
+        "article_code": "CON-006",
+        "qty": 10
+      },
+      {
+        "article_code": "EPC-004",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-005",
+        "qty": 6
+      },
+      {
+        "article_code": "EPC-006",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-007",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-008",
+        "qty": 2
+      }
+    ]
+  },
+  "epi_Équipe TST Postes": {
+    "label": "EPI standard – Équipe TST Postes",
+    "lines": [
+      {
+        "article_code": "EPI-014",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-003",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-005",
+        "qty": 2
+      },
+      {
+        "article_code": "EPI-015",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-016",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-017",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-002",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-005",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-006",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-008",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-009",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-011",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-012",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-013",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-004",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-003",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-004",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-003",
+        "qty": 1
+      }
+    ]
+  },
+  "epc_Équipe TST Postes": {
+    "label": "EPC standard – Équipe TST Postes",
+    "lines": [
+      {
+        "article_code": "DIV-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-021",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-007",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-005",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-005",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-008",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-006",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-019",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-016",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-020",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-021",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-022",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-010",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-023",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-011",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-024",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-025",
+        "qty": 3
+      },
+      {
+        "article_code": "ISO-014",
+        "qty": 9
+      },
+      {
+        "article_code": "ISO-026",
+        "qty": 9
+      },
+      {
+        "article_code": "ISO-018",
+        "qty": 2
+      },
+      {
+        "article_code": "ISO-027",
+        "qty": 2
+      },
+      {
+        "article_code": "ISO-028",
+        "qty": 1
+      },
+      {
+        "article_code": "EPC-001",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-002",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-003",
+        "qty": 10
+      },
+      {
+        "article_code": "CON-006",
+        "qty": 10
+      },
+      {
+        "article_code": "EPC-009",
+        "qty": 4
+      },
+      {
+        "article_code": "CON-007",
+        "qty": 1
+      },
+      {
+        "article_code": "EPC-004",
+        "qty": 2
+      },
+      {
+        "article_code": "EPC-010",
+        "qty": 1
+      }
+    ]
+  },
+  "epi_Équipe Télécom": {
+    "label": "EPI standard – Équipe Télécom",
+    "lines": [
+      {
+        "article_code": "EPI-014",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-005",
+        "qty": 2
+      },
+      {
+        "article_code": "EPI-006",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-007",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-007",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-008",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-008",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-009",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-011",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-012",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-013",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-001",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-001",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-004",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CON-003",
+        "qty": 1
+      }
+    ]
+  },
+  "epc_Équipe Télécom": {
+    "label": "EPC standard – Équipe Télécom",
+    "lines": [
+      {
+        "article_code": "ISO-022",
+        "qty": 1
+      },
+      {
+        "article_code": "ISO-028",
+        "qty": 1
+      },
+      {
+        "article_code": "DIV-003",
+        "qty": 1
+      }
+    ]
+  },
+  "svc_etudes": {
+    "label": "EPI standard – Service Études",
+    "lines": [
+      {
+        "article_code": "EPI-001",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-022",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-011",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-012",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      }
+    ]
+  },
+  "svc_realisation": {
+    "label": "EPI standard – Service Réalisation",
+    "lines": [
+      {
+        "article_code": "EPI-001",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-022",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-011",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-012",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      }
+    ]
+  },
+  "hierarchie": {
+    "label": "EPI standard – Direction / Chefs / Cadres",
+    "lines": [
+      {
+        "article_code": "EPI-001",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-002",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-013",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      }
+    ]
+  },
+  "conducteur_mecanicien": {
+    "label": "EPI standard – Conducteur mécanicien",
+    "lines": [
+      {
+        "article_code": "EPI-001",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-005",
+        "qty": 2
+      },
+      {
+        "article_code": "EPI-006",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-014",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-015",
+        "qty": 1
+      },
+      {
+        "article_code": "VET-002",
+        "qty": 1
+      },
+      {
+        "article_code": "EPI-007",
+        "qty": 1
+      },
+      {
+        "article_code": "CHA-004",
+        "qty": 1
+      }
+    ]
+  }
+}

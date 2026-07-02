@@ -1,0 +1,84 @@
+{
+  "divisions": {
+    "Division Exploitation Casablanca": {
+      "Service Exploitation et Maintenance Casablanca": {
+        "Équipe Lignes Casablanca": "Équipe Lignes",
+        "Équipe TST Lignes Casablanca": "Équipe TST Lignes",
+        "Équipe TST Postes Casablanca": "Équipe TST Postes",
+        "Équipe Maintenance Postes Casablanca": "Équipe Maintenance Postes",
+        "Équipe Contrôle Commande Casablanca": "Équipe Contrôle Commande",
+        "Équipe Télécom Casablanca": "Équipe Télécom",
+        "Équipe Conduite Postes Casablanca": "Équipe Conduite Postes",
+        "Équipe Exploitation et Conduite Casablanca": "Équipe Exploitation et Conduite"
+      },
+      "Service Exploitation et Maintenance Settat": {
+        "Équipe Lignes Settat": "Équipe Lignes",
+        "Équipe TST Lignes Settat": "Équipe TST Lignes",
+        "Équipe TST Postes Settat": "Équipe TST Postes",
+        "Équipe Maintenance Postes Settat": "Équipe Maintenance Postes",
+        "Équipe Contrôle Commande Settat": "Équipe Contrôle Commande",
+        "Équipe Télécom Settat": "Équipe Télécom",
+        "Équipe Conduite Postes Settat": "Équipe Conduite Postes",
+        "Équipe Exploitation et Conduite Settat": "Équipe Exploitation et Conduite"
+      }
+    },
+    "Division Exploitation El Jadida": {
+      "Service Exploitation et Maintenance El Jadida": {
+        "Équipe Lignes El Jadida": "Équipe Lignes",
+        "Équipe TST Lignes El Jadida": "Équipe TST Lignes",
+        "Équipe TST Postes El Jadida": "Équipe TST Postes",
+        "Équipe Maintenance Postes El Jadida": "Équipe Maintenance Postes",
+        "Équipe Contrôle Commande El Jadida": "Équipe Contrôle Commande",
+        "Équipe Télécom El Jadida": "Équipe Télécom",
+        "Équipe Conduite El Jadida": "Équipe Conduite Postes",
+        "Équipe Conduite Ghanem": "Équipe Conduite Postes",
+        "Équipe Conduite Jorf Lasfar": "Équipe Conduite Postes",
+        "Équipe Exploitation et Conduite El Jadida": "Équipe Exploitation et Conduite"
+      },
+      "Service Exploitation et Maintenance Safi": {
+        "Équipe Lignes Safi": "Équipe Lignes",
+        "Équipe TST Lignes Safi": "Équipe TST Lignes",
+        "Équipe TST Postes Safi": "Équipe TST Postes",
+        "Équipe Maintenance Postes Safi": "Équipe Maintenance Postes",
+        "Équipe Contrôle Commande Safi": "Équipe Contrôle Commande",
+        "Équipe Télécom Safi": "Équipe Télécom",
+        "Équipe Conduite Bouguedra": "Équipe Conduite Postes",
+        "Équipe Conduite Safi": "Équipe Conduite Postes",
+        "Équipe Conduite Sidi Bennour": "Équipe Conduite Postes",
+        "Équipe Conduite Chemaia": "Équipe Conduite Postes",
+        "Équipe Exploitation et Conduite Safi": "Équipe Exploitation et Conduite"
+      }
+    },
+    "Division Exploitation Afourer": {
+      "Service Exploitation et Maintenance Afourer": {
+        "Équipe Lignes Afourer": "Équipe Lignes",
+        "Équipe Lignes Kalaa": "Équipe Lignes",
+        "Équipe Lignes Tadla": "Équipe Lignes",
+        "Équipe TST Lignes Afourer": "Équipe TST Lignes",
+        "Équipe TST Postes Afourer": "Équipe TST Postes",
+        "Équipe Maintenance Postes Afourer": "Équipe Maintenance Postes",
+        "Équipe Contrôle Commande Afourer": "Équipe Contrôle Commande",
+        "Équipe Télécom Afourer": "Équipe Télécom",
+        "Équipe Conduite Afourer": "Équipe Conduite Postes",
+        "Équipe Conduite Benguerir": "Équipe Conduite Postes",
+        "Équipe Conduite Kalaa": "Équipe Conduite Postes",
+        "Équipe Conduite Khouribga": "Équipe Conduite Postes",
+        "Équipe Exploitation et Conduite Afourer": "Équipe Exploitation et Conduite"
+      },
+      "Service Exploitation et Maintenance Khouribga": {
+        "Équipe Lignes Khouribga": "Équipe Lignes",
+        "Équipe TST Lignes Khouribga": "Équipe TST Lignes",
+        "Équipe TST Postes Khouribga": "Équipe TST Postes",
+        "Équipe Maintenance Postes Khouribga": "Équipe Maintenance Postes",
+        "Équipe Contrôle Commande Khouribga": "Équipe Contrôle Commande",
+        "Équipe Télécom Khouribga": "Équipe Télécom",
+        "Équipe Conduite Postes Khouribga": "Équipe Conduite Postes",
+        "Équipe Exploitation et Conduite Khouribga": "Équipe Exploitation et Conduite"
+      }
+    },
+    "Division Technique": {
+      "Service Études": {},
+      "Service Réalisation": {}
+    }
+  }
+}

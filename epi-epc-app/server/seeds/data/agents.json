@@ -1,0 +1,3744 @@
+[
+  {
+    "matricule": "78286",
+    "nom_prenom": "EL ALAMI SABIR",
+    "division": "Division Exploitation Casablanca",
+    "service": null,
+    "equipe": null,
+    "role": "Chef de Division",
+    "fonction_rh": "Chef de Division",
+    "kit_keys": [
+      "hierarchie"
+    ]
+  },
+  {
+    "matricule": "76888",
+    "nom_prenom": "QUHILA KHALID",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "78234",
+    "nom_prenom": "BAMARJANE JAMAL",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "80226",
+    "nom_prenom": "BACHAR MOHAMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "80228",
+    "nom_prenom": "OUAHABI JALAL",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81595",
+    "nom_prenom": "GHARIB ABDELALI",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82094",
+    "nom_prenom": "BOUSSIF EL KBIR",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82302",
+    "nom_prenom": "HALLOUMI ABELALI",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82305",
+    "nom_prenom": "ETTAYEA MOSTAPHA",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82386",
+    "nom_prenom": "LAFROUDI MOHAMMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe Lignes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "82623",
+    "nom_prenom": "MABROUKA MOUHSSINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Opérateur TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82733",
+    "nom_prenom": "BOUMJA YOUSSEF ?",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Non renseignée",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "83559",
+    "nom_prenom": "ZOUINE SAID",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Opérateur TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "83601",
+    "nom_prenom": "MADDA TARIK",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "83635",
+    "nom_prenom": "AMZIL KAMAL",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "79276",
+    "nom_prenom": "BALHADDAD BADRE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe TST Lignes"
+    ]
+  },
+  {
+    "matricule": "82307",
+    "nom_prenom": "ABAD HAMZA",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe TST Lignes"
+    ]
+  },
+  {
+    "matricule": "82620",
+    "nom_prenom": "BAKHOUCH MOHAMMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe TST Lignes"
+    ]
+  },
+  {
+    "matricule": "84923",
+    "nom_prenom": "AOUAD MOUAD",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Lignes"
+    ]
+  },
+  {
+    "matricule": "85024",
+    "nom_prenom": "FALOUSS BASSAM",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Lignes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Lignes"
+    ]
+  },
+  {
+    "matricule": "79729",
+    "nom_prenom": "ADERDOUR Ismail",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "80345",
+    "nom_prenom": "FARICHOUCH HICHAM",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Conducteur Principal de Direction",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "80559",
+    "nom_prenom": "RAKI BRAHIM",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Contremaître TST Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "81521",
+    "nom_prenom": "HAMRITI Abdelhak",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "81640",
+    "nom_prenom": "BOUHACHEM Ilyass",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "82351",
+    "nom_prenom": "SAMIH Mustapha",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Contremaître TST Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "83064",
+    "nom_prenom": "FILALI-ANSARI Mustapha",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "83143",
+    "nom_prenom": "AIT KADDOUR MONCEF",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "83407",
+    "nom_prenom": "EL FAIZ Cherki",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Conducteur Mécanicien",
+    "kit_keys": [
+      "epi_Équipe TST Postes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "84816",
+    "nom_prenom": "OUTAARABT Ayoub",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "84819",
+    "nom_prenom": "EL IDRISSI Anouar",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe TST Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "74206",
+    "nom_prenom": "MOAYED Abdelkrim",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "77889",
+    "nom_prenom": "HASSOUNE Abderrazak",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "78983",
+    "nom_prenom": "KEROUICH KHALID",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre technique",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "81107",
+    "nom_prenom": "HIFDI Azzeddine",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "81124",
+    "nom_prenom": "ALMOU AZIZ",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "81920",
+    "nom_prenom": "LAROUSSI SALAH",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Conducteur Engins Spéciaux",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "81997",
+    "nom_prenom": "HAKIMI Youssef",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "81998",
+    "nom_prenom": "SAYAD Badr-Eddine",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "82446",
+    "nom_prenom": "ERROUISSI MOHAMMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "83781",
+    "nom_prenom": "EL JAAFARI Rachid",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "84633",
+    "nom_prenom": "OUSBAA IMAD-EDDINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "84820",
+    "nom_prenom": "KASSIMI TARIK",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Maintenance Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "78952",
+    "nom_prenom": "EL ASSALI KHALID",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "80409",
+    "nom_prenom": "LACH-HEB YOUNESS",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre Technique",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "80537",
+    "nom_prenom": "LOUDY HAMID",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "80925",
+    "nom_prenom": "ZOUITA NAJIB",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "81913",
+    "nom_prenom": "LACHKAR ILYAS",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "82262",
+    "nom_prenom": "ACHLOUJ SALAH-EDDINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "82323",
+    "nom_prenom": "MISBAH AMAL",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "82472",
+    "nom_prenom": "GASSIR Nabila",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "84063",
+    "nom_prenom": "SAABANE HANANE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "84072",
+    "nom_prenom": "ELMAKHLOUFY ABDEJALIL",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "84490",
+    "nom_prenom": "NAJJARI BADERDDINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "84751",
+    "nom_prenom": "KABYL YASSINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "84752",
+    "nom_prenom": "ZANTOUTE KAMAL",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "85495",
+    "nom_prenom": "ZEROUAL MOHAMED AMINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Non renseignée",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "85496",
+    "nom_prenom": "ZAHIR HAMZA",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Contrôle Commande Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Non renseignée",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "80795",
+    "nom_prenom": "RABBAJ DRISS",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Télécom Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Spécialisé Télécom",
+    "kit_keys": [
+      "epi_Équipe Télécom"
+    ]
+  },
+  {
+    "matricule": "83835",
+    "nom_prenom": "MAGHNI KAMAL",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Télécom Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Télécom"
+    ]
+  },
+  {
+    "matricule": "79274",
+    "nom_prenom": "BOUJMAI NABIL",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "79917",
+    "nom_prenom": "JAHA MOHAMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80227",
+    "nom_prenom": "HAJ BRAHIM",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80460",
+    "nom_prenom": "NAJIDI AHMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80489",
+    "nom_prenom": "ABBDELLAOUI ABDELATI",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80924",
+    "nom_prenom": "EL-MOUKH SAID",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81126",
+    "nom_prenom": "MOUIMI NOUREDDINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81129",
+    "nom_prenom": "TANJI ILYASS",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81130",
+    "nom_prenom": "LARHZAOUI LAHSEN",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81132",
+    "nom_prenom": "KAHLAOUI MOUSSA",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81134",
+    "nom_prenom": "BOUHAFS EL MOSTAFA",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Cadre Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81594",
+    "nom_prenom": "BOUKHRISS MOHAMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82304",
+    "nom_prenom": "YOUSFI ABDELHAQ",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82342",
+    "nom_prenom": "MOUSTAQIM YOUSSEF",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82363",
+    "nom_prenom": "MOUHOUB YOUNESS",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82617",
+    "nom_prenom": "ER-RACHED IMAD",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82641",
+    "nom_prenom": "ET-TALAOUI MOHAMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83083",
+    "nom_prenom": "BOUCHTAOUI JAMAL-EDDINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83506",
+    "nom_prenom": "OUBOUROU IDER",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83509",
+    "nom_prenom": "LAROUI OMAR",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83513",
+    "nom_prenom": "SIHAM JABIR",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83516",
+    "nom_prenom": "AZIZ MOHAMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83519",
+    "nom_prenom": "ZOUAGHI MOHAMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83593",
+    "nom_prenom": "OULHAJ DAID",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83625",
+    "nom_prenom": "MADANI ABDELKABIR",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83756",
+    "nom_prenom": "JEDDI MONCEF",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83945",
+    "nom_prenom": "IDRISSI AMINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84632",
+    "nom_prenom": "BOUGHDIR ABDELMONIM",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "84706",
+    "nom_prenom": "BELLAOUALI ABDELILAH",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84714",
+    "nom_prenom": "ERRADI ABDELILAH",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84817",
+    "nom_prenom": "AIT DASSAR HAMZA",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84827",
+    "nom_prenom": "MOSTAKIM OTHMANE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85497",
+    "nom_prenom": "YOUNESS AHMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Isolation Thermique",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85664",
+    "nom_prenom": "FATTAH HASSAN",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85665",
+    "nom_prenom": "MORHLI MAROUANE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85666",
+    "nom_prenom": "AIACHI MOHAMMED AMINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85844",
+    "nom_prenom": "HAOULI YASSINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85886",
+    "nom_prenom": "KARA JIHAD",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Non renseignée",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85888",
+    "nom_prenom": "EL HARRAK YASSINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Casablanca",
+    "equipe": "Équipe Conduite Postes Casablanca",
+    "role": "Membre",
+    "fonction_rh": "Non renseignée",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80906",
+    "nom_prenom": "EL ATTARI YASSINE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": null,
+    "role": "Chef de Service",
+    "fonction_rh": "Chef de Service",
+    "kit_keys": [
+      "hierarchie"
+    ]
+  },
+  {
+    "matricule": "76759",
+    "nom_prenom": "LAARISSI Abdeslam",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Maintenance Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "80398",
+    "nom_prenom": "ZAKHIR EL HADJ",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Maintenance Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "81011",
+    "nom_prenom": "ED-DOUH MOURAD",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Maintenance Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "81670",
+    "nom_prenom": "SAID ZOUHAIR",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Maintenance Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "82450",
+    "nom_prenom": "CHAMSI ABDESSLAM",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Maintenance Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "84002",
+    "nom_prenom": "QRAITICH MOHAMED",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Maintenance Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "84004",
+    "nom_prenom": "ELWARDI ZOUHEÏR",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Maintenance Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "82400",
+    "nom_prenom": "NAJID HAMZA",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Conduite Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83515",
+    "nom_prenom": "FALAKI ABDELILAH",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Conduite Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84003",
+    "nom_prenom": "ATTI HAMZA",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Conduite Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84005",
+    "nom_prenom": "BOUCHLAGHEM BADRE",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Conduite Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84981",
+    "nom_prenom": "ECH CHAOUQI ABDESSAMAD",
+    "division": "Division Exploitation Casablanca",
+    "service": "Service Exploitation et Maintenance Settat",
+    "equipe": "Équipe Conduite Postes Settat",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "79677",
+    "nom_prenom": "EL BOUYAHYAOUI Mustapha",
+    "division": "Division Exploitation El Jadida",
+    "service": null,
+    "equipe": null,
+    "role": "Chef de Division",
+    "fonction_rh": "Chef de Division",
+    "kit_keys": [
+      "hierarchie"
+    ]
+  },
+  {
+    "matricule": "83192",
+    "nom_prenom": "JAMIL BOUTAINA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": null,
+    "role": "Chef de Service",
+    "fonction_rh": "Chef de Service",
+    "kit_keys": [
+      "hierarchie"
+    ]
+  },
+  {
+    "matricule": "80359",
+    "nom_prenom": "LAHKIM SAID",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "80610",
+    "nom_prenom": "SAIB Talal",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81131",
+    "nom_prenom": "EL BACHOURI Yassine",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81990",
+    "nom_prenom": "TOUBALI Youssef",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82315",
+    "nom_prenom": "EDDAHBI Hicham",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82374",
+    "nom_prenom": "LAOUDI Oussama",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe Lignes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "82381",
+    "nom_prenom": "KHADRAOUI MEHDI",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe Lignes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "82513",
+    "nom_prenom": "EL HAJJI Outmane",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82649",
+    "nom_prenom": "BENZAZAA Yassine",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "83350",
+    "nom_prenom": "BABAISSA Abderrahim",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe Lignes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "84084",
+    "nom_prenom": "BABA Ayoub",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "84630",
+    "nom_prenom": "ZEGAI MOHAMMED",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe Lignes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "84822",
+    "nom_prenom": "ZILAF Youssef",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "85023",
+    "nom_prenom": "FARIS Ayoub",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "85031",
+    "nom_prenom": "ESSAIF Hamza",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "85637",
+    "nom_prenom": "ENNAJAH Marouane",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "85660",
+    "nom_prenom": "BOULAL HAMZA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81999",
+    "nom_prenom": "EL AOUJA Abdessamad",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe TST Lignes"
+    ]
+  },
+  {
+    "matricule": "82337",
+    "nom_prenom": "OUNIR Abdelatif",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe TST Lignes"
+    ]
+  },
+  {
+    "matricule": "82743",
+    "nom_prenom": "ITBANE Abdelqodouss",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe TST Lignes"
+    ]
+  },
+  {
+    "matricule": "83511",
+    "nom_prenom": "AIT ALLA Mohamed",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Lignes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Opérateur TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe TST Lignes"
+    ]
+  },
+  {
+    "matricule": "82622",
+    "nom_prenom": "JARANE ZOUHAIR",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître TST Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "82848",
+    "nom_prenom": "MOJAHID REDA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "83571",
+    "nom_prenom": "JABRI Abdelali",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Opérateur TST Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "84881",
+    "nom_prenom": "NAAMY Said",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "85860",
+    "nom_prenom": "DNAYA ABDELGHAFOUR",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "85862",
+    "nom_prenom": "ARCHE AZZEDDINE",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe TST Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "80045",
+    "nom_prenom": "HAMADA Abdelhaq",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Maintenance Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Cadre Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "80793",
+    "nom_prenom": "BOULGHAIT Mohamed",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Maintenance Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "80922",
+    "nom_prenom": "CHIBANE ZAKARIA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Maintenance Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "80960",
+    "nom_prenom": "BOUNHIZA Abdelwahab",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Maintenance Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "82376",
+    "nom_prenom": "MOURADI YASSINE",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Maintenance Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "84682",
+    "nom_prenom": "HASSOUM ABDELLATIF",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Maintenance Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "84715",
+    "nom_prenom": "TIDAF YOUNES",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Maintenance Postes El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "75453",
+    "nom_prenom": "FAREH ABDERRAHIM",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Cadre Technique",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "78934",
+    "nom_prenom": "BAHLOULI SAMIR",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Cadre Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "78935",
+    "nom_prenom": "ALLIOUI RACHID",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "79033",
+    "nom_prenom": "BEN RAHHOU ABDELMAJID",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "79350",
+    "nom_prenom": "DAMOUCHE ABDERRAHIM",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "79848",
+    "nom_prenom": "IDRISSI BOURHIM SAID",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "79920",
+    "nom_prenom": "ALAMI QAMMOURI ABDELLAH",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "81157",
+    "nom_prenom": "DAKIR HOUSSAM",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "81274",
+    "nom_prenom": "EL OUADYLY ABDERRAHIM",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "81366",
+    "nom_prenom": "AZZOU HAMID",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "83300",
+    "nom_prenom": "EL HRYCHY OUSSAMA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "83524",
+    "nom_prenom": "GOUHNA ABDESSAMAD",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "84071",
+    "nom_prenom": "HAFFAR EL MOSTAFA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "84743",
+    "nom_prenom": "AIT LABSIR AYMAN",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Contrôle Commande El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "75980",
+    "nom_prenom": "ROUIAS Nacer",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Cadre Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81584",
+    "nom_prenom": "JANAH ZAKARIA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82552",
+    "nom_prenom": "MOUCHTAKI YOUSSEF",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85908",
+    "nom_prenom": "KOUNINE RIDA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite El Jadida",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "76432",
+    "nom_prenom": "GHALEM Mohamed",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite Ghanem",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81814",
+    "nom_prenom": "DRAWAT Yassine",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite Ghanem",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81915",
+    "nom_prenom": "SADOUK Yassine",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite Ghanem",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83520",
+    "nom_prenom": "AAKRACH Abdelhak",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite Ghanem",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82624",
+    "nom_prenom": "NOSSIR MESSAOUD",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite Jorf Lasfar",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82794",
+    "nom_prenom": "ZERIAT EL MAHDI",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite Jorf Lasfar",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83518",
+    "nom_prenom": "MARROUS YAHYA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite Jorf Lasfar",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84487",
+    "nom_prenom": "AHLA AMMAR",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance El Jadida",
+    "equipe": "Équipe Conduite Jorf Lasfar",
+    "role": "Membre",
+    "fonction_rh": "Technicien Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80237",
+    "nom_prenom": "BENIFFOU Abdelkader",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Lignes Safi",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81657",
+    "nom_prenom": "GOUAL Yassine",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Lignes Safi",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81914",
+    "nom_prenom": "AKRIM AMINE",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Lignes Safi",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "84705",
+    "nom_prenom": "FANDOUL Mohamed",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Lignes Safi",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "96277",
+    "nom_prenom": "TONIYOS Ahmed",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Lignes Safi",
+    "role": "Membre",
+    "fonction_rh": "Non renseignée",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "96280",
+    "nom_prenom": "BAROUCH Mohamed",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Lignes Safi",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Electromécanicien",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "75447",
+    "nom_prenom": "MOUSTAKIM Abdelhak",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Maintenance Postes Safi",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "84717",
+    "nom_prenom": "LSFER OUTMANE",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Maintenance Postes Safi",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "80491",
+    "nom_prenom": "LAKMAS Mhamed",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Bouguedra",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80811",
+    "nom_prenom": "GARBI Redouane",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Bouguedra",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83249",
+    "nom_prenom": "LAANAYA AHMED",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Bouguedra",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83517",
+    "nom_prenom": "BELKRAFI MOHAMMED",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Bouguedra",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81014",
+    "nom_prenom": "SAID Noureddine",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Safi",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81802",
+    "nom_prenom": "NFAOUI Badre",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Safi",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83512",
+    "nom_prenom": "IBHIOUN AZIZ",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Safi",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83526",
+    "nom_prenom": "AASSAOUI ABDELHALIM",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Safi",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84716",
+    "nom_prenom": "MIRHLAMI MOHAMMED",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Safi",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85045",
+    "nom_prenom": "ERRAMI Noureddin",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Safi",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85945",
+    "nom_prenom": "ERRIFAI MOHAMED",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Safi",
+    "role": "Membre",
+    "fonction_rh": "Opérateur TST Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80533",
+    "nom_prenom": "LAISSI Lotfi",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Sidi Bennour",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80794",
+    "nom_prenom": "ABOUAMAMA AHMED",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Sidi Bennour",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81122",
+    "nom_prenom": "BOUALI Yassine",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Sidi Bennour",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81123",
+    "nom_prenom": "BIGOURRAMEN Hicham",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Sidi Bennour",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81133",
+    "nom_prenom": "OUBALLA Aissam",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Chemaia",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81208",
+    "nom_prenom": "ERRABBAA Youssef",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Chemaia",
+    "role": "Membre",
+    "fonction_rh": "Cadre Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81585",
+    "nom_prenom": "ECHTOUKI ABDELHADI",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Chemaia",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82682",
+    "nom_prenom": "BELAABIDIA OUSSAMA",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Chemaia",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83521",
+    "nom_prenom": "BOUJDIG YOUSSEF",
+    "division": "Division Exploitation El Jadida",
+    "service": "Service Exploitation et Maintenance Safi",
+    "equipe": "Équipe Conduite Chemaia",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "78849",
+    "nom_prenom": "NABILI Moubarik",
+    "division": "Division Exploitation Afourer",
+    "service": null,
+    "equipe": null,
+    "role": "Chef de Division",
+    "fonction_rh": "Chef de Division",
+    "kit_keys": [
+      "hierarchie"
+    ]
+  },
+  {
+    "matricule": "78005",
+    "nom_prenom": "EL ALJI Rachid",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre Technique",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "78954",
+    "nom_prenom": "EN-NOUR Abdessamad",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "83629",
+    "nom_prenom": "BENRABEH Abdelah",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "79919",
+    "nom_prenom": "CHAOUKI Yassine",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "85863",
+    "nom_prenom": "AHMICHE ABDELLATIF",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "85887",
+    "nom_prenom": "LATRACHE MOHAMED",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "85939",
+    "nom_prenom": "OUALLAL AMINE",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Opérateur TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81581",
+    "nom_prenom": "KEBDANI Charaf",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82316",
+    "nom_prenom": "GHAZI Hassan",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "82637",
+    "nom_prenom": "SAIDI Khalid",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "85083",
+    "nom_prenom": "OUASSIRI Said",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Opérateur TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81632",
+    "nom_prenom": "OBBIBA Ouadyae",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Kalaa",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "83626",
+    "nom_prenom": "KHALID ABDESSALAM",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Kalaa",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "78958",
+    "nom_prenom": "CHAHBOUNE Khalid",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Kalaa",
+    "role": "Membre",
+    "fonction_rh": "Cadre TST Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "83505",
+    "nom_prenom": "AMIMI Mohamed",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Kalaa",
+    "role": "Membre",
+    "fonction_rh": "Technicien Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81582",
+    "nom_prenom": "ELMEKAOUI Mohamed",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Tadla",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "84683",
+    "nom_prenom": "BAKHOUYA MOHAMED",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Tadla",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "78955",
+    "nom_prenom": "MONSIF Rahal",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Tadla",
+    "role": "Membre",
+    "fonction_rh": "Cadre Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81522",
+    "nom_prenom": "ZERRAD Karim",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Tadla",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "85865",
+    "nom_prenom": "ERITALI AHMED",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Lignes Tadla",
+    "role": "Membre",
+    "fonction_rh": "Monteur de Lignes THT&HT",
+    "kit_keys": [
+      "epi_Équipe Lignes"
+    ]
+  },
+  {
+    "matricule": "81921",
+    "nom_prenom": "IBNAS Soufiane",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe TST Lignes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe TST Lignes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "82306",
+    "nom_prenom": "ERRADI Othmane",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe TST Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "83628",
+    "nom_prenom": "OUAZA Driss",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe TST Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "85749",
+    "nom_prenom": "EL FARSAOUI JAOUAD",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe TST Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Opérateur TST Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "81434",
+    "nom_prenom": "CHADOI HAYTEM",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe TST Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Conducteur mécanicien",
+    "kit_keys": [
+      "epi_Équipe TST Postes",
+      "conducteur_mecanicien"
+    ]
+  },
+  {
+    "matricule": "84851",
+    "nom_prenom": "MAZANE ZAKARIA",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe TST Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "83172",
+    "nom_prenom": "LAAOUEJ Mohamed",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe TST Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe TST Postes"
+    ]
+  },
+  {
+    "matricule": "84876",
+    "nom_prenom": "LAMBARKI Abderrahim",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Maintenance Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "81973",
+    "nom_prenom": "CHHIBA Abdelghafour",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Maintenance Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "82738",
+    "nom_prenom": "BENSAADA EL MOKHTAR",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Maintenance Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "82810",
+    "nom_prenom": "ELMAZGUI Youssef",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Maintenance Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "83627",
+    "nom_prenom": "EL KARFI TARIQ",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Maintenance Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "79876",
+    "nom_prenom": "CHEGDALI Mohamed",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Maintenance Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "85941",
+    "nom_prenom": "OURCHID MOHAMMED",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Maintenance Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Non renseignée",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "85978",
+    "nom_prenom": "HAMOUCH HAMZA",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Maintenance Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "81628",
+    "nom_prenom": "ZRAYGUE Mustapha",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Maintenance Postes Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Maintenance Postes"
+    ]
+  },
+  {
+    "matricule": "83630",
+    "nom_prenom": "AHTTAB BRAHIM",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "84073",
+    "nom_prenom": "RACHIDI SAID",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "79868",
+    "nom_prenom": "TALIB HICHAM",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien principal contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "84742",
+    "nom_prenom": "CHAHBOUN M'BAREK",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Non renseignée",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "85690",
+    "nom_prenom": "BENAYACHY KHALID",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "75451",
+    "nom_prenom": "RBAIBI Mustapha",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "78782",
+    "nom_prenom": "BOUREGH Salah",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien principal contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "79326",
+    "nom_prenom": "BOURI Abdeslam",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "79785",
+    "nom_prenom": "BOUJAMAOUI Khalid",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "81933",
+    "nom_prenom": "EL KORCH Redouane",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Contrôle Commande Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Contrôle Commande"
+    ]
+  },
+  {
+    "matricule": "79336",
+    "nom_prenom": "OUHAMMOU Jaouad",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Télécom Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "epi_Équipe Télécom"
+    ]
+  },
+  {
+    "matricule": "79411",
+    "nom_prenom": "AIT OULAID BRAHIM",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82019",
+    "nom_prenom": "ET-TALBY Rachid",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "78957",
+    "nom_prenom": "BAISSA Youssef",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "79327",
+    "nom_prenom": "OUMOUSSI Ahmed",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Cadre Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80487",
+    "nom_prenom": "CHABIH Badr",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81371",
+    "nom_prenom": "BOURAKBA Issam",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82349",
+    "nom_prenom": "ELGHAFRAOUI Youness",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81293",
+    "nom_prenom": "DAHAOUI YOUNESS",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81155",
+    "nom_prenom": "KACIMI Naoufel",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81135",
+    "nom_prenom": "BOUZOUGAGH Momamed",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84828",
+    "nom_prenom": "GAMIL youssef",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84775",
+    "nom_prenom": "ESSAHDA MOHAMMED",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82790",
+    "nom_prenom": "EL-MAAKOUL ABDELGHANI",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83878",
+    "nom_prenom": "JNAIKH AMINE",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Afourer",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84957",
+    "nom_prenom": "CHAABI Rabia",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Benguerir",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "78040",
+    "nom_prenom": "ELMOUAKIT Abdelmalek",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Benguerir",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81813",
+    "nom_prenom": "HOUSSAINI Mohamed",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Benguerir",
+    "role": "Membre",
+    "fonction_rh": "Contremaître TST Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "82338",
+    "nom_prenom": "IDIR Amine",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Benguerir",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83510",
+    "nom_prenom": "NOUGHIRA Samir",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Benguerir",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "83527",
+    "nom_prenom": "TOUITI Lahsen",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Benguerir",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84821",
+    "nom_prenom": "ENNADIR Amine",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Kalaa",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "79328",
+    "nom_prenom": "ARESMOUK Soufiane",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Kalaa",
+    "role": "Membre",
+    "fonction_rh": "Cadre Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "79953",
+    "nom_prenom": "MORO Abderrahim",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Kalaa",
+    "role": "Membre",
+    "fonction_rh": "Cadre Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84949",
+    "nom_prenom": "CHAIF Nour-Eddine",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81205",
+    "nom_prenom": "NOUGA Omar",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "81523",
+    "nom_prenom": "ECHAKRAOUI Yassine",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "76509",
+    "nom_prenom": "MESRAR Rachid",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Cadre Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "76988",
+    "nom_prenom": "OUGIL HAMID",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Cadre technique",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "80532",
+    "nom_prenom": "TORABI Ahmed",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85872",
+    "nom_prenom": "BENELMEKROUD HICHAM",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Ouvrier Professionnel Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84066",
+    "nom_prenom": "ELBIR MEHDI",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "84741",
+    "nom_prenom": "JAMALI MOUNIR",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "85072",
+    "nom_prenom": "MOUNTAHI Amine",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": "Équipe Conduite Khouribga",
+    "role": "Membre",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "epi_Équipe Conduite Postes"
+    ]
+  },
+  {
+    "matricule": "78402",
+    "nom_prenom": "EZ-ZOUINE El Mostafa",
+    "division": "Division Technique",
+    "service": null,
+    "equipe": null,
+    "role": "Chef de Division",
+    "fonction_rh": "Chef de Division",
+    "kit_keys": [
+      "hierarchie"
+    ]
+  },
+  {
+    "matricule": "79661",
+    "nom_prenom": "LARHZIL Fatima",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Chef de Service",
+    "fonction_rh": "Chef de Service",
+    "kit_keys": [
+      "hierarchie"
+    ]
+  },
+  {
+    "matricule": "74608",
+    "nom_prenom": "KHALIL Mustapha",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Conducteur Travaux Génie Civil",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "75537",
+    "nom_prenom": "HOUBOUB Khalid",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "80536",
+    "nom_prenom": "HAMMAT Hayat",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Technicien Principal Exploitation Réseau",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "81367",
+    "nom_prenom": "AOULTUM Mohamed",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "81431",
+    "nom_prenom": "BOUCETTA Youssef",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Projeteur Lignes THT&HT",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "81763",
+    "nom_prenom": "BENTALHA HAJAR",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Contrôleur Travaux Génie Civil",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "84352",
+    "nom_prenom": "RAHALI Ali",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Technicien Contrôle Commande RT",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "84606",
+    "nom_prenom": "CHAJAI AYOUB",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Surveillant Travaux Génie Civil",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "84818",
+    "nom_prenom": "KHANAOUI EL MEHDI",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Chef d'Equipe Lignes THT&HT",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "85263",
+    "nom_prenom": "TOUTI ZAHRA",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Chef d'Equipe Postes THT/HT",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "85352",
+    "nom_prenom": "MIR NABIL",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "85659",
+    "nom_prenom": "EL AZZAB BOUCHRA",
+    "division": "Division Technique",
+    "service": "Service Études",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Technicien Exploitation Réseau",
+    "kit_keys": [
+      "svc_etudes"
+    ]
+  },
+  {
+    "matricule": "83258",
+    "nom_prenom": "KAJAD MAHMOUD",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Chef de Service",
+    "fonction_rh": "Chef de Service",
+    "kit_keys": [
+      "hierarchie"
+    ]
+  },
+  {
+    "matricule": "74200",
+    "nom_prenom": "LEMROUAJ Jilali",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Cadre Technique",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "74210",
+    "nom_prenom": "SAIF Mohamed",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Projeteur Lignes THT&HT",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "75949",
+    "nom_prenom": "EL KHAOUA Rachid",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Cadre Contrôle Commande RT",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "78987",
+    "nom_prenom": "SADIKI Younes",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Cadre Lignes THT&HT",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "80438",
+    "nom_prenom": "NAOUNI Mohamed",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "80609",
+    "nom_prenom": "MOUDKIRI Hassan",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Contremaître Postes THT/HT",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "80792",
+    "nom_prenom": "LAMKHARTAT Rida",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Technicien Principal Contrôle Commande RT",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "81125",
+    "nom_prenom": "MOUDKIRI AYOUB",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "81752",
+    "nom_prenom": "DERRICH EL MEHDI",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Contrôleur Travaux Génie Civil",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "81907",
+    "nom_prenom": "ZOUBIR Mohamed",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Contremaître Lignes THT&HT",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "84833",
+    "nom_prenom": "HACHLAF RACHID",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Surveillant Travaux Génie Civil",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "85859",
+    "nom_prenom": "EL GHARMAH ALI",
+    "division": "Division Technique",
+    "service": "Service Réalisation",
+    "equipe": null,
+    "role": "Membre (service technique)",
+    "fonction_rh": "Technicien Contrôle Commande RT",
+    "kit_keys": [
+      "svc_realisation"
+    ]
+  },
+  {
+    "matricule": "81450",
+    "nom_prenom": "ETTAFS Yassine",
+    "division": "Division Exploitation Afourer",
+    "service": "Service Exploitation et Maintenance Afourer",
+    "equipe": null,
+    "role": "Membre",
+    "fonction_rh": "Conducteur Engins Spéciaux",
+    "kit_keys": [],
+    "note": "Équipe vide/xxx hors Division Technique et hors Chef"
+  }
+]

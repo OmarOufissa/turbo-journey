@@ -1,0 +1,509 @@
+import {
+  pgTable,
+  serial,
+  text,
+  integer,
+  boolean,
+  timestamp,
+  numeric,
+  jsonb,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+
+// ============================================================================
+// ORGANISATION — Direction > Division > Service > Équipe > Agent
+// ============================================================================
+
+export const divisions = pgTable(
+  "divisions",
+  {
+    id: serial("id").primaryKey(),
+    code: text("code").notNull().unique(),
+    nom: text("nom").notNull(),
+    chefAgentId: integer("chef_agent_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({ nomIdx: uniqueIndex("divisions_nom_idx").on(t.nom) }),
+);
+
+export const services = pgTable(
+  "services",
+  {
+    id: serial("id").primaryKey(),
+    code: text("code").notNull().unique(),
+    nom: text("nom").notNull(),
+    divisionId: integer("division_id")
+      .notNull()
+      .references(() => divisions.id, { onDelete: "cascade" }),
+    chefAgentId: integer("chef_agent_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    divisionIdx: index("services_division_idx").on(t.divisionId),
+    uniqueNamePerDivision: uniqueIndex("services_nom_division_idx").on(t.nom, t.divisionId),
+  }),
+);
+
+export const equipes = pgTable(
+  "equipes",
+  {
+    id: serial("id").primaryKey(),
+    code: text("code").notNull().unique(),
+    nom: text("nom").notNull(),
+    serviceId: integer("service_id")
+      .notNull()
+      .references(() => services.id, { onDelete: "cascade" }),
+    // "Équipe Lignes", "Équipe TST Postes", ... — drives standard EPI/EPC kit template matching
+    teamType: text("team_type"),
+    chefAgentId: integer("chef_agent_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    serviceIdx: index("equipes_service_idx").on(t.serviceId),
+    teamTypeIdx: index("equipes_team_type_idx").on(t.teamType),
+    uniqueNamePerService: uniqueIndex("equipes_nom_service_idx").on(t.nom, t.serviceId),
+  }),
+);
+
+export const agents = pgTable(
+  "agents",
+  {
+    id: serial("id").primaryKey(),
+    matricule: text("matricule").notNull().unique(),
+    nom: text("nom").notNull(),
+    prenom: text("prenom"),
+    photoUrl: text("photo_url"),
+    divisionId: integer("division_id").references(() => divisions.id),
+    serviceId: integer("service_id").references(() => services.id),
+    equipeId: integer("equipe_id").references(() => equipes.id),
+    fonction: text("fonction"),
+    poste: text("poste"),
+    dateEmbauche: text("date_embauche"),
+    telephone: text("telephone"),
+    email: text("email"),
+    statut: text("statut").notNull().default("actif"), // actif | inactif | archive
+    note: text("note"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    matriculeIdx: uniqueIndex("agents_matricule_idx").on(t.matricule),
+    divisionIdx: index("agents_division_idx").on(t.divisionId),
+    serviceIdx: index("agents_service_idx").on(t.serviceId),
+    equipeIdx: index("agents_equipe_idx").on(t.equipeId),
+    statutIdx: index("agents_statut_idx").on(t.statut),
+  }),
+);
+
+export const orgRelations = relations(divisions, ({ many }) => ({
+  services: many(services),
+}));
+export const servicesRelations = relations(services, ({ one, many }) => ({
+  division: one(divisions, { fields: [services.divisionId], references: [divisions.id] }),
+  equipes: many(equipes),
+}));
+export const equipesRelations = relations(equipes, ({ one, many }) => ({
+  service: one(services, { fields: [equipes.serviceId], references: [services.id] }),
+  agents: many(agents),
+}));
+export const agentsRelations = relations(agents, ({ one }) => ({
+  division: one(divisions, { fields: [agents.divisionId], references: [divisions.id] }),
+  service: one(services, { fields: [agents.serviceId], references: [services.id] }),
+  equipe: one(equipes, { fields: [agents.equipeId], references: [equipes.id] }),
+}));
+
+// ============================================================================
+// UTILISATEURS (comptes applicatifs)
+// ============================================================================
+
+// Roles: administrateur | gestionnaire_stock | responsable_hse | chef_equipe | consultation
+export const users = pgTable(
+  "users",
+  {
+    id: serial("id").primaryKey(),
+    username: text("username").notNull().unique(),
+    passwordHash: text("password_hash").notNull(),
+    nom: text("nom").notNull(),
+    role: text("role").notNull().default("consultation"),
+    agentId: integer("agent_id").references(() => agents.id),
+    actif: boolean("actif").notNull().default(true),
+    derniereConnexion: timestamp("derniere_connexion"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({ usernameIdx: uniqueIndex("users_username_idx").on(t.username) }),
+);
+
+// ============================================================================
+// CATALOGUE ARTICLES — Familles / Sous-familles / Articles / Marchés
+// ============================================================================
+
+export const familles = pgTable("familles", {
+  id: serial("id").primaryKey(),
+  nom: text("nom").notNull().unique(),
+  ordre: integer("ordre").notNull().default(0),
+});
+
+export const sousFamilles = pgTable(
+  "sous_familles",
+  {
+    id: serial("id").primaryKey(),
+    familleId: integer("famille_id")
+      .notNull()
+      .references(() => familles.id, { onDelete: "cascade" }),
+    nom: text("nom").notNull(),
+  },
+  (t) => ({
+    familleIdx: index("sous_familles_famille_idx").on(t.familleId),
+    uniqueNamePerFamille: uniqueIndex("sous_familles_nom_famille_idx").on(t.nom, t.familleId),
+  }),
+);
+
+export const marches = pgTable(
+  "marches",
+  {
+    id: serial("id").primaryKey(),
+    numero: text("numero").notNull(),
+    annee: integer("annee").notNull(),
+    objet: text("objet").notNull(),
+    fournisseur: text("fournisseur").notNull(),
+    montant: numeric("montant", { precision: 14, scale: 2 }),
+    dateNotification: text("date_notification"),
+    dateLivraison: text("date_livraison"),
+    statut: text("statut").notNull().default("notifie"), // notifie | en_cours | livre | solde
+    observations: text("observations"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({ numeroIdx: uniqueIndex("marches_numero_annee_idx").on(t.numero, t.annee) }),
+);
+
+export const articles = pgTable(
+  "articles",
+  {
+    id: serial("id").primaryKey(),
+    codeArticle: text("code_article").notNull().unique(),
+    codeInterne: text("code_interne"),
+    codeFournisseur: text("code_fournisseur"),
+    familleId: integer("famille_id").references(() => familles.id),
+    sousFamilleId: integer("sous_famille_id").references(() => sousFamilles.id),
+    designation: text("designation").notNull(),
+    description: text("description"),
+    photoUrl: text("photo_url"),
+    referenceFabricant: text("reference_fabricant"),
+    constructeur: text("constructeur"),
+    normes: text("normes"),
+    certification: text("certification"),
+    dateFabrication: text("date_fabrication"),
+    dureeVieMois: integer("duree_vie_mois"),
+    dateLimiteUtilisation: text("date_limite_utilisation"),
+    noticePdfUrl: text("notice_pdf_url"),
+    ficheTechniquePdfUrl: text("fiche_technique_pdf_url"),
+    poidsKg: numeric("poids_kg", { precision: 8, scale: 3 }),
+    dimensions: text("dimensions"),
+    couleur: text("couleur"),
+    aTaille: boolean("a_taille").notNull().default(false),
+    aPointure: boolean("a_pointure").notNull().default(false),
+    dateMiseEnService: text("date_mise_en_service"),
+    observations: text("observations"),
+    prixUnitaire: numeric("prix_unitaire", { precision: 12, scale: 2 }),
+    marcheId: integer("marche_id").references(() => marches.id),
+    fournisseur: text("fournisseur"),
+    garantieMois: integer("garantie_mois"),
+    stockMin: integer("stock_min").notNull().default(0),
+    stockMax: integer("stock_max"),
+    // Compteurs dérivés du ledger stock_mouvements, maintenus par l'API pour lecture rapide
+    stockDisponible: integer("stock_disponible").notNull().default(0),
+    stockReserve: integer("stock_reserve").notNull().default(0),
+    stockCommande: integer("stock_commande").notNull().default(0),
+    unite: text("unite").notNull().default("pièce"),
+    actif: boolean("actif").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    codeIdx: uniqueIndex("articles_code_idx").on(t.codeArticle),
+    familleIdx: index("articles_famille_idx").on(t.familleId),
+    designationIdx: index("articles_designation_idx").on(t.designation),
+    stockDisponibleIdx: index("articles_stock_disponible_idx").on(t.stockDisponible),
+  }),
+);
+
+export const famillesRelations = relations(familles, ({ many }) => ({
+  sousFamilles: many(sousFamilles),
+  articles: many(articles),
+}));
+export const sousFamillesRelations = relations(sousFamilles, ({ one, many }) => ({
+  famille: one(familles, { fields: [sousFamilles.familleId], references: [familles.id] }),
+  articles: many(articles),
+}));
+export const articlesRelations = relations(articles, ({ one, many }) => ({
+  famille: one(familles, { fields: [articles.familleId], references: [familles.id] }),
+  sousFamille: one(sousFamilles, { fields: [articles.sousFamilleId], references: [sousFamilles.id] }),
+  marche: one(marches, { fields: [articles.marcheId], references: [marches.id] }),
+  mouvements: many(stockMouvements),
+  affectations: many(affectations),
+}));
+export const marchesRelations = relations(marches, ({ many }) => ({ articles: many(articles) }));
+
+// ============================================================================
+// KITS STANDARD (dotation type) — panier EPI/EPC par type d'équipe ou poste
+// ============================================================================
+
+export const kitTemplates = pgTable(
+  "kit_templates",
+  {
+    id: serial("id").primaryKey(),
+    code: text("code").notNull().unique(),
+    label: text("label").notNull(),
+    appliesToType: text("applies_to_type").notNull(), // team_type | poste | service
+    appliesToValue: text("applies_to_value").notNull(),
+    categorie: text("categorie").notNull(), // EPI | EPC
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({ codeIdx: uniqueIndex("kit_templates_code_idx").on(t.code) }),
+);
+
+export const kitTemplateLignes = pgTable(
+  "kit_template_lignes",
+  {
+    id: serial("id").primaryKey(),
+    kitTemplateId: integer("kit_template_id")
+      .notNull()
+      .references(() => kitTemplates.id, { onDelete: "cascade" }),
+    articleId: integer("article_id")
+      .notNull()
+      .references(() => articles.id),
+    quantite: integer("quantite").notNull().default(1),
+  },
+  (t) => ({ kitIdx: index("kit_template_lignes_kit_idx").on(t.kitTemplateId) }),
+);
+
+export const kitTemplatesRelations = relations(kitTemplates, ({ many }) => ({ lignes: many(kitTemplateLignes) }));
+export const kitTemplateLignesRelations = relations(kitTemplateLignes, ({ one }) => ({
+  kitTemplate: one(kitTemplates, { fields: [kitTemplateLignes.kitTemplateId], references: [kitTemplates.id] }),
+  article: one(articles, { fields: [kitTemplateLignes.articleId], references: [articles.id] }),
+}));
+
+// ============================================================================
+// STOCK — mouvements (ledger append-only)
+// ============================================================================
+
+// type: entree_achat | entree_retour | sortie_affectation | sortie_reforme | sortie_perte | ajustement
+export const stockMouvements = pgTable(
+  "stock_mouvements",
+  {
+    id: serial("id").primaryKey(),
+    articleId: integer("article_id")
+      .notNull()
+      .references(() => articles.id),
+    type: text("type").notNull(),
+    quantite: integer("quantite").notNull(), // signé : + entrée, - sortie
+    referenceType: text("reference_type"), // marche | affectation | reforme | manuel
+    referenceId: integer("reference_id"),
+    motif: text("motif"),
+    dateMouvement: timestamp("date_mouvement").defaultNow().notNull(),
+    creeParUserId: integer("cree_par_user_id").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    articleIdx: index("stock_mouvements_article_idx").on(t.articleId),
+    dateIdx: index("stock_mouvements_date_idx").on(t.dateMouvement),
+  }),
+);
+
+// ============================================================================
+// AFFECTATIONS — dotation nominative ou collective
+// ============================================================================
+
+// beneficiaireType: agent | equipe · statut: actif | retourne | perdu | reforme
+export const affectations = pgTable(
+  "affectations",
+  {
+    id: serial("id").primaryKey(),
+    articleId: integer("article_id")
+      .notNull()
+      .references(() => articles.id),
+    beneficiaireType: text("beneficiaire_type").notNull(),
+    agentId: integer("agent_id").references(() => agents.id),
+    equipeId: integer("equipe_id").references(() => equipes.id),
+    quantite: integer("quantite").notNull().default(1),
+    taille: text("taille"),
+    pointure: text("pointure"),
+    dateAffectation: text("date_affectation").notNull(),
+    motif: text("motif"),
+    validateurAgentId: integer("validateur_agent_id").references(() => agents.id),
+    signatureUrl: text("signature_url"),
+    statut: text("statut").notNull().default("actif"),
+    dateRetour: text("date_retour"),
+    etatRetour: text("etat_retour"), // bon | usage_normal | endommage | hors_service
+    kitTemplateId: integer("kit_template_id").references(() => kitTemplates.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    articleIdx: index("affectations_article_idx").on(t.articleId),
+    agentIdx: index("affectations_agent_idx").on(t.agentId),
+    equipeIdx: index("affectations_equipe_idx").on(t.equipeId),
+    statutIdx: index("affectations_statut_idx").on(t.statut),
+    dateIdx: index("affectations_date_idx").on(t.dateAffectation),
+  }),
+);
+
+export const affectationsRelations = relations(affectations, ({ one }) => ({
+  article: one(articles, { fields: [affectations.articleId], references: [articles.id] }),
+  agent: one(agents, { fields: [affectations.agentId], references: [agents.id] }),
+  equipe: one(equipes, { fields: [affectations.equipeId], references: [equipes.id] }),
+  kitTemplate: one(kitTemplates, { fields: [affectations.kitTemplateId], references: [kitTemplates.id] }),
+}));
+
+// ============================================================================
+// RÉPARATIONS
+// ============================================================================
+
+export const reparations = pgTable(
+  "reparations",
+  {
+    id: serial("id").primaryKey(),
+    articleId: integer("article_id")
+      .notNull()
+      .references(() => articles.id),
+    affectationId: integer("affectation_id").references(() => affectations.id),
+    dateEnvoi: text("date_envoi").notNull(),
+    dateRetourPrevue: text("date_retour_prevue"),
+    dateRetourReelle: text("date_retour_reelle"),
+    prestataire: text("prestataire"),
+    cout: numeric("cout", { precision: 12, scale: 2 }),
+    statut: text("statut").notNull().default("en_cours"), // en_cours | terminee | irreparable
+    motif: text("motif"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({ articleIdx: index("reparations_article_idx").on(t.articleId) }),
+);
+
+// ============================================================================
+// CONTRÔLES PÉRIODIQUES
+// ============================================================================
+
+// type: inspection | essai_dielectrique | etalonnage | maintenance | renouvellement
+// statut: planifie | realise | en_retard | annule
+export const controlesPeriodiques = pgTable(
+  "controles_periodiques",
+  {
+    id: serial("id").primaryKey(),
+    articleId: integer("article_id").references(() => articles.id),
+    affectationId: integer("affectation_id").references(() => affectations.id),
+    type: text("type").notNull(),
+    datePlanifiee: text("date_planifiee").notNull(),
+    dateRealisee: text("date_realisee"),
+    resultat: text("resultat"), // conforme | non_conforme | a_revoir
+    prochaineEcheance: text("prochaine_echeance"),
+    realiseParAgentId: integer("realise_par_agent_id").references(() => agents.id),
+    observations: text("observations"),
+    statut: text("statut").notNull().default("planifie"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    articleIdx: index("controles_article_idx").on(t.articleId),
+    dateIdx: index("controles_date_planifiee_idx").on(t.datePlanifiee),
+    statutIdx: index("controles_statut_idx").on(t.statut),
+  }),
+);
+
+// ============================================================================
+// RÉFORMES
+// ============================================================================
+
+export const reformes = pgTable(
+  "reformes",
+  {
+    id: serial("id").primaryKey(),
+    articleId: integer("article_id")
+      .notNull()
+      .references(() => articles.id),
+    affectationId: integer("affectation_id").references(() => affectations.id),
+    dateReforme: text("date_reforme").notNull(),
+    quantite: integer("quantite").notNull().default(1),
+    motif: text("motif").notNull(),
+    decision: text("decision"),
+    valideParAgentId: integer("valide_par_agent_id").references(() => agents.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({ articleIdx: index("reformes_article_idx").on(t.articleId) }),
+);
+
+// ============================================================================
+// DOCUMENTS — pièces jointes polymorphes
+// ============================================================================
+
+// entiteType: article | agent | marche | affectation
+// typeDocument: notice | photo | certificat | declaration_ce | norme | pv_essai | rapport | autre
+export const documents = pgTable(
+  "documents",
+  {
+    id: serial("id").primaryKey(),
+    entiteType: text("entite_type").notNull(),
+    entiteId: integer("entite_id").notNull(),
+    typeDocument: text("type_document").notNull(),
+    nomFichier: text("nom_fichier").notNull(),
+    url: text("url").notNull(),
+    tailleOctets: integer("taille_octets"),
+    uploadedByUserId: integer("uploaded_by_user_id").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({ entiteIdx: index("documents_entite_idx").on(t.entiteType, t.entiteId) }),
+);
+
+// ============================================================================
+// ALERTES
+// ============================================================================
+
+// type: stock_faible | rupture | fin_de_vie | controle_a_faire | inspection | etalonnage | garantie_expiree | livraison_attendue
+// niveau: info | warning | critical
+export const alertes = pgTable(
+  "alertes",
+  {
+    id: serial("id").primaryKey(),
+    type: text("type").notNull(),
+    entiteType: text("entite_type"),
+    entiteId: integer("entite_id"),
+    niveau: text("niveau").notNull().default("info"),
+    message: text("message").notNull(),
+    lue: boolean("lue").notNull().default(false),
+    traitee: boolean("traitee").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    typeIdx: index("alertes_type_idx").on(t.type),
+    lueIdx: index("alertes_lue_idx").on(t.lue),
+    niveauIdx: index("alertes_niveau_idx").on(t.niveau),
+  }),
+);
+
+// ============================================================================
+// HISTORIQUE — journal d'audit append-only (aucune donnée supprimée)
+// ============================================================================
+
+export const historique = pgTable(
+  "historique",
+  {
+    id: serial("id").primaryKey(),
+    typeEvenement: text("type_evenement").notNull(),
+    entiteType: text("entite_type").notNull(),
+    entiteId: integer("entite_id"),
+    agentId: integer("agent_id").references(() => agents.id),
+    equipeId: integer("equipe_id").references(() => equipes.id),
+    articleId: integer("article_id").references(() => articles.id),
+    utilisateurId: integer("utilisateur_id").references(() => users.id),
+    details: jsonb("details"),
+    dateEvenement: timestamp("date_evenement").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    typeIdx: index("historique_type_idx").on(t.typeEvenement),
+    entiteIdx: index("historique_entite_idx").on(t.entiteType, t.entiteId),
+    dateIdx: index("historique_date_idx").on(t.dateEvenement),
+    // append-only: chaque ligne est immuable une fois créée (pas d'UPDATE/DELETE côté API)
+    uniqueAppendOnly: uniqueIndex("historique_id_created_at_idx").on(t.id, t.createdAt),
+  }),
+);
