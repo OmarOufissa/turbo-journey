@@ -120,6 +120,9 @@ export default function Controles() {
               </TableHeader>
               <TableBody>
                 {isLoading && <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
+                {!isLoading && controles?.length === 0 && (
+                  <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Aucun contrôle planifié pour le moment</TableCell></TableRow>
+                )}
                 {controles?.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.designation}</TableCell>

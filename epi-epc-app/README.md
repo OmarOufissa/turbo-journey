@@ -15,12 +15,12 @@ quel poste Windows via un navigateur, sur le réseau interne.
 | Domaine (cahier des charges) | Statut |
 |---|---|
 | Dashboard (KPI + 6 graphiques) | ✅ |
-| Catalogue articles (tous les champs §4) | ✅ |
-| Marchés | ✅ |
+| Catalogue articles (tous les champs §4) | ✅ (structure) — voir note ci-dessous sur les champs non fournis |
+| Marchés | ✅ (module fonctionnel, aucun marché fictif préchargé) |
 | Bénéficiaires + organigramme Direction→Division→Service→Équipe | ✅ |
 | Affectations nominatives et collectives, retours, réformes | ✅ |
 | Historique append-only (aucune donnée supprimée) | ✅ |
-| Contrôles périodiques + réparations + alertes automatiques | ✅ |
+| Contrôles périodiques + réparations + alertes automatiques | ✅ (module fonctionnel, aucune échéance fictive préchargée) |
 | Documents (notices, certificats, photos…) | ✅ |
 | Recherche avancée globale | ✅ |
 | Rapports PDF (fiches individuelle/équipe) et Excel (7 états) | ✅ |
@@ -32,13 +32,40 @@ quel poste Windows via un navigateur, sur le réseau interne.
 | Exécutable Windows autonome | ❌ non compilé ici — voir §7 pour la voie Electron |
 | Application mobile | ❌ hors périmètre — API REST déjà prête pour un client mobile (§8) |
 
-Le catalogue, l'organigramme (4 divisions, 11 services, 58 équipes) et les 311
-agents nominatifs proviennent des fichiers `Dotation_EPI_EPC_DTC.xlsx`,
-`Affectation_Nominative_DTC.xlsx` et `organigramme_dtc_membres_1.csv` fournis.
-Les prix unitaires, dates de fabrication et quelques champs biographiques
-(téléphone, date d'embauche) ne figuraient pas dans ces fichiers : ils sont
-donc laissés vides ou peuplés d'exemples clairement indicatifs (voir
-`server/seeds/run.ts`) à ajuster avec les données réelles de l'ONEE.
+### Provenance des données — ce qui est réel et ce qui ne l'est pas
+
+Le catalogue (119 articles), l'organigramme (4 divisions, 11 services, 58
+équipes), les 311 agents nominatifs et les gabarits de dotation standard par
+type d'équipe proviennent **intégralement** des fichiers
+`Dotation_EPI_EPC_DTC.xlsx`, `Affectation_Nominative_DTC.xlsx` et
+`organigramme_dtc_membres_1.csv` fournis — rien n'y a été inventé ni estimé.
+
+Ces fichiers ne contenaient en revanche **aucune donnée** sur les points
+suivants ; plutôt que de les estimer, le seed (`server/seeds/run.ts`) les
+laisse volontairement vides ou à zéro, à saisir dans l'application au fur et
+à mesure que les informations réelles sont disponibles :
+
+- **Prix unitaires, marchés, fournisseurs** des articles — le module Marchés
+  est fonctionnel mais ne contient aucun marché tant que vous n'en créez pas.
+- **Stock** (disponible, réservé, commandé, seuils min/max) — tous les
+  articles démarrent à 0 ; les indicateurs de rupture/stock faible du
+  dashboard reflètent donc « stock non encore inventorié », pas un incident.
+- **Dates de fabrication, durée de vie, date limite d'utilisation, garantie**
+  des articles.
+- **Date réelle de remise, taille et pointure** de chaque dotation
+  individuelle (les 7136 lignes d'affectation générées depuis les gabarits
+  sont réelles — « cet agent a bien reçu cet article » — seule la date exacte
+  et la taille/pointure individuelles ne sont pas documentées dans les
+  sources).
+- **Contrôles périodiques planifiés** (inspections, essais diélectriques,
+  étalonnages) — le module est fonctionnel mais ne contient aucune échéance
+  tant que le responsable HSE n'en a pas saisi.
+- **Téléphone, date d'embauche, photo** des agents.
+
+En résumé : la structure organisationnelle et le contenu des dotations sont
+réels et exhaustifs ; tout ce qui relève de la gestion opérationnelle courante
+(prix, stock, échéances, coordonnées) est un formulaire vide prêt à être
+rempli avec vos données réelles, pas une simulation.
 
 ## 2. Stack technique
 

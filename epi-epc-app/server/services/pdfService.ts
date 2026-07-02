@@ -24,14 +24,14 @@ export function startPdf(res: Response, filename: string, title: string) {
 export function pdfTable(
   doc: PDFKit.PDFDocument,
   headers: string[],
-  rows: (string | number)[][],
+  rows: (string | number | null)[][],
   colWidths: number[],
 ) {
   const startX = 40;
   let y = doc.y;
   const rowHeight = 20;
 
-  function drawRow(cells: (string | number)[], opts: { bold?: boolean; bg?: string } = {}) {
+  function drawRow(cells: (string | number | null)[], opts: { bold?: boolean; bg?: string } = {}) {
     if (y > 760) {
       doc.addPage();
       y = 40;
@@ -43,7 +43,7 @@ export function pdfTable(
     let x = startX;
     doc.fontSize(8).font(opts.bold ? "Helvetica-Bold" : "Helvetica");
     cells.forEach((cell, i) => {
-      doc.text(String(cell ?? ""), x + 4, y + 6, { width: colWidths[i] - 8, ellipsis: true });
+      doc.text(cell === null || cell === undefined || cell === "" ? "—" : String(cell), x + 4, y + 6, { width: colWidths[i] - 8, ellipsis: true });
       x += colWidths[i];
     });
     y += rowHeight;

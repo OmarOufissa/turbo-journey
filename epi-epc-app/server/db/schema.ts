@@ -330,7 +330,10 @@ export const affectations = pgTable(
     quantite: integer("quantite").notNull().default(1),
     taille: text("taille"),
     pointure: text("pointure"),
-    dateAffectation: text("date_affectation").notNull(),
+    // Nullable : les dotations reprises depuis les fichiers sources n'ont pas de date
+    // documentée. Les nouvelles affectations créées via l'application doivent en fournir une
+    // (contrôle applicatif dans server/routes/affectations.ts), sans contrainte NOT NULL en base.
+    dateAffectation: text("date_affectation"),
     motif: text("motif"),
     validateurAgentId: integer("validateur_agent_id").references(() => agents.id),
     signatureUrl: text("signature_url"),

@@ -90,6 +90,9 @@ export default function Marches() {
           </TableHeader>
           <TableBody>
             {isLoading && <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
+            {!isLoading && data?.length === 0 && (
+              <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucun marché enregistré — ajoutez le premier avec « Nouveau marché »</TableCell></TableRow>
+            )}
             {data?.map((m) => (
               <TableRow key={m.id}>
                 <TableCell className="font-mono text-xs">{m.numero}</TableCell>

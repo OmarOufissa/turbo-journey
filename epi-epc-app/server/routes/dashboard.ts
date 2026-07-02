@@ -104,6 +104,7 @@ dashboardRouter.get("/charts", async (_req, res) => {
           total: sql<number>`sum(${affectations.quantite})::int`,
         })
         .from(affectations)
+        .where(sql`${affectations.dateAffectation} is not null`)
         .groupBy(sql`to_char(${affectations.dateAffectation}::date, 'YYYY-MM')`, affectations.beneficiaireType)
         .orderBy(sql`to_char(${affectations.dateAffectation}::date, 'YYYY-MM')`),
       db

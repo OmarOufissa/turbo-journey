@@ -27,6 +27,14 @@ import { categoricalColor, coverageColor } from "@/lib/chartColors";
 const GRID = "hsl(var(--border))";
 const AXIS_TICK = { fill: "hsl(var(--muted-foreground))", fontSize: 11 };
 
+function EmptyChartState({ message }: { message: string }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-1 text-center">
+      <p className="text-sm text-muted-foreground">{message}</p>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { data: kpis, isLoading: loadingKpis } = useQuery<DashboardKpis>({ queryKey: ["dashboard", "kpis"], queryFn: () => apiGet("/dashboard/kpis") });
   const { data: charts, isLoading: loadingCharts } = useQuery<DashboardCharts>({ queryKey: ["dashboard", "charts"], queryFn: () => apiGet("/dashboard/charts") });
@@ -118,6 +126,9 @@ export default function Dashboard() {
                 <CardTitle>Évolution des dotations (EPI vs EPC)</CardTitle>
               </CardHeader>
               <CardContent className="h-72">
+                {charts.evolutionDotations.length === 0 ? (
+                  <EmptyChartState message="Aucune date de dotation renseignée dans les données reprises — à alimenter au fil des nouvelles affectations." />
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={charts.evolutionDotations}>
                     <CartesianGrid vertical={false} stroke={GRID} />
@@ -129,6 +140,7 @@ export default function Dashboard() {
                     <Line type="monotone" dataKey="epc" name="EPC (collectif)" stroke={categoricalColor(1)} strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
@@ -137,6 +149,9 @@ export default function Dashboard() {
                 <CardTitle>Évolution des achats (marchés)</CardTitle>
               </CardHeader>
               <CardContent className="h-72">
+                {charts.evolutionAchats.length === 0 ? (
+                  <EmptyChartState message="Aucun marché enregistré pour le moment — ce graphique se remplira au fur et à mesure de la saisie des marchés." />
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={charts.evolutionAchats}>
                     <defs>
@@ -155,6 +170,7 @@ export default function Dashboard() {
                     <Area type="monotone" dataKey="montant" name="Montant engagé" stroke={categoricalColor(0)} strokeWidth={2} fill="url(#achatsFill)" />
                   </AreaChart>
                 </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -163,8 +179,12 @@ export default function Dashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Coût de dotation par division</CardTitle>
+                <p className="text-xs text-muted-foreground">Nécessite les prix unitaires des articles (non fournis dans les données reprises)</p>
               </CardHeader>
               <CardContent className="h-80">
+                {charts.coutParDivision.every((c) => c.value === 0) ? (
+                  <EmptyChartState message="Aucun prix unitaire renseigné — saisissez les prix des articles pour activer cet indicateur." />
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={charts.coutParDivision} layout="vertical" margin={{ left: 8 }}>
                     <CartesianGrid horizontal={false} stroke={GRID} />
@@ -178,6 +198,7 @@ export default function Dashboard() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
