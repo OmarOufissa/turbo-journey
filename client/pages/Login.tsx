@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -25,7 +24,7 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ password }),
       });
 
       if (!response.ok) {
@@ -87,22 +86,6 @@ export default function Login() {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-semibold text-foreground">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                required
-                className="h-12 rounded-xl text-base"
-              />
-            </div>
-
-            <div className="space-y-3">
               <Label htmlFor="password" className="text-sm font-semibold text-foreground">
                 Mot de passe
               </Label>
@@ -114,6 +97,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 required
+                autoFocus
                 className="h-12 rounded-xl text-base"
               />
             </div>

@@ -16,7 +16,7 @@ function getRefreshSecret(): string {
 }
 
 interface LoginRequest {
-  email: string;
+  email?: string;
   password: string;
 }
 
@@ -34,15 +34,20 @@ export const handleLogin: RequestHandler = async (req, res) => {
   try {
     const { email, password } = req.body as LoginRequest;
 
-    if (!email || !password) {
+    if (!password) {
       return res.status(400).json({
-        message: "Email et mot de passe requis",
+        message: "Mot de passe requis",
       });
     }
 
+    // Password-only login: without an email, authenticate against the single
+    // admin account (this is a single-user desktop app). If an email is given,
+    // look that user up specifically.
     const user = await dbGet(
-      `SELECT id, email, password FROM users WHERE email = ?`,
-      [email]
+      email
+        ? `SELECT id, email, password FROM users WHERE email = ?`
+        : `SELECT id, email, password FROM users ORDER BY id ASC LIMIT 1`,
+      email ? [email] : []
     ) as (AuthUser & { password: string }) | undefined;
 
     if (!user || !user.password) {
