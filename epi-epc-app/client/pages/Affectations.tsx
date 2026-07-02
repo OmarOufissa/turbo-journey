@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Plus, Undo2, Trash2 } from "lucide-react";
+import { Plus, Undo2, Trash2, ChevronRight, ChevronDown, LayoutList, Layers } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,21 +9,35 @@ import { Label } from "@/components/ui/label";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { StatutAffectationBadge } from "@/components/shared/Badges";
 import { toast } from "@/components/ui/toaster";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 
 interface AffectationRow {
   id: number;
+  articleId: number;
   designation: string;
   codeArticle: string;
   beneficiaireType: string;
   agentNom: string | null;
   equipeNom: string | null;
   quantite: number;
-  dateAffectation: string;
+  dateAffectation: string | null;
   statut: string;
   motif: string | null;
+}
+interface GroupRow {
+  articleId: number;
+  designation: string;
+  codeArticle: string;
+  beneficiaireType: string;
+  nbBeneficiaires: number;
+  totalQuantite: number;
+  nbActif: number;
+  nbRetourne: number;
+  nbPerdu: number;
+  nbReforme: number;
 }
 interface ArticleOpt { id: number; designation: string; codeArticle: string; stockDisponible: number }
 interface AgentOpt { id: number; nom: string; matricule: string }
@@ -31,16 +45,28 @@ interface EquipeOpt { id: number; nom: string }
 
 export default function Affectations() {
   const qc = useQueryClient();
+  const [vue, setVue] = useState<"groupee" | "detaillee">("groupee");
   const [statut, setStatut] = useState("all");
   const [beneficiaireType, setBeneficiaireType] = useState("all");
   const [open, setOpen] = useState(false);
   const [retourTarget, setRetourTarget] = useState<AffectationRow | null>(null);
   const [beneficiaireKind, setBeneficiaireKind] = useState<"agent" | "equipe">("agent");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const filterQs = `${statut !== "all" ? `&statut=${statut}` : ""}${beneficiaireType !== "all" ? `&beneficiaireType=${beneficiaireType}` : ""}`;
+
+  const { data: groups, isLoading: loadingGroups } = useQuery<GroupRow[]>({
+    queryKey: ["affectations-groupes", statut, beneficiaireType],
+    queryFn: () => apiGet(`/affectations/groupes?${filterQs.replace(/^&/, "")}`),
+    enabled: vue === "groupee",
+  });
 
   const { data, isLoading } = useQuery<{ rows: AffectationRow[]; total: number }>({
     queryKey: ["affectations", statut, beneficiaireType],
-    queryFn: () => apiGet(`/affectations?pageSize=300${statut !== "all" ? `&statut=${statut}` : ""}${beneficiaireType !== "all" ? `&beneficiaireType=${beneficiaireType}` : ""}`),
+    queryFn: () => apiGet(`/affectations?pageSize=300${filterQs}`),
+    enabled: vue === "detaillee",
   });
+
   const { data: articles } = useQuery<{ rows: ArticleOpt[] }>({ queryKey: ["articles-all"], queryFn: () => apiGet("/articles?pageSize=500") });
   const { data: agents } = useQuery<{ rows: AgentOpt[] }>({ queryKey: ["agents-all"], queryFn: () => apiGet("/agents?pageSize=500"), enabled: open && beneficiaireKind === "agent" });
   const { data: equipes } = useQuery<EquipeOpt[]>({ queryKey: ["equipes-all"], queryFn: () => apiGet("/org/equipes"), enabled: open && beneficiaireKind === "equipe" });
@@ -50,6 +76,7 @@ export default function Affectations() {
     onSuccess: () => {
       toast.success("Affectation créée");
       qc.invalidateQueries({ queryKey: ["affectations"] });
+      qc.invalidateQueries({ queryKey: ["affectations-groupes"] });
       qc.invalidateQueries({ queryKey: ["articles-all"] });
       setOpen(false);
     },
@@ -61,6 +88,7 @@ export default function Affectations() {
     onSuccess: () => {
       toast.success("Retour enregistré");
       qc.invalidateQueries({ queryKey: ["affectations"] });
+      qc.invalidateQueries({ queryKey: ["affectations-groupes"] });
       setRetourTarget(null);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -71,6 +99,7 @@ export default function Affectations() {
     onSuccess: () => {
       toast.success("Équipement réformé");
       qc.invalidateQueries({ queryKey: ["affectations"] });
+      qc.invalidateQueries({ queryKey: ["affectations-groupes"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -98,78 +127,147 @@ export default function Affectations() {
     retourMutation.mutate({ id: retourTarget.id, dateRetour: String(fd.get("dateRetour")), etatRetour: String(fd.get("etatRetour")) });
   }
 
+  function toggleExpanded(key: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Affectations</h1>
-          <p className="text-sm text-muted-foreground">{data?.total ?? "…"} dotation(s) individuelle(s) et collective(s)</p>
+          <p className="text-sm text-muted-foreground">
+            {vue === "groupee"
+              ? `${groups?.length ?? "…"} article(s) affecté(s)`
+              : `${data?.total ?? "…"} dotation(s) individuelle(s) et collective(s)`}
+          </p>
         </div>
         <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Nouvelle affectation</Button>
       </div>
 
       <Card className="p-3">
-        <div className="flex flex-wrap gap-2">
-          <Select value={beneficiaireType} onValueChange={setBeneficiaireType}>
-            <SelectTrigger className="w-52"><SelectValue placeholder="Bénéficiaire" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Agents et équipes</SelectItem>
-              <SelectItem value="agent">Agents (EPI)</SelectItem>
-              <SelectItem value="equipe">Équipes (EPC)</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statut} onValueChange={setStatut}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Statut" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous statuts</SelectItem>
-              <SelectItem value="actif">Actif</SelectItem>
-              <SelectItem value="retourne">Retourné</SelectItem>
-              <SelectItem value="perdu">Perdu</SelectItem>
-              <SelectItem value="reforme">Réformé</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Select value={beneficiaireType} onValueChange={setBeneficiaireType}>
+              <SelectTrigger className="w-52"><SelectValue placeholder="Bénéficiaire" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Agents et équipes</SelectItem>
+                <SelectItem value="agent">Agents (EPI)</SelectItem>
+                <SelectItem value="equipe">Équipes (EPC)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statut} onValueChange={setStatut}>
+              <SelectTrigger className="w-44"><SelectValue placeholder="Statut" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous statuts</SelectItem>
+                <SelectItem value="actif">Actif</SelectItem>
+                <SelectItem value="retourne">Retourné</SelectItem>
+                <SelectItem value="perdu">Perdu</SelectItem>
+                <SelectItem value="reforme">Réformé</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-1 rounded-md bg-muted p-1">
+            <Button size="sm" variant={vue === "groupee" ? "default" : "ghost"} onClick={() => setVue("groupee")}>
+              <Layers className="h-3.5 w-3.5" /> Groupée par article
+            </Button>
+            <Button size="sm" variant={vue === "detaillee" ? "default" : "ghost"} onClick={() => setVue("detaillee")}>
+              <LayoutList className="h-3.5 w-3.5" /> Détaillée
+            </Button>
+          </div>
         </div>
       </Card>
 
-      <Card className="overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Article</TableHead>
-              <TableHead>Bénéficiaire</TableHead>
-              <TableHead className="text-right">Qté</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
-            {data?.rows.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell className="font-medium">{a.designation}</TableCell>
-                <TableCell>
-                  {a.agentNom ?? a.equipeNom}
-                  <span className="ml-1.5 text-xs text-muted-foreground">{a.beneficiaireType === "agent" ? "(EPI)" : "(EPC)"}</span>
-                </TableCell>
-                <TableCell className="text-right tabular-nums">{a.quantite}</TableCell>
-                <TableCell>{formatDate(a.dateAffectation)}</TableCell>
-                <TableCell><StatutAffectationBadge statut={a.statut} /></TableCell>
-                <TableCell className="text-right">
-                  {a.statut === "actif" && (
-                    <div className="flex justify-end gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => setRetourTarget(a)}><Undo2 className="h-3.5 w-3.5" /> Retour</Button>
-                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => reformeMutation.mutate({ id: a.id, motif: "Fin de vie / hors service" })}>
-                        <Trash2 className="h-3.5 w-3.5" /> Réformer
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
+      {vue === "groupee" ? (
+        <Card className="overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead />
+                <TableHead>Article</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead className="text-right">Bénéficiaires</TableHead>
+                <TableHead className="text-right">Qté totale</TableHead>
+                <TableHead>Répartition par statut</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+            </TableHeader>
+            <TableBody>
+              {loadingGroups && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
+              {!loadingGroups && groups?.length === 0 && (
+                <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Aucune affectation ne correspond aux filtres</TableCell></TableRow>
+              )}
+              {groups?.map((g) => {
+                const key = `${g.articleId}-${g.beneficiaireType}`;
+                const isOpen = expanded.has(key);
+                return (
+                  <Fragment key={key}>
+                    <TableRow className="cursor-pointer" onClick={() => toggleExpanded(key)}>
+                      <TableCell className="w-8">
+                        {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {g.designation}
+                        <span className="ml-2 font-mono text-xs text-muted-foreground">{g.codeArticle}</span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{g.beneficiaireType === "agent" ? "EPI · agents" : "EPC · équipes"}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums font-medium">{g.nbBeneficiaires}</TableCell>
+                      <TableCell className="text-right tabular-nums">{g.totalQuantite}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {g.nbActif > 0 && <Badge variant="success">{g.nbActif} actif</Badge>}
+                          {g.nbRetourne > 0 && <Badge variant="muted">{g.nbRetourne} retourné</Badge>}
+                          {g.nbPerdu > 0 && <Badge variant="destructive">{g.nbPerdu} perdu</Badge>}
+                          {g.nbReforme > 0 && <Badge variant="warning">{g.nbReforme} réformé</Badge>}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    {isOpen && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="bg-muted/30 p-0">
+                          <GroupDetail
+                            articleId={g.articleId}
+                            beneficiaireType={g.beneficiaireType}
+                            statut={statut}
+                            onRetour={setRetourTarget}
+                            onReforme={(id) => reformeMutation.mutate({ id, motif: "Fin de vie / hors service" })}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Card>
+      ) : (
+        <Card className="overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Article</TableHead>
+                <TableHead>Bénéficiaire</TableHead>
+                <TableHead className="text-right">Qté</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
+              {data?.rows.map((a) => (
+                <AffectationDetailRow key={a.id} a={a} onRetour={setRetourTarget} onReforme={(id) => reformeMutation.mutate({ id, motif: "Fin de vie / hors service" })} />
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
@@ -240,5 +338,80 @@ export default function Affectations() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function GroupDetail({
+  articleId,
+  beneficiaireType,
+  statut,
+  onRetour,
+  onReforme,
+}: {
+  articleId: number;
+  beneficiaireType: string;
+  statut: string;
+  onRetour: (a: AffectationRow) => void;
+  onReforme: (id: number) => void;
+}) {
+  const { data, isLoading } = useQuery<{ rows: AffectationRow[]; total: number }>({
+    queryKey: ["affectations", "groupe-detail", articleId, beneficiaireType, statut],
+    queryFn: () =>
+      apiGet(`/affectations?pageSize=500&articleId=${articleId}&beneficiaireType=${beneficiaireType}${statut !== "all" ? `&statut=${statut}` : ""}`),
+  });
+
+  if (isLoading) return <p className="p-4 text-sm text-muted-foreground">Chargement des bénéficiaires…</p>;
+
+  return (
+    <Table>
+      <TableBody>
+        {data?.rows.map((a) => (
+          <AffectationDetailRow key={a.id} a={a} onRetour={onRetour} onReforme={onReforme} indented />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function AffectationDetailRow({
+  a,
+  onRetour,
+  onReforme,
+  indented,
+}: {
+  a: AffectationRow;
+  onRetour: (a: AffectationRow) => void;
+  onReforme: (id: number) => void;
+  indented?: boolean;
+}) {
+  return (
+    <TableRow>
+      <TableCell className={cn("font-medium", indented && "pl-10")}>
+        {indented ? (a.agentNom ?? a.equipeNom) : a.designation}
+      </TableCell>
+      <TableCell>
+        {indented ? (
+          a.motif ?? "—"
+        ) : (
+          <>
+            {a.agentNom ?? a.equipeNom}
+            <span className="ml-1.5 text-xs text-muted-foreground">{a.beneficiaireType === "agent" ? "(EPI)" : "(EPC)"}</span>
+          </>
+        )}
+      </TableCell>
+      <TableCell className="text-right tabular-nums">{a.quantite}</TableCell>
+      <TableCell>{formatDate(a.dateAffectation)}</TableCell>
+      <TableCell><StatutAffectationBadge statut={a.statut} /></TableCell>
+      <TableCell className="text-right">
+        {a.statut === "actif" && (
+          <div className="flex justify-end gap-1">
+            <Button size="sm" variant="ghost" onClick={() => onRetour(a)}><Undo2 className="h-3.5 w-3.5" /> Retour</Button>
+            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onReforme(a.id)}>
+              <Trash2 className="h-3.5 w-3.5" /> Réformer
+            </Button>
+          </div>
+        )}
+      </TableCell>
+    </TableRow>
   );
 }

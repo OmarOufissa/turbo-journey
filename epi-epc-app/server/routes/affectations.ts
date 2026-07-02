@@ -8,6 +8,39 @@ import type { AuthedRequest } from "../middleware/auth";
 
 export const affectationsRouter = Router();
 
+// Vue groupée : un article assigné à N bénéficiaires (agents ou équipes) apparaît comme
+// une seule ligne récapitulative ici. Les lignes individuelles (avec leur propre statut,
+// date de retour, etc.) restent consultables via GET /?articleId=&beneficiaireType= —
+// aucune donnée n'est fusionnée en base, seul l'affichage est condensé.
+affectationsRouter.get("/groupes", async (req, res) => {
+  const { statut, beneficiaireType } = req.query as Record<string, string>;
+  const conditions = [];
+  if (statut) conditions.push(eq(affectations.statut, statut));
+  if (beneficiaireType) conditions.push(eq(affectations.beneficiaireType, beneficiaireType));
+  const where = conditions.length ? and(...conditions) : undefined;
+
+  const rows = await db
+    .select({
+      articleId: affectations.articleId,
+      designation: articles.designation,
+      codeArticle: articles.codeArticle,
+      beneficiaireType: affectations.beneficiaireType,
+      nbBeneficiaires: sql<number>`count(*)::int`,
+      totalQuantite: sql<number>`sum(${affectations.quantite})::int`,
+      nbActif: sql<number>`count(*) filter (where ${affectations.statut} = 'actif')::int`,
+      nbRetourne: sql<number>`count(*) filter (where ${affectations.statut} = 'retourne')::int`,
+      nbPerdu: sql<number>`count(*) filter (where ${affectations.statut} = 'perdu')::int`,
+      nbReforme: sql<number>`count(*) filter (where ${affectations.statut} = 'reforme')::int`,
+    })
+    .from(affectations)
+    .innerJoin(articles, eq(affectations.articleId, articles.id))
+    .where(where)
+    .groupBy(affectations.articleId, articles.designation, articles.codeArticle, affectations.beneficiaireType)
+    .orderBy(sql`count(*) desc`);
+
+  res.json(rows);
+});
+
 affectationsRouter.get("/", async (req, res) => {
   const { agentId, equipeId, articleId, statut, beneficiaireType, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [];
