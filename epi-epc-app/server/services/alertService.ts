@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { alertes, articles, controlesPeriodiques, marches } from "../db/schema";
-import { and, eq, lte, sql } from "drizzle-orm";
+import { and, eq, inArray, lte } from "drizzle-orm";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -13,9 +13,7 @@ function today() {
  */
 export async function regenerateAlertes() {
   const derivedTypes = ["stock_faible", "rupture", "controle_a_faire", "fin_de_vie", "livraison_attendue"];
-  await db.execute(
-    sql`DELETE FROM ${alertes} WHERE ${alertes.type} = ANY(${derivedTypes}) AND ${alertes.traitee} = false`,
-  );
+  await db.delete(alertes).where(and(inArray(alertes.type, derivedTypes), eq(alertes.traitee, false)));
 
   const todayStr = today();
   const newAlerts: (typeof alertes.$inferInsert)[] = [];

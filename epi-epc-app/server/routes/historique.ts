@@ -12,8 +12,8 @@ historiqueRouter.get("/", async (req, res) => {
   if (entiteId) conditions.push(eq(historique.entiteId, Number(entiteId)));
   if (typeEvenement) conditions.push(eq(historique.typeEvenement, typeEvenement));
   if (agentId) conditions.push(eq(historique.agentId, Number(agentId)));
-  if (dateDebut) conditions.push(gte(historique.dateEvenement, new Date(dateDebut)));
-  if (dateFin) conditions.push(lte(historique.dateEvenement, new Date(dateFin)));
+  if (dateDebut) conditions.push(gte(historique.dateEvenement, dateDebut));
+  if (dateFin) conditions.push(lte(historique.dateEvenement, `${dateFin} 23:59:59`));
   const where = conditions.length ? and(...conditions) : undefined;
   const p = Math.max(1, Number(page));
   const ps = Math.min(200, Math.max(1, Number(pageSize)));
@@ -41,7 +41,7 @@ historiqueRouter.get("/", async (req, res) => {
       .orderBy(desc(historique.dateEvenement))
       .limit(ps)
       .offset((p - 1) * ps),
-    db.select({ total: sql<number>`count(*)::int` }).from(historique).where(where),
+    db.select({ total: sql<number>`count(*)` }).from(historique).where(where),
   ]);
   res.json({ rows, total, page: p, pageSize: ps });
 });

@@ -4,12 +4,15 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Gestion des Équipements de Protection Individuelle et Collective — ONEE Direction Transport Casablanca",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
-    "build:server": "vite build --config vite.config.server.ts",
+    "build:server": "vite build --config vite.config.server.ts && node scripts/copy-server-assets.mjs",
     "start": "node dist/server/node-build.js",
+    "electron": "electron .",
+    "electron:dist": "npm run build && electron-builder",
     "test": "vitest --run",
     "typecheck": "tsc --noEmit",
     "format.fix": "prettier --write .",
@@ -40,6 +43,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tanstack/react-query": "^5.84.2",
     "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
@@ -53,7 +57,6 @@
     "multer": "^2.0.2",
     "next-themes": "^0.4.6",
     "pdfkit": "^0.18.0",
-    "pg": "^8.16.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.62.0",
@@ -64,6 +67,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
@@ -71,13 +75,14 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^24.2.1",
     "@types/pdfkit": "^0.17.5",
-    "@types/pg": "^8.16.0",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@types/supertest": "^7.2.0",
     "@vitejs/plugin-react-swc": "^4.0.0",
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.31.8",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "supertest": "^7.2.2",
@@ -91,7 +96,34 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@swc/core",
+      "better-sqlite3",
+      "electron",
+      "electron-builder",
       "esbuild"
     ]
+  },
+  "build": {
+    "appId": "ma.onee.dtc.gepi",
+    "productName": "GEPI DTC",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "server/db/migrations/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.business"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Office"
+    }
   }
 }

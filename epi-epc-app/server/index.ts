@@ -18,15 +18,18 @@ import { rechercheRouter } from "./routes/recherche";
 import { dashboardRouter } from "./routes/dashboard";
 import { rapportsRouter } from "./routes/rapports";
 import { requireAuth } from "./middleware/auth";
+import { ensureDatabaseReady } from "./db/bootstrap";
 
-export function createServer() {
+export async function createServer() {
+  await ensureDatabaseReady();
+
   const app = express();
 
   app.use(cors());
   app.use(express.json({ limit: "5mb" }));
   app.use(express.urlencoded({ extended: true }));
 
-  const uploadsDir = path.join(process.cwd(), "uploads");
+  const uploadsDir = path.join(process.env.DATA_DIR || process.cwd(), "uploads");
   fs.mkdirSync(uploadsDir, { recursive: true });
   app.use("/uploads", express.static(uploadsDir));
 

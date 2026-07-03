@@ -1,44 +1,42 @@
 import {
-  pgTable,
-  serial,
+  sqliteTable,
   text,
   integer,
-  boolean,
-  timestamp,
-  numeric,
-  jsonb,
+  real,
   index,
   uniqueIndex,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
+
+const now = sql`(CURRENT_TIMESTAMP)`;
 
 // ============================================================================
 // ORGANISATION — Direction > Division > Service > Équipe > Agent
 // ============================================================================
 
-export const divisions = pgTable(
+export const divisions = sqliteTable(
   "divisions",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     code: text("code").notNull().unique(),
     nom: text("nom").notNull(),
     chefAgentId: integer("chef_agent_id"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({ nomIdx: uniqueIndex("divisions_nom_idx").on(t.nom) }),
 );
 
-export const services = pgTable(
+export const services = sqliteTable(
   "services",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     code: text("code").notNull().unique(),
     nom: text("nom").notNull(),
     divisionId: integer("division_id")
       .notNull()
       .references(() => divisions.id, { onDelete: "cascade" }),
     chefAgentId: integer("chef_agent_id"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({
     divisionIdx: index("services_division_idx").on(t.divisionId),
@@ -46,10 +44,10 @@ export const services = pgTable(
   }),
 );
 
-export const equipes = pgTable(
+export const equipes = sqliteTable(
   "equipes",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     code: text("code").notNull().unique(),
     nom: text("nom").notNull(),
     serviceId: integer("service_id")
@@ -58,7 +56,7 @@ export const equipes = pgTable(
     // "Équipe Lignes", "Équipe TST Postes", ... — drives standard EPI/EPC kit template matching
     teamType: text("team_type"),
     chefAgentId: integer("chef_agent_id"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({
     serviceIdx: index("equipes_service_idx").on(t.serviceId),
@@ -67,10 +65,10 @@ export const equipes = pgTable(
   }),
 );
 
-export const agents = pgTable(
+export const agents = sqliteTable(
   "agents",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     matricule: text("matricule").notNull().unique(),
     nom: text("nom").notNull(),
     prenom: text("prenom"),
@@ -85,8 +83,8 @@ export const agents = pgTable(
     email: text("email"),
     statut: text("statut").notNull().default("actif"), // actif | inactif | archive
     note: text("note"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
+    updatedAt: text("updated_at").default(now).notNull(),
   },
   (t) => ({
     matriculeIdx: uniqueIndex("agents_matricule_idx").on(t.matricule),
@@ -119,17 +117,17 @@ export const agentsRelations = relations(agents, ({ one }) => ({
 // ============================================================================
 
 // Application à usage unique : un seul compte, sans distinction de rôle.
-export const users = pgTable(
+export const users = sqliteTable(
   "users",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     username: text("username").notNull().unique(),
     passwordHash: text("password_hash").notNull(),
     nom: text("nom").notNull(),
     agentId: integer("agent_id").references(() => agents.id),
-    actif: boolean("actif").notNull().default(true),
-    derniereConnexion: timestamp("derniere_connexion"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    actif: integer("actif", { mode: "boolean" }).notNull().default(true),
+    derniereConnexion: text("derniere_connexion"),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({ usernameIdx: uniqueIndex("users_username_idx").on(t.username) }),
 );
@@ -138,16 +136,16 @@ export const users = pgTable(
 // CATALOGUE ARTICLES — Familles / Sous-familles / Articles / Marchés
 // ============================================================================
 
-export const familles = pgTable("familles", {
-  id: serial("id").primaryKey(),
+export const familles = sqliteTable("familles", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   nom: text("nom").notNull().unique(),
   ordre: integer("ordre").notNull().default(0),
 });
 
-export const sousFamilles = pgTable(
+export const sousFamilles = sqliteTable(
   "sous_familles",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     familleId: integer("famille_id")
       .notNull()
       .references(() => familles.id, { onDelete: "cascade" }),
@@ -159,28 +157,28 @@ export const sousFamilles = pgTable(
   }),
 );
 
-export const marches = pgTable(
+export const marches = sqliteTable(
   "marches",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     numero: text("numero").notNull(),
     annee: integer("annee").notNull(),
     objet: text("objet").notNull(),
     fournisseur: text("fournisseur").notNull(),
-    montant: numeric("montant", { precision: 14, scale: 2 }),
+    montant: real("montant"),
     dateNotification: text("date_notification"),
     dateLivraison: text("date_livraison"),
     statut: text("statut").notNull().default("notifie"), // notifie | en_cours | livre | solde
     observations: text("observations"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({ numeroIdx: uniqueIndex("marches_numero_annee_idx").on(t.numero, t.annee) }),
 );
 
-export const articles = pgTable(
+export const articles = sqliteTable(
   "articles",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     codeArticle: text("code_article").notNull().unique(),
     codeInterne: text("code_interne"),
     codeFournisseur: text("code_fournisseur"),
@@ -198,14 +196,14 @@ export const articles = pgTable(
     dateLimiteUtilisation: text("date_limite_utilisation"),
     noticePdfUrl: text("notice_pdf_url"),
     ficheTechniquePdfUrl: text("fiche_technique_pdf_url"),
-    poidsKg: numeric("poids_kg", { precision: 8, scale: 3 }),
+    poidsKg: real("poids_kg"),
     dimensions: text("dimensions"),
     couleur: text("couleur"),
-    aTaille: boolean("a_taille").notNull().default(false),
-    aPointure: boolean("a_pointure").notNull().default(false),
+    aTaille: integer("a_taille", { mode: "boolean" }).notNull().default(false),
+    aPointure: integer("a_pointure", { mode: "boolean" }).notNull().default(false),
     dateMiseEnService: text("date_mise_en_service"),
     observations: text("observations"),
-    prixUnitaire: numeric("prix_unitaire", { precision: 12, scale: 2 }),
+    prixUnitaire: real("prix_unitaire"),
     marcheId: integer("marche_id").references(() => marches.id),
     fournisseur: text("fournisseur"),
     garantieMois: integer("garantie_mois"),
@@ -216,9 +214,9 @@ export const articles = pgTable(
     stockReserve: integer("stock_reserve").notNull().default(0),
     stockCommande: integer("stock_commande").notNull().default(0),
     unite: text("unite").notNull().default("pièce"),
-    actif: boolean("actif").notNull().default(true),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    actif: integer("actif", { mode: "boolean" }).notNull().default(true),
+    createdAt: text("created_at").default(now).notNull(),
+    updatedAt: text("updated_at").default(now).notNull(),
   },
   (t) => ({
     codeIdx: uniqueIndex("articles_code_idx").on(t.codeArticle),
@@ -249,24 +247,24 @@ export const marchesRelations = relations(marches, ({ many }) => ({ articles: ma
 // KITS STANDARD (dotation type) — panier EPI/EPC par type d'équipe ou poste
 // ============================================================================
 
-export const kitTemplates = pgTable(
+export const kitTemplates = sqliteTable(
   "kit_templates",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     code: text("code").notNull().unique(),
     label: text("label").notNull(),
     appliesToType: text("applies_to_type").notNull(), // team_type | poste | service
     appliesToValue: text("applies_to_value").notNull(),
     categorie: text("categorie").notNull(), // EPI | EPC
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({ codeIdx: uniqueIndex("kit_templates_code_idx").on(t.code) }),
 );
 
-export const kitTemplateLignes = pgTable(
+export const kitTemplateLignes = sqliteTable(
   "kit_template_lignes",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     kitTemplateId: integer("kit_template_id")
       .notNull()
       .references(() => kitTemplates.id, { onDelete: "cascade" }),
@@ -289,10 +287,10 @@ export const kitTemplateLignesRelations = relations(kitTemplateLignes, ({ one })
 // ============================================================================
 
 // type: entree_achat | entree_retour | sortie_affectation | sortie_reforme | sortie_perte | ajustement
-export const stockMouvements = pgTable(
+export const stockMouvements = sqliteTable(
   "stock_mouvements",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     articleId: integer("article_id")
       .notNull()
       .references(() => articles.id),
@@ -301,9 +299,9 @@ export const stockMouvements = pgTable(
     referenceType: text("reference_type"), // marche | affectation | reforme | manuel
     referenceId: integer("reference_id"),
     motif: text("motif"),
-    dateMouvement: timestamp("date_mouvement").defaultNow().notNull(),
+    dateMouvement: text("date_mouvement").default(now).notNull(),
     creeParUserId: integer("cree_par_user_id").references(() => users.id),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({
     articleIdx: index("stock_mouvements_article_idx").on(t.articleId),
@@ -316,10 +314,10 @@ export const stockMouvements = pgTable(
 // ============================================================================
 
 // beneficiaireType: agent | equipe · statut: actif | retourne | perdu | reforme
-export const affectations = pgTable(
+export const affectations = sqliteTable(
   "affectations",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     articleId: integer("article_id")
       .notNull()
       .references(() => articles.id),
@@ -340,8 +338,8 @@ export const affectations = pgTable(
     dateRetour: text("date_retour"),
     etatRetour: text("etat_retour"), // bon | usage_normal | endommage | hors_service
     kitTemplateId: integer("kit_template_id").references(() => kitTemplates.id),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
+    updatedAt: text("updated_at").default(now).notNull(),
   },
   (t) => ({
     articleIdx: index("affectations_article_idx").on(t.articleId),
@@ -363,10 +361,10 @@ export const affectationsRelations = relations(affectations, ({ one }) => ({
 // RÉPARATIONS
 // ============================================================================
 
-export const reparations = pgTable(
+export const reparations = sqliteTable(
   "reparations",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     articleId: integer("article_id")
       .notNull()
       .references(() => articles.id),
@@ -375,10 +373,10 @@ export const reparations = pgTable(
     dateRetourPrevue: text("date_retour_prevue"),
     dateRetourReelle: text("date_retour_reelle"),
     prestataire: text("prestataire"),
-    cout: numeric("cout", { precision: 12, scale: 2 }),
+    cout: real("cout"),
     statut: text("statut").notNull().default("en_cours"), // en_cours | terminee | irreparable
     motif: text("motif"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({ articleIdx: index("reparations_article_idx").on(t.articleId) }),
 );
@@ -389,10 +387,10 @@ export const reparations = pgTable(
 
 // type: inspection | essai_dielectrique | etalonnage | maintenance | renouvellement
 // statut: planifie | realise | en_retard | annule
-export const controlesPeriodiques = pgTable(
+export const controlesPeriodiques = sqliteTable(
   "controles_periodiques",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     articleId: integer("article_id").references(() => articles.id),
     affectationId: integer("affectation_id").references(() => affectations.id),
     type: text("type").notNull(),
@@ -403,7 +401,7 @@ export const controlesPeriodiques = pgTable(
     realiseParAgentId: integer("realise_par_agent_id").references(() => agents.id),
     observations: text("observations"),
     statut: text("statut").notNull().default("planifie"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({
     articleIdx: index("controles_article_idx").on(t.articleId),
@@ -416,10 +414,10 @@ export const controlesPeriodiques = pgTable(
 // RÉFORMES
 // ============================================================================
 
-export const reformes = pgTable(
+export const reformes = sqliteTable(
   "reformes",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     articleId: integer("article_id")
       .notNull()
       .references(() => articles.id),
@@ -429,7 +427,7 @@ export const reformes = pgTable(
     motif: text("motif").notNull(),
     decision: text("decision"),
     valideParAgentId: integer("valide_par_agent_id").references(() => agents.id),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({ articleIdx: index("reformes_article_idx").on(t.articleId) }),
 );
@@ -440,10 +438,10 @@ export const reformes = pgTable(
 
 // entiteType: article | agent | marche | affectation
 // typeDocument: notice | photo | certificat | declaration_ce | norme | pv_essai | rapport | autre
-export const documents = pgTable(
+export const documents = sqliteTable(
   "documents",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     entiteType: text("entite_type").notNull(),
     entiteId: integer("entite_id").notNull(),
     typeDocument: text("type_document").notNull(),
@@ -451,7 +449,7 @@ export const documents = pgTable(
     url: text("url").notNull(),
     tailleOctets: integer("taille_octets"),
     uploadedByUserId: integer("uploaded_by_user_id").references(() => users.id),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({ entiteIdx: index("documents_entite_idx").on(t.entiteType, t.entiteId) }),
 );
@@ -462,18 +460,18 @@ export const documents = pgTable(
 
 // type: stock_faible | rupture | fin_de_vie | controle_a_faire | inspection | etalonnage | garantie_expiree | livraison_attendue
 // niveau: info | warning | critical
-export const alertes = pgTable(
+export const alertes = sqliteTable(
   "alertes",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     type: text("type").notNull(),
     entiteType: text("entite_type"),
     entiteId: integer("entite_id"),
     niveau: text("niveau").notNull().default("info"),
     message: text("message").notNull(),
-    lue: boolean("lue").notNull().default(false),
-    traitee: boolean("traitee").notNull().default(false),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lue: integer("lue", { mode: "boolean" }).notNull().default(false),
+    traitee: integer("traitee", { mode: "boolean" }).notNull().default(false),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({
     typeIdx: index("alertes_type_idx").on(t.type),
@@ -486,10 +484,10 @@ export const alertes = pgTable(
 // HISTORIQUE — journal d'audit append-only (aucune donnée supprimée)
 // ============================================================================
 
-export const historique = pgTable(
+export const historique = sqliteTable(
   "historique",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     typeEvenement: text("type_evenement").notNull(),
     entiteType: text("entite_type").notNull(),
     entiteId: integer("entite_id"),
@@ -497,9 +495,9 @@ export const historique = pgTable(
     equipeId: integer("equipe_id").references(() => equipes.id),
     articleId: integer("article_id").references(() => articles.id),
     utilisateurId: integer("utilisateur_id").references(() => users.id),
-    details: jsonb("details"),
-    dateEvenement: timestamp("date_evenement").defaultNow().notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    details: text("details", { mode: "json" }),
+    dateEvenement: text("date_evenement").default(now).notNull(),
+    createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({
     typeIdx: index("historique_type_idx").on(t.typeEvenement),

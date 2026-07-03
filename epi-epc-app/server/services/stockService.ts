@@ -14,7 +14,7 @@ export type MouvementType =
  * Applique un mouvement de stock : insère la ligne de ledger (immuable) et met à jour
  * le compteur `stock_disponible` de l'article en une seule transaction.
  */
-export async function applyStockMouvement(params: {
+export function applyStockMouvement(params: {
   articleId: number;
   type: MouvementType;
   quantite: number; // signé : positif = entrée, négatif = sortie
@@ -23,8 +23,8 @@ export async function applyStockMouvement(params: {
   motif?: string;
   creeParUserId?: number | null;
 }) {
-  return db.transaction(async (tx) => {
-    const [row] = await tx
+  return db.transaction((tx) => {
+    const [row] = tx
       .insert(stockMouvements)
       .values({
         articleId: params.articleId,
@@ -35,12 +35,13 @@ export async function applyStockMouvement(params: {
         motif: params.motif,
         creeParUserId: params.creeParUserId ?? null,
       })
-      .returning();
+      .returning()
+      .all();
 
-    await tx
-      .update(articles)
-      .set({ stockDisponible: sql`${articles.stockDisponible} + ${params.quantite}`, updatedAt: new Date() })
-      .where(eq(articles.id, params.articleId));
+    tx.update(articles)
+      .set({ stockDisponible: sql`${articles.stockDisponible} + ${params.quantite}`, updatedAt: new Date().toISOString() })
+      .where(eq(articles.id, params.articleId))
+      .run();
 
     return row;
   });

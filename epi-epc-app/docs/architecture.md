@@ -28,8 +28,13 @@ flowchart TB
     Client -- "fetch('/api/...') JSON + Bearer JWT" --> Server
     Client -.-> Shared
     Server -.-> Shared
-    Server --> Postgres[(PostgreSQL)]
+    Server --> SQLite[(SQLite — fichier local)]
 ```
+
+Le client et le serveur s'exécutent dans le même processus Electron (le
+serveur sert le bundle client et répond aux appels `/api/*` sur
+`localhost`) ; le schéma ci-dessus sépare les couches par responsabilité, pas
+par processus ou machine.
 
 ## Pourquoi cette organisation
 

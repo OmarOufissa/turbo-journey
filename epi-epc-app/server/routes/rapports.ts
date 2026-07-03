@@ -213,16 +213,16 @@ rapportsRouter.get("/marches.xlsx", async (_req, res) => {
 rapportsRouter.get("/consommation-annuelle.xlsx", async (_req, res) => {
   const rows = await db
     .select({
-      annee: sql<string>`to_char(${affectations.dateAffectation}::date, 'YYYY')`,
+      annee: sql<string>`strftime('%Y', ${affectations.dateAffectation})`,
       designation: articles.designation,
       famille: familles.nom,
-      quantite: sql<number>`sum(${affectations.quantite})::int`,
+      quantite: sql<number>`sum(${affectations.quantite})`,
     })
     .from(affectations)
     .innerJoin(articles, eq(affectations.articleId, articles.id))
     .leftJoin(familles, eq(articles.familleId, familles.id))
-    .groupBy(sql`to_char(${affectations.dateAffectation}::date, 'YYYY')`, articles.designation, familles.nom)
-    .orderBy(sql`to_char(${affectations.dateAffectation}::date, 'YYYY')`);
+    .groupBy(sql`strftime('%Y', ${affectations.dateAffectation})`, articles.designation, familles.nom)
+    .orderBy(sql`strftime('%Y', ${affectations.dateAffectation})`);
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Consommation annuelle");
@@ -311,7 +311,7 @@ rapportsRouter.get("/budget.xlsx", async (_req, res) => {
     .select({
       division: divisions.nom,
       famille: familles.nom,
-      montant: sql<number>`coalesce(sum(${affectations.quantite} * ${articles.prixUnitaire}), 0)::numeric`,
+      montant: sql<number>`coalesce(sum(${affectations.quantite} * ${articles.prixUnitaire}), 0)`,
     })
     .from(affectations)
     .innerJoin(articles, eq(affectations.articleId, articles.id))

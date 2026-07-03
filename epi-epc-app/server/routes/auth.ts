@@ -18,7 +18,7 @@ authRouter.post("/login", async (req, res) => {
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return res.status(401).json({ error: "Identifiants incorrects" });
 
-  await db.update(users).set({ derniereConnexion: new Date() }).where(eq(users.id, user.id));
+  await db.update(users).set({ derniereConnexion: new Date().toISOString() }).where(eq(users.id, user.id));
 
   const authUser: AuthUser = {
     id: user.id,

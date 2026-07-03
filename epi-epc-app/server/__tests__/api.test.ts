@@ -1,19 +1,19 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { createServer } from "../index";
-import { pool } from "../db";
+import { sqlite } from "../db";
 
-const app = createServer();
-
+let app: Awaited<ReturnType<typeof createServer>>;
 let adminToken: string;
 
 beforeAll(async () => {
+  app = await createServer();
   const res = await request(app).post("/api/auth/login").send({ username: "admin", password: "Admin@2026" });
   adminToken = res.body.token;
 });
 
-afterAll(async () => {
-  await pool.end();
+afterAll(() => {
+  sqlite.close();
 });
 
 describe("authentification", () => {

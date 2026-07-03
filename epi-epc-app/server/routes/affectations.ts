@@ -25,12 +25,12 @@ affectationsRouter.get("/groupes", async (req, res) => {
       designation: articles.designation,
       codeArticle: articles.codeArticle,
       beneficiaireType: affectations.beneficiaireType,
-      nbBeneficiaires: sql<number>`count(*)::int`,
-      totalQuantite: sql<number>`sum(${affectations.quantite})::int`,
-      nbActif: sql<number>`count(*) filter (where ${affectations.statut} = 'actif')::int`,
-      nbRetourne: sql<number>`count(*) filter (where ${affectations.statut} = 'retourne')::int`,
-      nbPerdu: sql<number>`count(*) filter (where ${affectations.statut} = 'perdu')::int`,
-      nbReforme: sql<number>`count(*) filter (where ${affectations.statut} = 'reforme')::int`,
+      nbBeneficiaires: sql<number>`count(*)`,
+      totalQuantite: sql<number>`sum(${affectations.quantite})`,
+      nbActif: sql<number>`sum(case when ${affectations.statut} = 'actif' then 1 else 0 end)`,
+      nbRetourne: sql<number>`sum(case when ${affectations.statut} = 'retourne' then 1 else 0 end)`,
+      nbPerdu: sql<number>`sum(case when ${affectations.statut} = 'perdu' then 1 else 0 end)`,
+      nbReforme: sql<number>`sum(case when ${affectations.statut} = 'reforme' then 1 else 0 end)`,
     })
     .from(affectations)
     .innerJoin(articles, eq(affectations.articleId, articles.id))
@@ -81,7 +81,7 @@ affectationsRouter.get("/", async (req, res) => {
       .orderBy(desc(affectations.dateAffectation))
       .limit(ps)
       .offset((p - 1) * ps),
-    db.select({ total: sql<number>`count(*)::int` }).from(affectations).where(where),
+    db.select({ total: sql<number>`count(*)` }).from(affectations).where(where),
   ]);
 
   res.json({ rows, total, page: p, pageSize: ps });
@@ -203,7 +203,7 @@ affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
 
   const [row] = await db
     .update(affectations)
-    .set({ statut: "retourne", dateRetour, etatRetour, updatedAt: new Date() })
+    .set({ statut: "retourne", dateRetour, etatRetour, updatedAt: new Date().toISOString() })
     .where(eq(affectations.id, id))
     .returning();
 
@@ -237,7 +237,7 @@ affectationsRouter.post("/:id/reforme", async (req: AuthedRequest, res) => {
   const [affectation] = await db.select().from(affectations).where(eq(affectations.id, id));
   if (!affectation) return res.status(404).json({ error: "Affectation introuvable" });
 
-  const [row] = await db.update(affectations).set({ statut: "reforme", updatedAt: new Date() }).where(eq(affectations.id, id)).returning();
+  const [row] = await db.update(affectations).set({ statut: "reforme", updatedAt: new Date().toISOString() }).where(eq(affectations.id, id)).returning();
   const [reforme] = await db
     .insert(reformes)
     .values({ articleId: affectation.articleId, affectationId: id, dateReforme: new Date().toISOString().slice(0, 10), quantite: affectation.quantite, motif, decision })

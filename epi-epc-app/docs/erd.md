@@ -128,7 +128,7 @@ erDiagram
         int article_id FK
         text type
         int quantite "signe +/-"
-        timestamp date_mouvement
+        text date_mouvement
     }
     CONTROLES_PERIODIQUES {
         int id PK
@@ -171,8 +171,8 @@ erDiagram
         text type_evenement
         text entite_type
         int entite_id
-        jsonb details
-        timestamp date_evenement
+        text details "JSON"
+        text date_evenement
     }
     USERS {
         int id PK

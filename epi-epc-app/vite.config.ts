@@ -19,14 +19,18 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "./shared"),
     },
   },
+  test: {
+    environment: "node",
+    setupFiles: ["./server/__tests__/setup.ts"],
+  },
 });
 
 function expressPlugin() {
   return {
     name: "express-plugin",
     apply: "serve" as const,
-    configureServer(server: any) {
-      const app = createServer();
+    async configureServer(server: any) {
+      const app = await createServer();
       server.middlewares.use(app);
     },
   };

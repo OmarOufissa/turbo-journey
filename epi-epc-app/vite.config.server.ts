@@ -14,23 +14,11 @@ export default defineConfig({
     target: "node22",
     ssr: true,
     rollupOptions: {
-      external: [
-        "express",
-        "cors",
-        "pg",
-        "drizzle-orm",
-        "bcryptjs",
-        "jsonwebtoken",
-        "multer",
-        "pdfkit",
-        "exceljs",
-        "dotenv",
-        "fs",
-        "path",
-        "url",
-        "http",
-        "crypto",
-      ],
+      external: (id: string) =>
+        id.startsWith("node:") ||
+        ["express", "cors", "drizzle-orm", "bcryptjs", "jsonwebtoken", "multer", "pdfkit", "exceljs", "dotenv", "fs", "path", "url", "http", "crypto"].includes(id) ||
+        id === "better-sqlite3" ||
+        id.startsWith("drizzle-orm/"),
       output: { format: "es" },
     },
     minify: false,

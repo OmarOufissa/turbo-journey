@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
 import { articles, familles, sousFamilles, marches, stockMouvements, documents } from "../db/schema";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, like, or, sql } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
 import type { AuthedRequest } from "../middleware/auth";
 
@@ -20,7 +20,7 @@ articlesRouter.get("/sous-familles", async (req, res) => {
 articlesRouter.get("/", async (req, res) => {
   const { q, familleId, sousFamilleId, stockStatut, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [eq(articles.actif, true)];
-  if (q) conditions.push(or(ilike(articles.designation, `%${q}%`), ilike(articles.codeArticle, `%${q}%`), ilike(articles.codeInterne, `%${q}%`))!);
+  if (q) conditions.push(or(like(articles.designation, `%${q}%`), like(articles.codeArticle, `%${q}%`), like(articles.codeInterne, `%${q}%`))!);
   if (familleId) conditions.push(eq(articles.familleId, Number(familleId)));
   if (sousFamilleId) conditions.push(eq(articles.sousFamilleId, Number(sousFamilleId)));
   if (stockStatut === "rupture") conditions.push(sql`${articles.stockDisponible} = 0`);
@@ -57,7 +57,7 @@ articlesRouter.get("/", async (req, res) => {
       .orderBy(articles.designation)
       .limit(ps)
       .offset((p - 1) * ps),
-    db.select({ total: sql<number>`count(*)::int` }).from(articles).where(where),
+    db.select({ total: sql<number>`count(*)` }).from(articles).where(where),
   ]);
 
   res.json({ rows, total, page: p, pageSize: ps });
@@ -134,14 +134,14 @@ articlesRouter.put("/:id", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
   const [before] = await db.select().from(articles).where(eq(articles.id, id));
   if (!before) return res.status(404).json({ error: "Article introuvable" });
-  const [row] = await db.update(articles).set({ ...req.body, updatedAt: new Date() }).where(eq(articles.id, id)).returning();
+  const [row] = await db.update(articles).set({ ...req.body, updatedAt: new Date().toISOString() }).where(eq(articles.id, id)).returning();
   await logHistorique({ typeEvenement: "modification_article", entiteType: "article", entiteId: id, articleId: id, utilisateurId: req.user?.id, details: { avant: before, apres: row } });
   res.json(row);
 });
 
 articlesRouter.post("/:id/desactiver", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
-  const [row] = await db.update(articles).set({ actif: false, updatedAt: new Date() }).where(eq(articles.id, id)).returning();
+  const [row] = await db.update(articles).set({ actif: false, updatedAt: new Date().toISOString() }).where(eq(articles.id, id)).returning();
   if (!row) return res.status(404).json({ error: "Article introuvable" });
   await logHistorique({ typeEvenement: "desactivation_article", entiteType: "article", entiteId: id, articleId: id, utilisateurId: req.user?.id });
   res.json(row);

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
 import { agents, divisions, services, equipes, affectations, articles } from "../db/schema";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, like, or, sql } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
 import type { AuthedRequest } from "../middleware/auth";
 
@@ -10,7 +10,7 @@ export const agentsRouter = Router();
 agentsRouter.get("/", async (req, res) => {
   const { q, divisionId, serviceId, equipeId, statut, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [];
-  if (q) conditions.push(or(ilike(agents.nom, `%${q}%`), ilike(agents.matricule, `%${q}%`), ilike(agents.fonction, `%${q}%`)));
+  if (q) conditions.push(or(like(agents.nom, `%${q}%`), like(agents.matricule, `%${q}%`), like(agents.fonction, `%${q}%`)));
   if (divisionId) conditions.push(eq(agents.divisionId, Number(divisionId)));
   if (serviceId) conditions.push(eq(agents.serviceId, Number(serviceId)));
   if (equipeId) conditions.push(eq(agents.equipeId, Number(equipeId)));
@@ -48,7 +48,7 @@ agentsRouter.get("/", async (req, res) => {
       .orderBy(agents.nom)
       .limit(ps)
       .offset((p - 1) * ps),
-    db.select({ total: sql<number>`count(*)::int` }).from(agents).where(where),
+    db.select({ total: sql<number>`count(*)` }).from(agents).where(where),
   ]);
 
   res.json({ rows, total, page: p, pageSize: ps });
@@ -116,7 +116,7 @@ agentsRouter.put("/:id", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
   const [before] = await db.select().from(agents).where(eq(agents.id, id));
   if (!before) return res.status(404).json({ error: "Agent introuvable" });
-  const [row] = await db.update(agents).set({ ...req.body, updatedAt: new Date() }).where(eq(agents.id, id)).returning();
+  const [row] = await db.update(agents).set({ ...req.body, updatedAt: new Date().toISOString() }).where(eq(agents.id, id)).returning();
   await logHistorique({ typeEvenement: "modification_agent", entiteType: "agent", entiteId: id, agentId: id, utilisateurId: req.user?.id, details: { avant: before, apres: row } });
   res.json(row);
 });
@@ -124,7 +124,7 @@ agentsRouter.put("/:id", async (req: AuthedRequest, res) => {
 // Archivage (jamais de suppression physique — conforme à l'exigence "aucune donnée supprimée")
 agentsRouter.post("/:id/archiver", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
-  const [row] = await db.update(agents).set({ statut: "archive", updatedAt: new Date() }).where(eq(agents.id, id)).returning();
+  const [row] = await db.update(agents).set({ statut: "archive", updatedAt: new Date().toISOString() }).where(eq(agents.id, id)).returning();
   if (!row) return res.status(404).json({ error: "Agent introuvable" });
   await logHistorique({ typeEvenement: "archivage_agent", entiteType: "agent", entiteId: id, agentId: id, utilisateurId: req.user?.id });
   res.json(row);
