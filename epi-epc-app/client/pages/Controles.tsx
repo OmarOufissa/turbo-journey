@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,10 @@ import { formatDate, formatMoney } from "@/lib/utils";
 interface Controle {
   id: number;
   designation: string;
+  familleNom: string | null;
+  soumisControleReglementaire: boolean;
+  lieuEmplacement: string | null;
+  numeroSerie: string | null;
   type: string;
   datePlanifiee: string;
   dateRealisee: string | null;
@@ -26,6 +31,7 @@ interface Controle {
   statut: string;
   realiseParNom: string | null;
 }
+interface FamilleOpt { id: number; nom: string; soumisControleReglementaire: boolean }
 interface Reparation {
   id: number;
   designation: string;
@@ -48,12 +54,26 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default function Controles() {
   const qc = useQueryClient();
+  const [searchParams] = useSearchParams();
   const [statut, setStatut] = useState("all");
+  const [familleId, setFamilleId] = useState(searchParams.get("familleId") ?? "all");
+  const [reglementaireOnly, setReglementaireOnly] = useState(searchParams.get("reglementaireOnly") === "true");
   const [realiserTarget, setRealiserTarget] = useState<Controle | null>(null);
 
+  const { data: familles } = useQuery<FamilleOpt[]>({ queryKey: ["familles"], queryFn: () => apiGet("/articles/familles") });
+  const reglFamilles = familles?.filter((f) => f.soumisControleReglementaire) ?? [];
+
+  const controlesQs = [
+    statut !== "all" ? `statut=${statut}` : null,
+    familleId !== "all" ? `familleId=${familleId}` : null,
+    reglementaireOnly ? "reglementaireOnly=true" : null,
+  ]
+    .filter(Boolean)
+    .join("&");
+
   const { data: controles, isLoading } = useQuery<Controle[]>({
-    queryKey: ["controles", statut],
-    queryFn: () => apiGet(`/controles${statut !== "all" ? `?statut=${statut}` : ""}`),
+    queryKey: ["controles", statut, familleId, reglementaireOnly],
+    queryFn: () => apiGet(`/controles${controlesQs ? `?${controlesQs}` : ""}`),
   });
   const { data: reparations } = useQuery<Reparation[]>({ queryKey: ["reparations"], queryFn: () => apiGet("/reparations") });
 
@@ -94,7 +114,7 @@ export default function Controles() {
         </TabsList>
 
         <TabsContent value="controles" className="space-y-4">
-          <Card className="p-3">
+          <Card className="flex flex-wrap items-center gap-2 p-3">
             <Select value={statut} onValueChange={setStatut}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Statut" /></SelectTrigger>
               <SelectContent>
@@ -104,12 +124,28 @@ export default function Controles() {
                 <SelectItem value="realise">Réalisé</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={familleId} onValueChange={setFamilleId}>
+              <SelectTrigger className="w-56"><SelectValue placeholder="Famille" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes familles</SelectItem>
+                {reglFamilles.map((f) => <SelectItem key={f.id} value={String(f.id)}>{f.nom}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              size="sm"
+              variant={reglementaireOnly ? "default" : "outline"}
+              onClick={() => setReglementaireOnly((v) => !v)}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" /> Soumis à contrôle règlementaire uniquement
+            </Button>
           </Card>
           <Card className="overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Article</TableHead>
+                  <TableHead>Famille</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Échéance</TableHead>
                   <TableHead>Réalisé le</TableHead>
@@ -119,13 +155,21 @@ export default function Controles() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading && <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
+                {isLoading && <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
                 {!isLoading && controles?.length === 0 && (
-                  <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Aucun contrôle planifié pour le moment</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucun contrôle planifié pour le moment</TableCell></TableRow>
                 )}
                 {controles?.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="font-medium">{c.designation}</TableCell>
+                    <TableCell className="font-medium">
+                      {c.designation}
+                      {(c.lieuEmplacement || c.numeroSerie) && (
+                        <div className="text-xs font-normal text-muted-foreground">
+                          {[c.lieuEmplacement, c.numeroSerie].filter(Boolean).join(" · ")}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>{c.familleNom ?? "—"}</TableCell>
                     <TableCell>{TYPE_LABELS[c.type] ?? c.type}</TableCell>
                     <TableCell>{formatDate(c.datePlanifiee)}</TableCell>
                     <TableCell>{formatDate(c.dateRealisee)}</TableCell>

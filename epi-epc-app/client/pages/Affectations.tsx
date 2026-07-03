@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Plus, Undo2, Trash2, ChevronRight, ChevronDown, LayoutList, Layers } from "lucide-react";
+import { Plus, Undo2, Trash2, ChevronRight, ChevronDown, LayoutList, Layers, ShieldCheck } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,6 +26,10 @@ interface AffectationRow {
   dateAffectation: string | null;
   statut: string;
   motif: string | null;
+  numeroSerie: string | null;
+  lieuEmplacement: string | null;
+  marque: string | null;
+  soumisControleReglementaire: boolean;
 }
 interface GroupRow {
   articleId: number;
@@ -39,7 +43,7 @@ interface GroupRow {
   nbPerdu: number;
   nbReforme: number;
 }
-interface ArticleOpt { id: number; designation: string; codeArticle: string; stockDisponible: number }
+interface ArticleOpt { id: number; designation: string; codeArticle: string; stockDisponible: number; soumisControleReglementaire: boolean }
 interface AgentOpt { id: number; nom: string; matricule: string }
 interface EquipeOpt { id: number; nom: string }
 
@@ -52,6 +56,8 @@ export default function Affectations() {
   const [retourTarget, setRetourTarget] = useState<AffectationRow | null>(null);
   const [beneficiaireKind, setBeneficiaireKind] = useState<"agent" | "equipe">("agent");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [selectedArticleId, setSelectedArticleId] = useState("");
+  const [controleTarget, setControleTarget] = useState<AffectationRow | null>(null);
 
   const filterQs = `${statut !== "all" ? `&statut=${statut}` : ""}${beneficiaireType !== "all" ? `&beneficiaireType=${beneficiaireType}` : ""}`;
 
@@ -104,6 +110,16 @@ export default function Affectations() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const controleMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) => apiPost("/controles", body),
+    onSuccess: () => {
+      toast.success("Contrôle planifié");
+      qc.invalidateQueries({ queryKey: ["dashboard", "reglementaire"] });
+      setControleTarget(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -117,6 +133,22 @@ export default function Affectations() {
       pointure: fd.get("pointure") || undefined,
       dateAffectation: fd.get("dateAffectation"),
       motif: fd.get("motif") || undefined,
+      numeroSerie: fd.get("numeroSerie") || undefined,
+      lieuEmplacement: fd.get("lieuEmplacement") || undefined,
+      marque: fd.get("marque") || undefined,
+      dateFabricationUnite: fd.get("dateFabricationUnite") || undefined,
+    });
+  }
+
+  function onControleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!controleTarget) return;
+    const fd = new FormData(e.currentTarget);
+    controleMutation.mutate({
+      articleId: controleTarget.articleId,
+      affectationId: controleTarget.id,
+      type: fd.get("type"),
+      datePlanifiee: fd.get("datePlanifiee"),
     });
   }
 
@@ -146,7 +178,7 @@ export default function Affectations() {
               : `${data?.total ?? "…"} dotation(s) individuelle(s) et collective(s)`}
           </p>
         </div>
-        <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Nouvelle affectation</Button>
+        <Button onClick={() => { setSelectedArticleId(""); setOpen(true); }}><Plus className="h-4 w-4" /> Nouvelle affectation</Button>
       </div>
 
       <Card className="p-3">
@@ -236,6 +268,7 @@ export default function Affectations() {
                             statut={statut}
                             onRetour={setRetourTarget}
                             onReforme={(id) => reformeMutation.mutate({ id, motif: "Fin de vie / hors service" })}
+                            onPlanifierControle={setControleTarget}
                           />
                         </TableCell>
                       </TableRow>
@@ -262,7 +295,13 @@ export default function Affectations() {
             <TableBody>
               {isLoading && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
               {data?.rows.map((a) => (
-                <AffectationDetailRow key={a.id} a={a} onRetour={setRetourTarget} onReforme={(id) => reformeMutation.mutate({ id, motif: "Fin de vie / hors service" })} />
+                <AffectationDetailRow
+                  key={a.id}
+                  a={a}
+                  onRetour={setRetourTarget}
+                  onReforme={(id) => reformeMutation.mutate({ id, motif: "Fin de vie / hors service" })}
+                  onPlanifierControle={setControleTarget}
+                />
               ))}
             </TableBody>
           </Table>
@@ -279,11 +318,33 @@ export default function Affectations() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="articleId">Article *</Label>
-              <select id="articleId" name="articleId" required className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm">
+              <select
+                id="articleId"
+                name="articleId"
+                required
+                value={selectedArticleId}
+                onChange={(e) => setSelectedArticleId(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
+              >
                 <option value="">Sélectionner…</option>
                 {articles?.rows.map((a) => <option key={a.id} value={a.id}>{a.designation} ({a.stockDisponible} dispo)</option>)}
               </select>
             </div>
+            {articles?.rows.find((a) => String(a.id) === selectedArticleId)?.soumisControleReglementaire && (
+              <div className="space-y-3 rounded-md border border-dashed p-3">
+                <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Équipement soumis à contrôle règlementaire — identifiez l'unité physique
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5"><Label htmlFor="numeroSerie">N° de série</Label><Input id="numeroSerie" name="numeroSerie" /></div>
+                  <div className="space-y-1.5"><Label htmlFor="marque">Marque</Label><Input id="marque" name="marque" /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5"><Label htmlFor="lieuEmplacement">Lieu / emplacement</Label><Input id="lieuEmplacement" name="lieuEmplacement" /></div>
+                  <div className="space-y-1.5"><Label htmlFor="dateFabricationUnite">Date de fabrication</Label><Input id="dateFabricationUnite" name="dateFabricationUnite" type="date" /></div>
+                </div>
+              </div>
+            )}
             {beneficiaireKind === "agent" ? (
               <div className="space-y-1.5">
                 <Label htmlFor="agentId">Agent *</Label>
@@ -337,6 +398,36 @@ export default function Affectations() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!controleTarget} onOpenChange={(o) => !o && setControleTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Planifier un contrôle règlementaire</DialogTitle></DialogHeader>
+          {controleTarget && (
+            <p className="-mt-2 text-sm text-muted-foreground">
+              {controleTarget.designation}
+              {controleTarget.lieuEmplacement ? ` — ${controleTarget.lieuEmplacement}` : ""}
+              {controleTarget.numeroSerie ? ` (${controleTarget.numeroSerie})` : ""}
+            </p>
+          )}
+          <form onSubmit={onControleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="type">Type de contrôle</Label>
+              <select id="type" name="type" required className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm">
+                <option value="inspection">Inspection</option>
+                <option value="essai_dielectrique">Essai diélectrique</option>
+                <option value="etalonnage">Étalonnage</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="renouvellement">Renouvellement / réépreuve</option>
+              </select>
+            </div>
+            <div className="space-y-1.5"><Label htmlFor="datePlanifiee">Date planifiée</Label><Input id="datePlanifiee" name="datePlanifiee" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setControleTarget(null)}>Annuler</Button>
+              <Button type="submit" disabled={controleMutation.isPending}>Planifier</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -347,12 +438,14 @@ function GroupDetail({
   statut,
   onRetour,
   onReforme,
+  onPlanifierControle,
 }: {
   articleId: number;
   beneficiaireType: string;
   statut: string;
   onRetour: (a: AffectationRow) => void;
   onReforme: (id: number) => void;
+  onPlanifierControle: (a: AffectationRow) => void;
 }) {
   const { data, isLoading } = useQuery<{ rows: AffectationRow[]; total: number }>({
     queryKey: ["affectations", "groupe-detail", articleId, beneficiaireType, statut],
@@ -366,7 +459,7 @@ function GroupDetail({
     <Table>
       <TableBody>
         {data?.rows.map((a) => (
-          <AffectationDetailRow key={a.id} a={a} onRetour={onRetour} onReforme={onReforme} indented />
+          <AffectationDetailRow key={a.id} a={a} onRetour={onRetour} onReforme={onReforme} onPlanifierControle={onPlanifierControle} indented />
         ))}
       </TableBody>
     </Table>
@@ -377,17 +470,24 @@ function AffectationDetailRow({
   a,
   onRetour,
   onReforme,
+  onPlanifierControle,
   indented,
 }: {
   a: AffectationRow;
   onRetour: (a: AffectationRow) => void;
   onReforme: (id: number) => void;
+  onPlanifierControle: (a: AffectationRow) => void;
   indented?: boolean;
 }) {
   return (
     <TableRow>
       <TableCell className={cn("font-medium", indented && "pl-10")}>
         {indented ? (a.agentNom ?? a.equipeNom) : a.designation}
+        {(a.lieuEmplacement || a.numeroSerie) && (
+          <div className="text-xs font-normal text-muted-foreground">
+            {[a.lieuEmplacement, a.numeroSerie].filter(Boolean).join(" · ")}
+          </div>
+        )}
       </TableCell>
       <TableCell>
         {indented ? (
@@ -405,6 +505,9 @@ function AffectationDetailRow({
       <TableCell className="text-right">
         {a.statut === "actif" && (
           <div className="flex justify-end gap-1">
+            {a.soumisControleReglementaire && (
+              <Button size="sm" variant="ghost" onClick={() => onPlanifierControle(a)}><ShieldCheck className="h-3.5 w-3.5" /> Contrôle</Button>
+            )}
             <Button size="sm" variant="ghost" onClick={() => onRetour(a)}><Undo2 className="h-3.5 w-3.5" /> Retour</Button>
             <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onReforme(a.id)}>
               <Trash2 className="h-3.5 w-3.5" /> Réformer

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { controlesPeriodiques, articles, agents, affectations, reparations } from "../db/schema";
+import { controlesPeriodiques, articles, agents, affectations, reparations, familles } from "../db/schema";
 import { and, eq, lte, sql } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
 import type { AuthedRequest } from "../middleware/auth";
@@ -8,11 +8,13 @@ import type { AuthedRequest } from "../middleware/auth";
 export const controlesRouter = Router();
 
 controlesRouter.get("/", async (req, res) => {
-  const { statut, type, articleId } = req.query as Record<string, string>;
+  const { statut, type, articleId, familleId, reglementaireOnly } = req.query as Record<string, string>;
   const conditions = [];
   if (statut) conditions.push(eq(controlesPeriodiques.statut, statut));
   if (type) conditions.push(eq(controlesPeriodiques.type, type));
   if (articleId) conditions.push(eq(controlesPeriodiques.articleId, Number(articleId)));
+  if (familleId) conditions.push(eq(articles.familleId, Number(familleId)));
+  if (reglementaireOnly === "true") conditions.push(eq(familles.soumisControleReglementaire, true));
   const where = conditions.length ? and(...conditions) : undefined;
 
   const rows = await db
@@ -20,7 +22,11 @@ controlesRouter.get("/", async (req, res) => {
       id: controlesPeriodiques.id,
       articleId: controlesPeriodiques.articleId,
       designation: articles.designation,
+      familleNom: familles.nom,
+      soumisControleReglementaire: familles.soumisControleReglementaire,
       affectationId: controlesPeriodiques.affectationId,
+      numeroSerie: affectations.numeroSerie,
+      lieuEmplacement: affectations.lieuEmplacement,
       type: controlesPeriodiques.type,
       datePlanifiee: controlesPeriodiques.datePlanifiee,
       dateRealisee: controlesPeriodiques.dateRealisee,
@@ -32,6 +38,8 @@ controlesRouter.get("/", async (req, res) => {
     })
     .from(controlesPeriodiques)
     .leftJoin(articles, eq(controlesPeriodiques.articleId, articles.id))
+    .leftJoin(familles, eq(articles.familleId, familles.id))
+    .leftJoin(affectations, eq(controlesPeriodiques.affectationId, affectations.id))
     .leftJoin(agents, eq(controlesPeriodiques.realiseParAgentId, agents.id))
     .where(where)
     .orderBy(controlesPeriodiques.datePlanifiee);

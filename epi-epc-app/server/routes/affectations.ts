@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { affectations, articles, agents, equipes, kitTemplateLignes, reformes } from "../db/schema";
+import { affectations, articles, agents, equipes, kitTemplateLignes, reformes, familles } from "../db/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { applyStockMouvement } from "../services/stockService";
 import { logHistorique } from "../services/historiqueService";
@@ -72,11 +72,19 @@ affectationsRouter.get("/", async (req, res) => {
         motif: affectations.motif,
         statut: affectations.statut,
         dateRetour: affectations.dateRetour,
+        numeroSerie: affectations.numeroSerie,
+        lieuEmplacement: affectations.lieuEmplacement,
+        marque: affectations.marque,
+        dateFabricationUnite: affectations.dateFabricationUnite,
+        observations: affectations.observations,
+        caracteristiques: affectations.caracteristiques,
+        soumisControleReglementaire: familles.soumisControleReglementaire,
       })
       .from(affectations)
       .innerJoin(articles, eq(affectations.articleId, articles.id))
       .leftJoin(agents, eq(affectations.agentId, agents.id))
       .leftJoin(equipes, eq(affectations.equipeId, equipes.id))
+      .leftJoin(familles, eq(articles.familleId, familles.id))
       .where(where)
       .orderBy(desc(affectations.dateAffectation))
       .limit(ps)
@@ -99,6 +107,13 @@ affectationsRouter.post("/", async (req: AuthedRequest, res) => {
     dateAffectation: string;
     motif?: string;
     validateurAgentId?: number;
+    // Suivi par unité physique (équipements soumis à contrôle règlementaire)
+    numeroSerie?: string;
+    lieuEmplacement?: string;
+    marque?: string;
+    dateFabricationUnite?: string;
+    observations?: string;
+    caracteristiques?: Record<string, unknown>;
   };
   if (!body.articleId || !body.quantite || !body.dateAffectation) {
     return res.status(400).json({ error: "Article, quantité et date requis" });
@@ -133,6 +148,41 @@ affectationsRouter.post("/", async (req: AuthedRequest, res) => {
     details: { quantite: body.quantite, motif: body.motif },
   });
   res.status(201).json(row);
+});
+
+// Mise à jour des informations d'une unité physique (équipements soumis à contrôle
+// règlementaire : numéro de série, emplacement, marque, date de fabrication,
+// observations, caractéristiques propres à la famille). Sans effet sur le stock
+// ni le statut — distinct des transitions retour/réforme.
+affectationsRouter.put("/:id/unite", async (req: AuthedRequest, res) => {
+  const id = Number(req.params.id);
+  const { numeroSerie, lieuEmplacement, marque, dateFabricationUnite, observations, caracteristiques } = req.body as {
+    numeroSerie?: string | null;
+    lieuEmplacement?: string | null;
+    marque?: string | null;
+    dateFabricationUnite?: string | null;
+    observations?: string | null;
+    caracteristiques?: Record<string, unknown> | null;
+  };
+  const [before] = await db.select().from(affectations).where(eq(affectations.id, id));
+  if (!before) return res.status(404).json({ error: "Affectation introuvable" });
+
+  const [row] = await db
+    .update(affectations)
+    .set({ numeroSerie, lieuEmplacement, marque, dateFabricationUnite, observations, caracteristiques, updatedAt: new Date().toISOString() })
+    .where(eq(affectations.id, id))
+    .returning();
+  await logHistorique({
+    typeEvenement: "maj_unite_equipement",
+    entiteType: "affectation",
+    entiteId: id,
+    agentId: before.agentId,
+    equipeId: before.equipeId,
+    articleId: before.articleId,
+    utilisateurId: req.user?.id,
+    details: { numeroSerie, lieuEmplacement },
+  });
+  res.json(row);
 });
 
 // Application en masse d'un gabarit de dotation standard à un agent ou une équipe

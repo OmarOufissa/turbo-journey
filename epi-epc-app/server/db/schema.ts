@@ -140,6 +140,11 @@ export const familles = sqliteTable("familles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   nom: text("nom").notNull().unique(),
   ordre: integer("ordre").notNull().default(0),
+  // Familles dont les articles sont soumis à un contrôle et une réépreuve périodiques
+  // règlementaires (appareils de levage, extincteurs/LCI, appareils sous pression,
+  // perches isolantes) — pilote l'affichage dédié du tableau de bord et active le
+  // suivi par unité physique (voir affectations.numeroSerie etc.).
+  soumisControleReglementaire: integer("soumis_controle_reglementaire", { mode: "boolean" }).notNull().default(false),
 });
 
 export const sousFamilles = sqliteTable(
@@ -184,6 +189,10 @@ export const articles = sqliteTable(
     codeFournisseur: text("code_fournisseur"),
     familleId: integer("famille_id").references(() => familles.id),
     sousFamilleId: integer("sous_famille_id").references(() => sousFamilles.id),
+    // Classement secondaire optionnel (ex. perches isolantes : famille principale
+    // "Perches isolantes" pour le suivi règlementaire, tout en restant rattachées à
+    // leur ancien classement "Matériel isolant" pour qui les y cherche encore).
+    familleSecondaireId: integer("famille_secondaire_id").references(() => familles.id),
     designation: text("designation").notNull(),
     description: text("description"),
     photoUrl: text("photo_url"),
@@ -221,6 +230,7 @@ export const articles = sqliteTable(
   (t) => ({
     codeIdx: uniqueIndex("articles_code_idx").on(t.codeArticle),
     familleIdx: index("articles_famille_idx").on(t.familleId),
+    familleSecondaireIdx: index("articles_famille_secondaire_idx").on(t.familleSecondaireId),
     designationIdx: index("articles_designation_idx").on(t.designation),
     stockDisponibleIdx: index("articles_stock_disponible_idx").on(t.stockDisponible),
   }),
@@ -235,7 +245,8 @@ export const sousFamillesRelations = relations(sousFamilles, ({ one, many }) => 
   articles: many(articles),
 }));
 export const articlesRelations = relations(articles, ({ one, many }) => ({
-  famille: one(familles, { fields: [articles.familleId], references: [familles.id] }),
+  famille: one(familles, { fields: [articles.familleId], references: [familles.id], relationName: "articleFamillePrincipale" }),
+  familleSecondaire: one(familles, { fields: [articles.familleSecondaireId], references: [familles.id], relationName: "articleFamilleSecondaire" }),
   sousFamille: one(sousFamilles, { fields: [articles.sousFamilleId], references: [sousFamilles.id] }),
   marche: one(marches, { fields: [articles.marcheId], references: [marches.id] }),
   mouvements: many(stockMouvements),
@@ -338,6 +349,23 @@ export const affectations = sqliteTable(
     dateRetour: text("date_retour"),
     etatRetour: text("etat_retour"), // bon | usage_normal | endommage | hors_service
     kitTemplateId: integer("kit_template_id").references(() => kitTemplates.id),
+    // Champs de suivi par unité physique — utilisés pour les équipements soumis à
+    // contrôle règlementaire (appareils de levage, extincteurs/LCI, appareils sous
+    // pression, perches isolantes) où chaque affectation représente un appareil
+    // individuel plutôt qu'un lot ; sans objet pour les EPI/EPC classiques (restent
+    // null). dateAffectation fait déjà office de « date de mise en service », et
+    // controles_periodiques (dateRealisee / prochaineEcheance) fait office de
+    // « date de vérification / prochaine échéance » pour ces mêmes unités.
+    numeroSerie: text("numero_serie"),
+    lieuEmplacement: text("lieu_emplacement"),
+    marque: text("marque"),
+    dateFabricationUnite: text("date_fabrication_unite"),
+    observations: text("observations"),
+    // Caractéristiques propres à la famille (force, capacité en litres, pression en
+    // bar, longueur, diamètre, embout, isolement, type d'agent extincteur...) —
+    // volontairement en JSON libre plutôt qu'une colonne par famille, tant les
+    // champs varient d'un type d'équipement à l'autre.
+    caracteristiques: text("caracteristiques", { mode: "json" }),
     createdAt: text("created_at").default(now).notNull(),
     updatedAt: text("updated_at").default(now).notNull(),
   },
@@ -347,6 +375,7 @@ export const affectations = sqliteTable(
     equipeIdx: index("affectations_equipe_idx").on(t.equipeId),
     statutIdx: index("affectations_statut_idx").on(t.statut),
     dateIdx: index("affectations_date_idx").on(t.dateAffectation),
+    numeroSerieIdx: index("affectations_numero_serie_idx").on(t.numeroSerie),
   }),
 );
 

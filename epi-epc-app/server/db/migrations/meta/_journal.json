@@ -8,6 +8,13 @@
       "when": 1783097873403,
       "tag": "0000_great_callisto",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783120958695,
+      "tag": "0001_lying_omega_sentinel",
+      "breakpoints": true
     }
   ]
 }

@@ -158,3 +158,102 @@ dashboardRouter.get("/charts", async (_req, res) => {
     tauxCouverture,
   });
 });
+
+// Suivi des équipements soumis à contrôle règlementaire (appareils de levage,
+// extincteurs/LCI, appareils sous pression, perches isolantes) — chaque
+// famille flagge soumisControleReglementaire, chaque unité physique est une
+// affectation (voir docs/erd.md), son contrôle périodique via controlesPeriodiques.affectationId.
+dashboardRouter.get("/reglementaire", async (_req, res) => {
+  const today = todayStr();
+  const in30 = inDays(30);
+
+  const reglFamilles = await db
+    .select({ id: familles.id, nom: familles.nom })
+    .from(familles)
+    .where(eq(familles.soumisControleReglementaire, true))
+    .orderBy(familles.ordre);
+
+  const parFamille = await Promise.all(
+    reglFamilles.map(async (f) => {
+      const familleMatch = sql`(${articles.familleId} = ${f.id} or ${articles.familleSecondaireId} = ${f.id})`;
+
+      const [uniteAgg] = await db
+        .select({ nbUnites: sql<number>`count(*)` })
+        .from(affectations)
+        .innerJoin(articles, eq(affectations.articleId, articles.id))
+        .where(and(eq(affectations.statut, "actif"), familleMatch));
+
+      const [controleAgg] = await db
+        .select({
+          enRetard: sql<number>`sum(case when ${controlesPeriodiques.statut} = 'en_retard' or (${controlesPeriodiques.statut} = 'planifie' and ${controlesPeriodiques.datePlanifiee} < ${today}) then 1 else 0 end)`,
+          aVenir: sql<number>`sum(case when ${controlesPeriodiques.statut} = 'planifie' and ${controlesPeriodiques.datePlanifiee} >= ${today} and ${controlesPeriodiques.datePlanifiee} <= ${in30} then 1 else 0 end)`,
+        })
+        .from(controlesPeriodiques)
+        .innerJoin(affectations, eq(controlesPeriodiques.affectationId, affectations.id))
+        .innerJoin(articles, eq(affectations.articleId, articles.id))
+        .where(familleMatch);
+
+      const [sansControleAgg] = await db
+        .select({ n: sql<number>`count(*)` })
+        .from(affectations)
+        .innerJoin(articles, eq(affectations.articleId, articles.id))
+        .leftJoin(controlesPeriodiques, eq(controlesPeriodiques.affectationId, affectations.id))
+        .where(and(eq(affectations.statut, "actif"), familleMatch, sql`${controlesPeriodiques.id} is null`));
+
+      return {
+        familleId: f.id,
+        familleNom: f.nom,
+        nbUnites: uniteAgg.nbUnites,
+        nbControlesEnRetard: controleAgg.enRetard ?? 0,
+        nbControlesAVenir30j: controleAgg.aVenir ?? 0,
+        nbSansControlePlanifie: sansControleAgg.n,
+      };
+    }),
+  );
+
+  const echeanceSelect = {
+    controleId: controlesPeriodiques.id,
+    familleNom: familles.nom,
+    designation: articles.designation,
+    lieuEmplacement: affectations.lieuEmplacement,
+    numeroSerie: affectations.numeroSerie,
+    type: controlesPeriodiques.type,
+    datePlanifiee: controlesPeriodiques.datePlanifiee,
+    statut: controlesPeriodiques.statut,
+  };
+
+  const [expires, aVenir] = await Promise.all([
+    db
+      .select(echeanceSelect)
+      .from(controlesPeriodiques)
+      .innerJoin(affectations, eq(controlesPeriodiques.affectationId, affectations.id))
+      .innerJoin(articles, eq(affectations.articleId, articles.id))
+      .innerJoin(familles, eq(articles.familleId, familles.id))
+      .where(
+        and(
+          eq(familles.soumisControleReglementaire, true),
+          sql`${controlesPeriodiques.statut} = 'en_retard' or (${controlesPeriodiques.statut} = 'planifie' and ${controlesPeriodiques.datePlanifiee} < ${today})`,
+        ),
+      )
+      .orderBy(controlesPeriodiques.datePlanifiee)
+      .limit(20),
+    db
+      .select(echeanceSelect)
+      .from(controlesPeriodiques)
+      .innerJoin(affectations, eq(controlesPeriodiques.affectationId, affectations.id))
+      .innerJoin(articles, eq(affectations.articleId, articles.id))
+      .innerJoin(familles, eq(articles.familleId, familles.id))
+      .where(
+        and(
+          eq(familles.soumisControleReglementaire, true),
+          eq(controlesPeriodiques.statut, "planifie"),
+          gte(controlesPeriodiques.datePlanifiee, today),
+          lte(controlesPeriodiques.datePlanifiee, in30),
+        ),
+      )
+      .orderBy(controlesPeriodiques.datePlanifiee)
+      .limit(20),
+  ]);
+
+  res.json({ parFamille, expires, aVenir });
+});

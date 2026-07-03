@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import {
   ResponsiveContainer,
   BarChart,
@@ -15,13 +16,14 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-import { Package, Boxes, Truck, AlertTriangle, Ban, CalendarClock, Users, Network } from "lucide-react";
+import { Package, Boxes, Truck, AlertTriangle, Ban, CalendarClock, Users, Network, ShieldCheck, ArrowRight } from "lucide-react";
 import { apiGet } from "@/lib/api";
-import type { DashboardKpis, DashboardCharts } from "@shared/api";
+import type { DashboardKpis, DashboardCharts, DashboardReglementaire } from "@shared/api";
 import { StatCard } from "@/components/shared/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatMoney } from "@/lib/utils";
+import { formatDate, formatMoney } from "@/lib/utils";
 import { categoricalColor, coverageColor } from "@/lib/chartColors";
 
 const GRID = "hsl(var(--border))";
@@ -38,6 +40,10 @@ function EmptyChartState({ message }: { message: string }) {
 export default function Dashboard() {
   const { data: kpis, isLoading: loadingKpis } = useQuery<DashboardKpis>({ queryKey: ["dashboard", "kpis"], queryFn: () => apiGet("/dashboard/kpis") });
   const { data: charts, isLoading: loadingCharts } = useQuery<DashboardCharts>({ queryKey: ["dashboard", "charts"], queryFn: () => apiGet("/dashboard/charts") });
+  const { data: reglementaire, isLoading: loadingReglementaire } = useQuery<DashboardReglementaire>({
+    queryKey: ["dashboard", "reglementaire"],
+    queryFn: () => apiGet("/dashboard/reglementaire"),
+  });
 
   return (
     <div className="space-y-6">
@@ -64,6 +70,88 @@ export default function Dashboard() {
           <StatCard label="Contrôles en retard" value={kpis.controlesEnRetard} icon={CalendarClock} tone={kpis.controlesEnRetard ? "critical" : "success"} />
         </div>
       )}
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+          <div>
+            <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Suivi réglementaire</CardTitle>
+            <p className="text-xs text-muted-foreground">Appareils de levage, extincteurs/LCI, appareils sous pression, perches isolantes — contrôle et réépreuve périodiques obligatoires</p>
+          </div>
+          <Link to="/controles?reglementaireOnly=true" className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline">
+            Voir tous les contrôles <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {loadingReglementaire || !reglementaire ? (
+            <Skeleton className="h-32" />
+          ) : reglementaire.parFamille.every((f) => f.nbUnites === 0) ? (
+            <EmptyChartState message="Aucune unité physique enregistrée pour ces familles pour le moment — affectez un appareil (pont roulant, extincteur, perche, appareil sous pression…) pour activer son suivi." />
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {reglementaire.parFamille.map((f) => (
+                  <Link
+                    key={f.familleId}
+                    to={`/controles?reglementaireOnly=true&familleId=${f.familleId}`}
+                    className="rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                  >
+                    <p className="truncate text-sm font-medium">{f.familleNom}</p>
+                    <p className="mt-1 text-2xl font-semibold tabular-nums">{f.nbUnites}</p>
+                    <p className="text-xs text-muted-foreground">unité(s) suivie(s)</p>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {f.nbControlesEnRetard > 0 && <Badge variant="destructive">{f.nbControlesEnRetard} expiré(s)</Badge>}
+                      {f.nbControlesAVenir30j > 0 && <Badge variant="warning">{f.nbControlesAVenir30j} à échéance</Badge>}
+                      {f.nbSansControlePlanifie > 0 && <Badge variant="muted">{f.nbSansControlePlanifie} sans contrôle</Badge>}
+                      {f.nbControlesEnRetard === 0 && f.nbControlesAVenir30j === 0 && f.nbSansControlePlanifie === 0 && <Badge variant="success">À jour</Badge>}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div>
+                  <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Contrôles expirés</p>
+                  {reglementaire.expires.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Aucun contrôle expiré</p>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {reglementaire.expires.slice(0, 6).map((e) => (
+                        <li key={e.controleId} className="flex items-center justify-between gap-2 text-sm">
+                          <span className="truncate">
+                            {e.designation}
+                            {e.lieuEmplacement ? ` — ${e.lieuEmplacement}` : ""}
+                            {e.numeroSerie ? ` (${e.numeroSerie})` : ""}
+                          </span>
+                          <Badge variant="destructive" className="shrink-0">{formatDate(e.datePlanifiee)}</Badge>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Échéances à venir (30 jours)</p>
+                  {reglementaire.aVenir.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Aucune échéance dans les 30 prochains jours</p>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {reglementaire.aVenir.slice(0, 6).map((e) => (
+                        <li key={e.controleId} className="flex items-center justify-between gap-2 text-sm">
+                          <span className="truncate">
+                            {e.designation}
+                            {e.lieuEmplacement ? ` — ${e.lieuEmplacement}` : ""}
+                            {e.numeroSerie ? ` (${e.numeroSerie})` : ""}
+                          </span>
+                          <Badge variant="warning" className="shrink-0">{formatDate(e.datePlanifiee)}</Badge>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {loadingCharts || !charts ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

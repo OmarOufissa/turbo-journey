@@ -43,6 +43,9 @@ interface ArticleFixture {
   a_pointure: boolean;
   unite_gestion: string;
   code: string;
+  // Classement secondaire optionnel (ex. perches isolantes, rattachées en plus à
+  // leur ancienne famille "Matériel isolant" — voir articles.familleSecondaireId).
+  categorie_secondaire?: string;
 }
 interface KitTemplateFixture {
   label: string;
@@ -95,19 +98,30 @@ export async function seedDatabase() {
   console.log("→ Catalogue articles…");
   const articlesFixture = loadJSON<ArticleFixture[]>("articles.json");
 
-  const FAMILLE_ORDER = [
-    "EPI",
-    "EPC",
-    "Vêtement de travail",
-    "Chaussure de sécurité",
-    "Matériel de consignation",
-    "Matériel isolant",
-    "Matériel de lutte contre l'incendie",
-    "Autre",
+  // soumisControleReglementaire : familles dont chaque article/unité fait l'objet
+  // d'un contrôle et d'une réépreuve périodiques règlementaires obligatoires
+  // (appareils de levage, extincteurs/LCI, appareils sous pression, perches
+  // isolantes) — pilote la section dédiée du tableau de bord.
+  const FAMILLE_ORDER: { nom: string; soumisControleReglementaire?: boolean }[] = [
+    { nom: "EPI" },
+    { nom: "EPC" },
+    { nom: "Vêtement de travail" },
+    { nom: "Chaussure de sécurité" },
+    { nom: "Matériel de consignation" },
+    { nom: "Matériel isolant" },
+    { nom: "Matériel de lutte contre l'incendie", soumisControleReglementaire: true },
+    { nom: "Autre" },
+    { nom: "Appareils de levage", soumisControleReglementaire: true },
+    { nom: "Appareils sous pression", soumisControleReglementaire: true },
+    { nom: "Perches isolantes", soumisControleReglementaire: true },
+    { nom: "Outillage TST BT" },
   ];
   const familleIdByName = new Map<string, number>();
-  for (const [i, nom] of FAMILLE_ORDER.entries()) {
-    const [row] = await db.insert(s.familles).values({ nom, ordre: i }).returning({ id: s.familles.id });
+  for (const [i, { nom, soumisControleReglementaire }] of FAMILLE_ORDER.entries()) {
+    const [row] = await db
+      .insert(s.familles)
+      .values({ nom, ordre: i, soumisControleReglementaire: soumisControleReglementaire ?? false })
+      .returning({ id: s.familles.id });
     familleIdByName.set(nom, row.id);
   }
 
@@ -131,6 +145,7 @@ export async function seedDatabase() {
   const articleRows = articlesFixture.map((a) => ({
     codeArticle: a.code,
     familleId: familleIdByName.get(a.categorie)!,
+    familleSecondaireId: a.categorie_secondaire ? (familleIdByName.get(a.categorie_secondaire) ?? null) : null,
     sousFamilleId: sousFamilleIdByKey.get(`${a.categorie}||${a.sous_famille}`)!,
     designation: a.designation,
     aTaille: a.a_taille,

@@ -469,30 +469,33 @@
   },
   {
     "designation": "Perche à crochet pour pince de mise à la terre 60kv (2x1,5m) avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-007"
+    "code": "ISO-007",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Perche à crochet pour pince de mise à la terre 225-400 kv avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-008"
+    "code": "ISO-008",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Perche de sauvetage HT-THT",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Protection isolante diverse",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-009"
+    "code": "ISO-009",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Détecteur unipolaire de tension sonore et lumineux 60/90kV",
@@ -505,12 +508,13 @@
   },
   {
     "designation": "Perche à embout universel pour détecteur de tension 60/90kV (2x1,5m) avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-011"
+    "code": "ISO-011",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Détecteur unipolaire de tension sonore et lumineux 225/400kV",
@@ -523,12 +527,13 @@
   },
   {
     "designation": "Perche à embout universel pour détecteur de tension 225/400kV avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-013"
+    "code": "ISO-013",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Pince à anse pour câble de 5 à 40mm",
@@ -685,21 +690,23 @@
   },
   {
     "designation": "Perche à douille pour pince de mise à la terre 60kv (2x1,5m) avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-020"
+    "code": "ISO-020",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Perche de sauvetage HT",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Protection isolante diverse",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-021"
+    "code": "ISO-021",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Contrôleur de tension BT avec étui (complet)",
@@ -721,12 +728,13 @@
   },
   {
     "designation": "Perche à embout universel pour détecteur de tension 10/30kV avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-024"
+    "code": "ISO-024",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Câble tressé de mise à la terre de 35mm2 sous gaine extra souple (1 jeu=8mx3)",
@@ -802,12 +810,13 @@
   },
   {
     "designation": "Perche de sauvetage THT et HT",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Protection isolante diverse",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-030"
+    "code": "ISO-030",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Pince à douille pour conducteur rond de 40 à 120mm",
@@ -829,39 +838,43 @@
   },
   {
     "designation": "Perche à douille pour pince de mise à la terre 225 kv (2x2,5m) avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-033"
+    "code": "ISO-033",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Perche à crochet pour pince de mise à la terre 225kv (2x2,5m) avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-034"
+    "code": "ISO-034",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Perche à douille pour pince de mise à la terre 225-400kV ( 2x3 m) avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-035"
+    "code": "ISO-035",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Perche à crochet pour pince de mise à la terre 225-400kV ( 2x3 m) avec housse",
-    "categorie": "Matériel isolant",
+    "categorie": "Perches isolantes",
     "sous_famille": "Mise à la terre et détection de tension",
     "a_taille": false,
     "a_pointure": false,
     "unite_gestion": "EPC",
-    "code": "ISO-036"
+    "code": "ISO-036",
+    "categorie_secondaire": "Matériel isolant"
   },
   {
     "designation": "Câble tressé de mise à la terre de 120mm² sous gaine extra souple (1 jeu=15mx3)",
@@ -1069,5 +1082,1148 @@
     "a_pointure": true,
     "unite_gestion": "EPI",
     "code": "CHA-015"
+  },
+  {
+    "designation": "Pont roulant",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-001"
+  },
+  {
+    "designation": "Grues entrainés par moteur électrique ou mécanique",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-002"
+  },
+  {
+    "designation": "Palan électrique sur monorail",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-003"
+  },
+  {
+    "designation": "Scrapers",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-004"
+  },
+  {
+    "designation": "Palan électrique sur potence",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-005"
+  },
+  {
+    "designation": "Gerbeurs mécaniques ou électrique",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-006"
+  },
+  {
+    "designation": "Monorail",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-007"
+  },
+  {
+    "designation": "Chariot élévateur",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-008"
+  },
+  {
+    "designation": "Poutre mobile sur rail",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-009"
+  },
+  {
+    "designation": "Poutre roulante",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-010"
+  },
+  {
+    "designation": "Palan a bras sur monorail ou sur poutre",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-011"
+  },
+  {
+    "designation": "Palan a bras jumelés sur monorails",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-012"
+  },
+  {
+    "designation": "Palan électrique sur poutre roulante",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage motorisés",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-013"
+  },
+  {
+    "designation": "Ascenseur",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Ascenseurs et monte-charges",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-014"
+  },
+  {
+    "designation": "Monte-charge",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Ascenseurs et monte-charges",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-015"
+  },
+  {
+    "designation": "Palan a bras",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-016"
+  },
+  {
+    "designation": "Palan a chaine palan moufle",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-017"
+  },
+  {
+    "designation": "Palan a bras jumelés",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-018"
+  },
+  {
+    "designation": "Pull lift",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-019"
+  },
+  {
+    "designation": "Crics à crémaillère",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-020"
+  },
+  {
+    "designation": "Potences",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-021"
+  },
+  {
+    "designation": "Grue et treuils a bras",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-022"
+  },
+  {
+    "designation": "Tir fort mobiles",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-023"
+  },
+  {
+    "designation": "Gratte-ciel",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-024"
+  },
+  {
+    "designation": "Appareil divers mus à bras",
+    "categorie": "Appareils de levage",
+    "sous_famille": "Appareils de levage manuels",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "LEV-025"
+  },
+  {
+    "designation": "Appareils sous pression de gaz",
+    "categorie": "Appareils sous pression",
+    "sous_famille": "Appareils sous pression de gaz",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "PSN-001"
+  },
+  {
+    "designation": "Extincteur A Gaz Carbonique Co2 De 5 Kg",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-001"
+  },
+  {
+    "designation": "Extincteur A Poudre Abc De 6 Kg",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-002"
+  },
+  {
+    "designation": "Extincteur A Poudre Abc 50 Kg Sur Roues",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-003"
+  },
+  {
+    "designation": "Seau D'Incendie Fond Rond",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Accessoires et équipement LCI",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-004"
+  },
+  {
+    "designation": "Bac A Sable Pour Incendie Avec Couvercle",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Accessoires et équipement LCI",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-005"
+  },
+  {
+    "designation": "Pelle Pour Bac A Sable",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Accessoires et équipement LCI",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-006"
+  },
+  {
+    "designation": "Extincteur A Poudre Abc De 9 Kg",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-007"
+  },
+  {
+    "designation": "Extincteur A Co2 10Kg Sur Roue",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-008"
+  },
+  {
+    "designation": "Extincteur A Eau Avec Additif 9 L",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-009"
+  },
+  {
+    "designation": "Extincteur A Co2 De 2 Kg",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-010"
+  },
+  {
+    "designation": "Extincteur A Co2 De 2X10 Kg Sur Roues",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-011"
+  },
+  {
+    "designation": "Bac A Sable Synthetique",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Accessoires et équipement LCI",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-012"
+  },
+  {
+    "designation": "Vetement D'Approche Feu",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Accessoires et équipement LCI",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-013"
+  },
+  {
+    "designation": "Extincteurs Portatifs Eau Pulverise De 6 Litres",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-014"
+  },
+  {
+    "designation": "Extincteurs Portatifs Eau Pulverise De 9 Litres",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-015"
+  },
+  {
+    "designation": "Extincteurs Portatifs A Poudre Polyvalente Abc De 2 Kg",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-016"
+  },
+  {
+    "designation": "Extincteurs Portatifs A Anhydride Carbonique Liquefie (C02)",
+    "categorie": "Matériel de lutte contre l'incendie",
+    "sous_famille": "Extincteurs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EXT-017"
+  },
+  {
+    "designation": "CLE A MOLETTE ISOLEE TST-BT",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés à molette",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-001"
+  },
+  {
+    "designation": "Clé à pipe à 12 pans isolée TST-BT à une seule tête de 10 mm poids maximum 85 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés à pipe isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-002"
+  },
+  {
+    "designation": "Clé à pipe à 12 pans isolée TST-BT à une seule tête de 13 mm poids maximum 160 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés à pipe isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-003"
+  },
+  {
+    "designation": "Clé à pipe à 12 pans isolée TST-BT à une seule tête de 17 mm poids maximum 285 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés à pipe isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-004"
+  },
+  {
+    "designation": "Clé à pipe à 12 pans isolée TST-BT à une seule tête de 19 mm poids maximum 430 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés à pipe isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-005"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 7 mm poids maximum 20 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-006"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 8 mm poids maximum 40 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-007"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 10 mm poids maximum 45 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-008"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 12 mm poids maximum 60 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-009"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 13 mm poids maximum 80 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-010"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 14 mm poids maximum 100 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-011"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 17 mm poids maximum 140 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-012"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 19 mm poids maximum 170 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-013"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 22 mm poids maximum 220 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-014"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 23 mm poids maximum 250 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-015"
+  },
+  {
+    "designation": "Clé plate isolée TST-BT à une seule tête de 24 mm poids maximum 260 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés plates isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-016"
+  },
+  {
+    "designation": "Clé polygonale à 12 pans contre coudée, isolée TST-BT à une seule tête de 8 mm poids maximum 40 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés polygonales contre-coudées isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-017"
+  },
+  {
+    "designation": "Clé polygonale à 12 pans contre coudée, isolée TST-BT à une seule tête de 10 mm poids maximum 50 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés polygonales contre-coudées isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-018"
+  },
+  {
+    "designation": "Clé polygonale à 12 pans contre coudée, isolée TST-BT à une seule tête de 13 mm poids maximum 100 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés polygonales contre-coudées isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-019"
+  },
+  {
+    "designation": "Clé polygonale à 12 pans contre coudée, isolée TST-BT à une seule tête de 17 mm poids maximum 190 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Clés polygonales contre-coudées isolées",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-020"
+  },
+  {
+    "designation": "COUTEAU A DENUDER",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Couteau",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-021"
+  },
+  {
+    "designation": "MONTURE DE SCIE ISOLEE TST-BT",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Monture de scie",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-022"
+  },
+  {
+    "designation": "PINCE UNIVERSELLE ISOLE TST-BT",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Pinces",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-023"
+  },
+  {
+    "designation": "PINCES A BECS PLATS COURTS ISOLES TST-BT",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Pinces",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-024"
+  },
+  {
+    "designation": "PINCES A DENUDER ISOLES TST-BT",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Pinces",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-025"
+  },
+  {
+    "designation": "PINCES COUPANTE DIAGONALE ISOLES TST-BT",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Pinces",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-026"
+  },
+  {
+    "designation": "PINCES COUPE CABLE ISOLE TST BT",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Pinces",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-027"
+  },
+  {
+    "designation": "PINCES MULTIPRISES A DOUBLE CREMAILLERE ISOLES TST-BT",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Pinces",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-028"
+  },
+  {
+    "designation": "TOURNEVIS PLAT A LAME DECOLLETEE ISOLES TST-BT",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Tournevis",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-029"
+  },
+  {
+    "designation": "Tournevis à lame plat décolletée isolé TST-BT 4x120mm Poids maximum 60 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Tournevis",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-030"
+  },
+  {
+    "designation": "Tournevis à lame plat décolletée isolé TST-BT 6,5x150mm Poids maximum 90 g.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Tournevis",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-031"
+  },
+  {
+    "designation": "Tournevis à lame plat décolletée isolé TST-BT 10x150mm Poids maximum 170 g",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Tournevis",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-032"
+  },
+  {
+    "designation": "Caisse à outils",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Rangement",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-033"
+  },
+  {
+    "designation": "Pince ampérmétrique et multimétre.",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Autre outillage TST BT",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-034"
+  },
+  {
+    "designation": "Controleur champ tournant",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Autre outillage TST BT",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-035"
+  },
+  {
+    "designation": "Scotch isolante",
+    "categorie": "Outillage TST BT",
+    "sous_famille": "Autre outillage TST BT",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "TST-036"
+  },
+  {
+    "designation": "Casque pour lignard",
+    "categorie": "EPI",
+    "sous_famille": "Protection de la tête",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPI-023"
+  },
+  {
+    "designation": "Lunettes incolores anti-UV",
+    "categorie": "EPI",
+    "sous_famille": "Protection des yeux et du visage",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPI-024"
+  },
+  {
+    "designation": "Masque respiratoire panoramique",
+    "categorie": "EPI",
+    "sous_famille": "Protection respiratoire",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPI-025"
+  },
+  {
+    "designation": "Coquille anti-bruit",
+    "categorie": "EPI",
+    "sous_famille": "Protection auditive",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPI-026"
+  },
+  {
+    "designation": "Bouchon d'oreille réutilisable",
+    "categorie": "EPI",
+    "sous_famille": "Protection auditive",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPI-027"
+  },
+  {
+    "designation": "Amortisseur de chute L=6m",
+    "categorie": "EPI",
+    "sous_famille": "Protection anti-chute",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPI-028"
+  },
+  {
+    "designation": "Lunette jetable pour application RTV",
+    "categorie": "EPI",
+    "sous_famille": "Protection des yeux et du visage",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPI-029"
+  },
+  {
+    "designation": "Gants en cuir pour soudeur",
+    "categorie": "Autre",
+    "sous_famille": "Travaux à chaud (soudure)",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "DIV-012"
+  },
+  {
+    "designation": "Lampe frontale",
+    "categorie": "Autre",
+    "sous_famille": "Outillage et accessoires",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "DIV-013"
+  },
+  {
+    "designation": "Combinaison jetable anti-graisse",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-005"
+  },
+  {
+    "designation": "Ensemble Jean (blouson+pantalon)",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-006"
+  },
+  {
+    "designation": "Tenue (blouse+pantalon)",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-007"
+  },
+  {
+    "designation": "Blouse blanche",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-008"
+  },
+  {
+    "designation": "Combinaison de travail",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-009"
+  },
+  {
+    "designation": "T-shirt coton",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-010"
+  },
+  {
+    "designation": "K-way 2 pièces",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-011"
+  },
+  {
+    "designation": "Polo manches longues",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-012"
+  },
+  {
+    "designation": "Polo manches courtes",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-013"
+  },
+  {
+    "designation": "Parka",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-014"
+  },
+  {
+    "designation": "Casquette jean",
+    "categorie": "Vêtement de travail",
+    "sous_famille": "Vêtements et signalisation individuelle",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "VET-015"
+  },
+  {
+    "designation": "Banderole zone protégée",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-014"
+  },
+  {
+    "designation": "Affiches de soins aux électrisés type intérieur",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-015"
+  },
+  {
+    "designation": "Pancarte \"consignes générales incendie\"",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-016"
+  },
+  {
+    "designation": "Pancarte d'avertissement de \"risque d'incendie\"",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-017"
+  },
+  {
+    "designation": "Pancarte \"poste de transformation défense de pénétrer - danger de mort\"",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-018"
+  },
+  {
+    "designation": "Pancarte \"défense de meuler sans lunettes\"",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-019"
+  },
+  {
+    "designation": "Pancarte \"entrée interdite\"",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-020"
+  },
+  {
+    "designation": "Pancarte interdiction de fumer risque d'explosion",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-021"
+  },
+  {
+    "designation": "Pancarte pour grillage des cellules des postes de transformation",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-022"
+  },
+  {
+    "designation": "Plaque \"ordre de service\"",
+    "categorie": "EPC",
+    "sous_famille": "Balisage et signalisation de chantier",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-023"
+  },
+  {
+    "designation": "Antichute mobile sur support d'assurage flexible",
+    "categorie": "EPC",
+    "sous_famille": "Équipements antichute collectifs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-024"
+  },
+  {
+    "designation": "Pince d'ancrage",
+    "categorie": "EPC",
+    "sous_famille": "Équipements antichute collectifs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-025"
+  },
+  {
+    "designation": "Repose-pieds de positionnement pour poteaux béton",
+    "categorie": "EPC",
+    "sous_famille": "Équipements antichute collectifs",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "EPC-026"
+  },
+  {
+    "designation": "Câble de mise à la terre 35mm² (y compris cosses à sertir)",
+    "categorie": "Matériel isolant",
+    "sous_famille": "Mise à la terre et détection de tension",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "ISO-040"
+  },
+  {
+    "designation": "Câble de mise à la terre 70mm² (y compris cosses à sertir)",
+    "categorie": "Matériel isolant",
+    "sous_famille": "Mise à la terre et détection de tension",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "ISO-041"
+  },
+  {
+    "designation": "Câble de mise à la terre 95mm² (y compris cosses à sertir)",
+    "categorie": "Matériel isolant",
+    "sous_famille": "Mise à la terre et détection de tension",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "ISO-042"
+  },
+  {
+    "designation": "Câble de mise à la terre 120mm² (y compris cosses à sertir)",
+    "categorie": "Matériel isolant",
+    "sous_famille": "Mise à la terre et détection de tension",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "ISO-043"
+  },
+  {
+    "designation": "Tresse \"Kit Complet\" DMT 11kV",
+    "categorie": "Matériel isolant",
+    "sous_famille": "Mise à la terre et détection de tension",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "ISO-044"
+  },
+  {
+    "designation": "Coffret de rangement pour gants isolants",
+    "categorie": "Matériel isolant",
+    "sous_famille": "Gants isolants BT",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "ISO-045"
+  },
+  {
+    "designation": "Tapis isolant 400V",
+    "categorie": "Matériel isolant",
+    "sous_famille": "Protection isolante diverse",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "ISO-046"
+  },
+  {
+    "designation": "Cadenas d'exploitation poste gardé N601 (pour poste blindé CTM)",
+    "categorie": "Matériel de consignation",
+    "sous_famille": "Consignation",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "CON-016"
+  },
+  {
+    "designation": "Pince à sertir des cosses (différentes dimensions)",
+    "categorie": "Autre",
+    "sous_famille": "Outillage et accessoires",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "DIV-014"
+  },
+  {
+    "designation": "Souffleur portatif pour entretien des redresseurs et armoires BT",
+    "categorie": "Autre",
+    "sous_famille": "Outillage et accessoires",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "DIV-015"
+  },
+  {
+    "designation": "Aspirateur pour entretien des redresseurs et armoires BT",
+    "categorie": "Autre",
+    "sous_famille": "Outillage et accessoires",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "DIV-016"
+  },
+  {
+    "designation": "Perche télescopique avec brosse et grattoir pour nettoyage des toitures",
+    "categorie": "Autre",
+    "sous_famille": "Outillage et accessoires",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "DIV-017"
+  },
+  {
+    "designation": "Nettoyeur haute pression",
+    "categorie": "Autre",
+    "sous_famille": "Outillage et accessoires",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "DIV-018"
+  },
+  {
+    "designation": "Projecteur portable rechargeable",
+    "categorie": "Autre",
+    "sous_famille": "Outillage et accessoires",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "DIV-019"
+  },
+  {
+    "designation": "Torche rechargeable",
+    "categorie": "Autre",
+    "sous_famille": "Outillage et accessoires",
+    "a_taille": false,
+    "a_pointure": false,
+    "unite_gestion": "EPI",
+    "code": "DIV-020"
   }
 ]
