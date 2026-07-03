@@ -118,7 +118,7 @@ export const agentsRelations = relations(agents, ({ one }) => ({
 // UTILISATEURS (comptes applicatifs)
 // ============================================================================
 
-// Roles: administrateur | gestionnaire_stock | responsable_hse | chef_equipe | consultation
+// Application à usage unique : un seul compte, sans distinction de rôle.
 export const users = pgTable(
   "users",
   {
@@ -126,7 +126,6 @@ export const users = pgTable(
     username: text("username").notNull().unique(),
     passwordHash: text("password_hash").notNull(),
     nom: text("nom").notNull(),
-    role: text("role").notNull().default("consultation"),
     agentId: integer("agent_id").references(() => agents.id),
     actif: boolean("actif").notNull().default(true),
     derniereConnexion: timestamp("derniere_connexion"),

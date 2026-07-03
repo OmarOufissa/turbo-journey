@@ -21,7 +21,6 @@ import Controles from "@/pages/Controles";
 import Alertes from "@/pages/Alertes";
 import Historique from "@/pages/Historique";
 import Rapports from "@/pages/Rapports";
-import Utilisateurs from "@/pages/Utilisateurs";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -32,12 +31,6 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-}
-
-function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  if (user?.role !== "administrateur") return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -69,14 +62,6 @@ const App = () => (
                 <Route path="/alertes" element={<Alertes />} />
                 <Route path="/historique" element={<Historique />} />
                 <Route path="/rapports" element={<Rapports />} />
-                <Route
-                  path="/utilisateurs"
-                  element={
-                    <AdminRoute>
-                      <Utilisateurs />
-                    </AdminRoute>
-                  }
-                />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

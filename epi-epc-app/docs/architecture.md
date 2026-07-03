@@ -15,7 +15,7 @@ flowchart TB
     subgraph Server["server/ — API Express"]
         Routes["routes/*.ts — un routeur par domaine métier"]
         Services["services/*.ts — logique réutilisable"]
-        Middleware["middleware/auth.ts — JWT + rôles"]
+        Middleware["middleware/auth.ts — JWT (compte unique)"]
         Schema["db/schema.ts — modèle Drizzle"]
         Routes --> Services
         Routes --> Middleware
@@ -42,7 +42,7 @@ flowchart TB
   journalisation entre les routes qui en ont besoin (affectations, retours,
   réformes, seed).
 - **`shared/api.ts`** évite la duplication de types entre client et serveur
-  (rôles, formes de réponses du dashboard) — un changement de forme de
+  (session, formes de réponses du dashboard) — un changement de forme de
   réponse est détecté à la compilation des deux côtés.
 - **Schéma Drizzle unique** (`server/db/schema.ts`) comme source de vérité :
   les migrations, le seed et les requêtes des routes en dérivent tous, plutôt
@@ -54,12 +54,12 @@ flowchart TB
    (`client/lib/api.ts`).
 2. `server/index.ts` applique `requireAuth` à tous les routeurs sauf
    `/api/auth`. Un jeton absent ou invalide renvoie 401 et le client redirige
-   vers `/login`.
-3. Certaines routes (ex. gestion des utilisateurs) exigent en plus
-   `requireRole("administrateur")` — un rôle insuffisant renvoie 403.
-4. Le routeur exécute la requête Drizzle, éventuellement via un service
+   vers `/login`. Application à usage individuel : un seul compte, aucune
+   distinction de rôle ni de permission par route au-delà de la présence
+   d'une session valide.
+3. Le routeur exécute la requête Drizzle, éventuellement via un service
    partagé (mise à jour de stock, génération PDF/Excel, journalisation).
-5. Toute mutation de données métier passe par `logHistorique(...)` pour
+4. Toute mutation de données métier passe par `logHistorique(...)` pour
    alimenter le journal d'audit append-only.
 
 ## Extensibilité

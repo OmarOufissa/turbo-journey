@@ -24,7 +24,7 @@ quel poste Windows via un navigateur, sur le réseau interne.
 | Documents (notices, certificats, photos…) | ✅ |
 | Recherche avancée globale | ✅ |
 | Rapports PDF (fiches individuelle/équipe) et Excel (7 états) | ✅ |
-| Comptes utilisateurs + rôles | ✅ |
+| Authentification | ✅ — compte unique, pas de gestion multi-utilisateurs (application à usage individuel) |
 | Dark/Light mode, responsive, sidebar, recherche instantanée | ✅ |
 | Base de données prête à l'emploi avec **données réelles DTC** | ✅ |
 | Schémas UML | ✅ en Mermaid (`docs/`), pas de fichiers `.vsdx`/`.png` séparés |
@@ -72,7 +72,7 @@ rempli avec vos données réelles, pas une simulation.
 - **Frontend** : React 18 + TypeScript + Vite + React Router 6 + TailwindCSS 3 + Radix UI + Recharts + TanStack Query
 - **Backend** : Express 5 + TypeScript, API REST sous `/api`
 - **Base de données** : PostgreSQL + Drizzle ORM (migrations versionnées)
-- **Authentification** : JWT + bcrypt, rôles (administrateur, gestionnaire de stock, responsable HSE, chef d'équipe, consultation)
+- **Authentification** : JWT + bcrypt, compte unique (application à usage individuel, pas de gestion multi-comptes/rôles)
 - **Documents** : upload via Multer, stockage sur disque (`uploads/`)
 - **Rapports** : PDFKit (fiches PDF) + ExcelJS (exports Excel)
 - **Un seul exécutable Node** sert à la fois l'API et l'interface — déployable sur un PC/serveur Windows du réseau interne, accessible par tous les postes via navigateur.
@@ -138,16 +138,30 @@ pnpm start
 
 Pour le développement (rechargement à chaud) : `pnpm dev`.
 
-### Comptes de démonstration (créés par `pnpm db:seed`)
+### Compte (créé par `pnpm db:seed`)
 
-| Identifiant | Mot de passe | Rôle |
-|---|---|---|
-| `admin` | `Admin@2026` | Administrateur |
-| `magasinier` | `Stock@2026` | Gestionnaire de stock |
-| `hse` | `Hse@2026` | Responsable HSE |
-| `consultation` | `Lecture@2026` | Consultation |
+Application à usage individuel : un seul compte, sans gestion de rôles.
 
-**Changez ces mots de passe dès la mise en production** (page Utilisateurs).
+| Identifiant | Mot de passe |
+|---|---|
+| `admin` | `Admin@2026` |
+
+**Changez ce mot de passe avant la mise en production.** Il n'y a pas de page
+dédiée (pas de gestion multi-comptes) ; le plus simple est un petit script
+ponctuel :
+
+```bash
+node -e "
+const bcrypt = require('bcryptjs');
+const { Pool } = require('pg');
+(async () => {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const hash = await bcrypt.hash('VotreNouveauMotDePasse', 10);
+  await pool.query('UPDATE users SET password_hash = \$1 WHERE username = \$2', [hash, 'admin']);
+  await pool.end();
+})();
+"
+```
 
 ### Sauvegardes
 
@@ -210,9 +224,8 @@ cause du schéma de données.
 
 - Mots de passe hachés (bcrypt), sessions par JWT signé (12h), aucune route
   API sensible accessible sans jeton valide.
-- Rôles appliqués côté serveur (`requireRole`), pas seulement dans l'interface.
 - Aucune suppression physique des données métier (agents archivés, articles
   désactivés, historique immuable) — traçabilité complète.
-- Penser à changer `JWT_SECRET` et les mots de passe de démonstration avant
+- Penser à changer `JWT_SECRET` et le mot de passe de démonstration avant
   toute mise en production, et à servir l'application en HTTPS derrière un
   reverse proxy si elle est exposée au-delà du réseau interne de confiance.

@@ -2,13 +2,10 @@
  * Types partagés entre le client et le serveur.
  */
 
-export type Role = "administrateur" | "gestionnaire_stock" | "responsable_hse" | "chef_equipe" | "consultation";
-
 export interface AuthUser {
   id: number;
   username: string;
   nom: string;
-  role: Role;
   agentId: number | null;
 }
 
@@ -52,11 +49,3 @@ export interface DashboardCharts {
   coutParDivision: ChartPoint[];
   tauxCouverture: { equipe: string; taux: number }[];
 }
-
-export const ROLE_LABELS: Record<Role, string> = {
-  administrateur: "Administrateur",
-  gestionnaire_stock: "Gestionnaire de stock",
-  responsable_hse: "Responsable HSE",
-  chef_equipe: "Chef d'équipe",
-  consultation: "Consultation",
-};

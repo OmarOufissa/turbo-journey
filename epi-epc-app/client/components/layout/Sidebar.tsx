@@ -10,12 +10,10 @@ import {
   Bell,
   History,
   FileBarChart,
-  UserCog,
   HardHat,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/lib/auth";
 
 const NAV = [
   { to: "/", label: "Tableau de bord", icon: LayoutDashboard, end: true },
@@ -31,7 +29,6 @@ const NAV = [
 ];
 
 export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
-  const { user } = useAuth();
   return (
     <>
       {mobileOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />}
@@ -76,21 +73,6 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
               {item.label}
             </NavLink>
           ))}
-          {user?.role === "administrateur" && (
-            <NavLink
-              to="/utilisateurs"
-              onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
-                )
-              }
-            >
-              <UserCog className="h-4 w-4 shrink-0" />
-              Utilisateurs
-            </NavLink>
-          )}
         </nav>
 
         <div className="border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/50">

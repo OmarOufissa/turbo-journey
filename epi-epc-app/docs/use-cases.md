@@ -5,13 +5,13 @@ ci-dessous utilise des nœuds arrondis pour les cas d'utilisation et des
 sous-graphes pour les acteurs, ce qui reste lisible et proche de la
 convention UML.
 
+Application à usage individuel (un seul compte, pas de distinction de rôles) :
+tous les cas d'utilisation sont accessibles au même utilisateur une fois
+connecté.
+
 ```mermaid
 flowchart LR
-    Admin(["👤 Administrateur"])
-    Magasinier(["👤 Gestionnaire de stock"])
-    HSE(["👤 Responsable HSE"])
-    ChefEquipe(["👤 Chef d'équipe"])
-    Consultation(["👤 Consultation"])
+    Utilisateur(["👤 Utilisateur"])
 
     subgraph Catalogue["Catalogue & marchés"]
         UC1((Gérer les articles))
@@ -44,15 +44,7 @@ flowchart LR
         UC16((Rechercher globalement))
     end
 
-    subgraph Admin_UC["Administration"]
-        UC17((Gérer les utilisateurs))
-    end
-
-    Admin --> UC1 & UC2 & UC4 & UC5 & UC6 & UC7 & UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14 & UC15 & UC16 & UC17
-    Magasinier --> UC1 & UC2 & UC6 & UC7 & UC8 & UC9 & UC11 & UC12 & UC14 & UC15 & UC16
-    HSE --> UC3 & UC5 & UC10 & UC12 & UC13 & UC14 & UC15 & UC16
-    ChefEquipe --> UC3 & UC5 & UC6 & UC7 & UC14 & UC16
-    Consultation --> UC3 & UC13 & UC14 & UC16
+    Utilisateur --> UC1 & UC2 & UC3 & UC4 & UC5 & UC6 & UC7 & UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14 & UC15 & UC16
 ```
 
 ## Description des cas d'utilisation clés

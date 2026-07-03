@@ -14,7 +14,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 function decodeUserFromToken(token: string): AuthUser | null {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-    return { id: payload.id, username: payload.username, nom: payload.nom, role: payload.role, agentId: payload.agentId };
+    return { id: payload.id, username: payload.username, nom: payload.nom, agentId: payload.agentId };
   } catch {
     return null;
   }

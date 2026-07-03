@@ -178,7 +178,6 @@ erDiagram
         int id PK
         text username UK
         text password_hash
-        text role
         int agent_id FK
     }
 ```

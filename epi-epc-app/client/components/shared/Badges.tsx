@@ -37,14 +37,3 @@ export function StatutControleBadge({ statut }: { statut: string }) {
   const cfg = STATUT_CONTROLE[statut] ?? { label: statut, variant: "muted" as const };
   return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
 }
-
-export function RoleBadge({ role }: { role: string }) {
-  const labels: Record<string, string> = {
-    administrateur: "Administrateur",
-    gestionnaire_stock: "Gestionnaire de stock",
-    responsable_hse: "Responsable HSE",
-    chef_equipe: "Chef d'équipe",
-    consultation: "Consultation",
-  };
-  return <Badge variant="outline">{labels[role] ?? role}</Badge>;
-}

@@ -24,7 +24,6 @@ authRouter.post("/login", async (req, res) => {
     id: user.id,
     username: user.username,
     nom: user.nom,
-    role: user.role as AuthUser["role"],
     agentId: user.agentId,
   };
   const response: LoginResponse = { token: signToken(authUser), user: authUser };

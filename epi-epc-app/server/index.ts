@@ -17,8 +17,7 @@ import { historiqueRouter } from "./routes/historique";
 import { rechercheRouter } from "./routes/recherche";
 import { dashboardRouter } from "./routes/dashboard";
 import { rapportsRouter } from "./routes/rapports";
-import { usersRouter } from "./routes/users";
-import { requireAuth, requireRole } from "./middleware/auth";
+import { requireAuth } from "./middleware/auth";
 
 export function createServer() {
   const app = express();
@@ -51,7 +50,6 @@ export function createServer() {
   app.use("/api/historique", requireAuth, historiqueRouter);
   app.use("/api/recherche", requireAuth, rechercheRouter);
   app.use("/api/rapports", requireAuth, rapportsRouter);
-  app.use("/api/users", requireAuth, requireRole("administrateur"), usersRouter);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

@@ -311,20 +311,12 @@ async function main() {
   console.log(`  ${insertedAffectations.length} affectations générées (dates et tailles/pointures laissées vides — non fournies par les sources)`);
 
   // -------------------------------------------------------------------------
-  // 6. Utilisateurs applicatifs
+  // 6. Compte applicatif — un seul utilisateur, pas de gestion multi-comptes
   // -------------------------------------------------------------------------
-  console.log("→ Comptes utilisateurs…");
-  const demoUsers = [
-    { username: "admin", nom: "Administrateur GEPI", role: "administrateur", password: "Admin@2026" },
-    { username: "magasinier", nom: "Gestionnaire de Stock", role: "gestionnaire_stock", password: "Stock@2026" },
-    { username: "hse", nom: "Responsable HSE", role: "responsable_hse", password: "Hse@2026" },
-    { username: "consultation", nom: "Consultation", role: "consultation", password: "Lecture@2026" },
-  ];
-  for (const u of demoUsers) {
-    const passwordHash = await bcrypt.hash(u.password, 10);
-    await db.insert(s.users).values({ username: u.username, nom: u.nom, role: u.role, passwordHash });
-  }
-  console.log(`  ${demoUsers.length} comptes créés (voir README pour les identifiants de démonstration)`);
+  console.log("→ Compte utilisateur…");
+  const passwordHash = await bcrypt.hash("Admin@2026", 10);
+  await db.insert(s.users).values({ username: "admin", nom: "GEPI", passwordHash });
+  console.log("  1 compte créé (voir README pour l'identifiant de démonstration — changez le mot de passe avant mise en service)");
 
   // -------------------------------------------------------------------------
   // 7. Historique — entrée d'initialisation

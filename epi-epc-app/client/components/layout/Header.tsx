@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Menu, Search, Bell, Sun, Moon, LogOut, User as UserIcon } from "lucide-react";
+import { Menu, Search, Bell, Sun, Moon, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/lib/auth";
 import { apiGet } from "@/lib/api";
@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/utils";
-import { ROLE_LABELS } from "@shared/api";
 
 interface SearchResults {
   agents: { id: number; nom: string; matricule: string }[];
@@ -127,16 +126,8 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
-              <div className="flex flex-col">
-                <span>{user?.nom}</span>
-                <span className="text-xs font-normal text-muted-foreground">{user ? ROLE_LABELS[user.role] : ""}</span>
-              </div>
-            </DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.nom}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/utilisateurs")}>
-              <UserIcon className="h-4 w-4" /> Mon profil
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
               <LogOut className="h-4 w-4" /> Déconnexion
             </DropdownMenuItem>
