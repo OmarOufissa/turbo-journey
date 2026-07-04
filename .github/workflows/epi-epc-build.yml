@@ -42,7 +42,10 @@ jobs:
         env: { CSC_IDENTITY_AUTO_DISCOVERY: false }
       - name: Upload installer artifacts
         uses: actions/upload-artifact@v4
-        with: { name: gepi-installer-${{ matrix.platform }}, path: epi-epc-app/dist-electron/, retention-days: 30 }
+        with:
+          name: gepi-installer-${{ matrix.platform }}
+          path: epi-epc-app/dist-electron/
+          retention-days: 30
 
   release:
     needs: build
