@@ -17,12 +17,6 @@ jobs:
           - os: windows-latest
             platform: windows
             eb_flag: --win
-          - os: macos-latest
-            platform: mac
-            eb_flag: --mac
-          - os: ubuntu-latest
-            platform: linux
-            eb_flag: --linux
     runs-on: ${{ matrix.os }}
     defaults:
       run:
