@@ -7,12 +7,13 @@ import {
   equipes,
   services,
   divisions,
-  familles,
+  equipementHierarchie,
   alertes,
   controlesPeriodiques,
   marches,
 } from "../db/schema";
-import { and, eq, gte, lte, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { resolveDescendantIds, getFamilleAncestorMap } from "../services/hierarchieService";
 
 export const dashboardRouter = Router();
 
@@ -76,15 +77,14 @@ dashboardRouter.get("/kpis", async (_req, res) => {
 });
 
 dashboardRouter.get("/charts", async (_req, res) => {
-  const [repartitionFamille, repartitionDivision, repartitionService, evolutionDotationsRaw, evolutionAchatsRaw, coutParDivision, effectifParEquipe] =
+  const [repartitionParHierarchieId, familleAncestorMap, repartitionDivision, repartitionService, evolutionDotationsRaw, evolutionAchatsRaw, coutParDivision, effectifParEquipe] =
     await Promise.all([
       db
-        .select({ label: familles.nom, value: sql<number>`coalesce(sum(${affectations.quantite}), 0)` })
+        .select({ hierarchieId: articles.hierarchieId, value: sql<number>`coalesce(sum(${affectations.quantite}), 0)` })
         .from(affectations)
         .innerJoin(articles, eq(affectations.articleId, articles.id))
-        .innerJoin(familles, eq(articles.familleId, familles.id))
-        .groupBy(familles.nom, familles.ordre)
-        .orderBy(familles.ordre),
+        .groupBy(articles.hierarchieId),
+      getFamilleAncestorMap(),
       db
         .select({ label: divisions.nom, value: sql<number>`count(distinct ${agents.id})` })
         .from(agents)
@@ -131,6 +131,20 @@ dashboardRouter.get("/charts", async (_req, res) => {
         .groupBy(equipes.id, equipes.nom, equipes.teamType),
     ]);
 
+  // Regroupe par famille (niveau 2 de equipement_hierarchie) même quand l'article
+  // est classé plus finement (sous-famille/type) — id de la famille comme clé de tri
+  // pour retrouver l'ordre naturel de l'arborescence (DFS à l'insertion).
+  const familleTotals = new Map<number, { label: string; value: number }>();
+  for (const row of repartitionParHierarchieId) {
+    if (!row.hierarchieId) continue;
+    const famille = familleAncestorMap.get(row.hierarchieId);
+    if (!famille) continue;
+    const entry = familleTotals.get(famille.id) ?? { label: famille.nom, value: 0 };
+    entry.value += row.value;
+    familleTotals.set(famille.id, entry);
+  }
+  const repartitionFamille = [...familleTotals.entries()].sort(([a], [b]) => a - b).map(([, v]) => v);
+
   const moisSet = new Set<string>();
   const dotationsByMois = new Map<string, { epi: number; epc: number }>();
   for (const row of evolutionDotationsRaw) {
@@ -160,28 +174,34 @@ dashboardRouter.get("/charts", async (_req, res) => {
 });
 
 // Suivi des équipements soumis à contrôle règlementaire (appareils de levage,
-// extincteurs/LCI, appareils sous pression, perches isolantes) — chaque
-// famille flagge soumisControleReglementaire, chaque unité physique est une
-// affectation (voir docs/erd.md), son contrôle périodique via controlesPeriodiques.affectationId.
+// extincteurs/LCI, appareils sous pression, perches isolantes) — le flag
+// soumisControleReglementaire est dénormalisé sur chaque nœud de
+// equipement_hierarchie (y compris tous les descendants), chaque unité
+// physique est une affectation (voir docs/erd.md), son contrôle périodique
+// via controlesPeriodiques.affectationId.
 dashboardRouter.get("/reglementaire", async (_req, res) => {
   const today = todayStr();
   const in30 = inDays(30);
 
+  // Familles (niveau 2) marquées règlementaires — chacune peut désormais
+  // recouvrir plusieurs sous-familles/types (ex. Perches isolantes) ou, pour
+  // Appareils de levage / Appareils sous pression, plusieurs familles
+  // distinctes héritant du flag posé sur leur catégorie générale.
   const reglFamilles = await db
-    .select({ id: familles.id, nom: familles.nom })
-    .from(familles)
-    .where(eq(familles.soumisControleReglementaire, true))
-    .orderBy(familles.ordre);
+    .select({ id: equipementHierarchie.id, nom: equipementHierarchie.nom })
+    .from(equipementHierarchie)
+    .where(and(eq(equipementHierarchie.niveau, 2), eq(equipementHierarchie.soumisControleReglementaire, true)))
+    .orderBy(equipementHierarchie.id);
 
   const parFamille = await Promise.all(
     reglFamilles.map(async (f) => {
-      const familleMatch = sql`(${articles.familleId} = ${f.id} or ${articles.familleSecondaireId} = ${f.id})`;
+      const hierarchieMatch = inArray(articles.hierarchieId, await resolveDescendantIds(f.id));
 
       const [uniteAgg] = await db
         .select({ nbUnites: sql<number>`count(*)` })
         .from(affectations)
         .innerJoin(articles, eq(affectations.articleId, articles.id))
-        .where(and(eq(affectations.statut, "actif"), familleMatch));
+        .where(and(eq(affectations.statut, "actif"), hierarchieMatch));
 
       const [controleAgg] = await db
         .select({
@@ -191,14 +211,14 @@ dashboardRouter.get("/reglementaire", async (_req, res) => {
         .from(controlesPeriodiques)
         .innerJoin(affectations, eq(controlesPeriodiques.affectationId, affectations.id))
         .innerJoin(articles, eq(affectations.articleId, articles.id))
-        .where(familleMatch);
+        .where(hierarchieMatch);
 
       const [sansControleAgg] = await db
         .select({ n: sql<number>`count(*)` })
         .from(affectations)
         .innerJoin(articles, eq(affectations.articleId, articles.id))
         .leftJoin(controlesPeriodiques, eq(controlesPeriodiques.affectationId, affectations.id))
-        .where(and(eq(affectations.statut, "actif"), familleMatch, sql`${controlesPeriodiques.id} is null`));
+        .where(and(eq(affectations.statut, "actif"), hierarchieMatch, sql`${controlesPeriodiques.id} is null`));
 
       return {
         familleId: f.id,
@@ -211,9 +231,12 @@ dashboardRouter.get("/reglementaire", async (_req, res) => {
     }),
   );
 
+  // Le flag étant dénormalisé sur chaque nœud, un simple filtre sur
+  // equipementHierarchie.soumisControleReglementaire couvre directement tous
+  // les articles règlementaires, sans recalcul de descendants ni jointure "OR".
   const echeanceSelect = {
     controleId: controlesPeriodiques.id,
-    familleNom: familles.nom,
+    hierarchieId: articles.hierarchieId,
     designation: articles.designation,
     lieuEmplacement: affectations.lieuEmplacement,
     numeroSerie: affectations.numeroSerie,
@@ -222,16 +245,16 @@ dashboardRouter.get("/reglementaire", async (_req, res) => {
     statut: controlesPeriodiques.statut,
   };
 
-  const [expires, aVenir] = await Promise.all([
+  const [expiresRaw, aVenirRaw, familleAncestorMap] = await Promise.all([
     db
       .select(echeanceSelect)
       .from(controlesPeriodiques)
       .innerJoin(affectations, eq(controlesPeriodiques.affectationId, affectations.id))
       .innerJoin(articles, eq(affectations.articleId, articles.id))
-      .innerJoin(familles, eq(articles.familleId, familles.id))
+      .innerJoin(equipementHierarchie, eq(articles.hierarchieId, equipementHierarchie.id))
       .where(
         and(
-          eq(familles.soumisControleReglementaire, true),
+          eq(equipementHierarchie.soumisControleReglementaire, true),
           sql`${controlesPeriodiques.statut} = 'en_retard' or (${controlesPeriodiques.statut} = 'planifie' and ${controlesPeriodiques.datePlanifiee} < ${today})`,
         ),
       )
@@ -242,10 +265,10 @@ dashboardRouter.get("/reglementaire", async (_req, res) => {
       .from(controlesPeriodiques)
       .innerJoin(affectations, eq(controlesPeriodiques.affectationId, affectations.id))
       .innerJoin(articles, eq(affectations.articleId, articles.id))
-      .innerJoin(familles, eq(articles.familleId, familles.id))
+      .innerJoin(equipementHierarchie, eq(articles.hierarchieId, equipementHierarchie.id))
       .where(
         and(
-          eq(familles.soumisControleReglementaire, true),
+          eq(equipementHierarchie.soumisControleReglementaire, true),
           eq(controlesPeriodiques.statut, "planifie"),
           gte(controlesPeriodiques.datePlanifiee, today),
           lte(controlesPeriodiques.datePlanifiee, in30),
@@ -253,7 +276,14 @@ dashboardRouter.get("/reglementaire", async (_req, res) => {
       )
       .orderBy(controlesPeriodiques.datePlanifiee)
       .limit(20),
+    getFamilleAncestorMap(),
   ]);
 
-  res.json({ parFamille, expires, aVenir });
+  const withFamilleNom = <T extends { hierarchieId: number | null }>(rows: T[]) =>
+    rows.map(({ hierarchieId, ...rest }) => ({
+      ...rest,
+      familleNom: hierarchieId ? (familleAncestorMap.get(hierarchieId)?.nom ?? null) : null,
+    }));
+
+  res.json({ parFamille, expires: withFamilleNom(expiresRaw), aVenir: withFamilleNom(aVenirRaw) });
 });

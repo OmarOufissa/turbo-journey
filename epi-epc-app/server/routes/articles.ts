@@ -1,28 +1,35 @@
 import { Router } from "express";
 import { db } from "../db";
-import { articles, familles, sousFamilles, marches, stockMouvements, documents } from "../db/schema";
-import { and, desc, eq, like, or, sql } from "drizzle-orm";
+import { articles, equipementHierarchie, marches, stockMouvements, documents } from "../db/schema";
+import { and, desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
+import { listChildren, resolveDescendantIds, getAncestorChain } from "../services/hierarchieService";
 import type { AuthedRequest } from "../middleware/auth";
 
 export const articlesRouter = Router();
 
-articlesRouter.get("/familles", async (_req, res) => {
-  const rows = await db.select().from(familles).orderBy(familles.ordre);
-  res.json(rows);
+// Un seul point d'entrée pour les listes déroulantes en cascade (catégorie générale
+// > famille > sous-famille > type, profondeur variable) : le client rappelle cet
+// endpoint à chaque niveau choisi, avec parentId = id du niveau précédent (omis
+// pour charger les catégories générales, racines de l'arborescence).
+articlesRouter.get("/hierarchie", async (req, res) => {
+  const { parentId } = req.query as Record<string, string>;
+  res.json(await listChildren(parentId ? Number(parentId) : null));
 });
-articlesRouter.get("/sous-familles", async (req, res) => {
-  const { familleId } = req.query as Record<string, string>;
-  const where = familleId ? eq(sousFamilles.familleId, Number(familleId)) : undefined;
-  res.json(await db.select().from(sousFamilles).where(where));
+
+// Chaîne complète des ancêtres d'un nœud (racine → nœud) — utilisé pour
+// réhydrater les listes déroulantes en cascade (filtre restauré depuis l'URL,
+// article existant) sans que le client n'ait à retracer chaque niveau lui-même.
+articlesRouter.get("/hierarchie/:id/ancetres", async (req, res) => {
+  res.json(await getAncestorChain(Number(req.params.id)));
 });
 
 articlesRouter.get("/", async (req, res) => {
-  const { q, familleId, sousFamilleId, stockStatut, page = "1", pageSize = "50" } = req.query as Record<string, string>;
+  const { q, hierarchieId, ancestorId, stockStatut, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [eq(articles.actif, true)];
   if (q) conditions.push(or(like(articles.designation, `%${q}%`), like(articles.codeArticle, `%${q}%`), like(articles.codeInterne, `%${q}%`))!);
-  if (familleId) conditions.push(eq(articles.familleId, Number(familleId)));
-  if (sousFamilleId) conditions.push(eq(articles.sousFamilleId, Number(sousFamilleId)));
+  if (hierarchieId) conditions.push(eq(articles.hierarchieId, Number(hierarchieId)));
+  if (ancestorId) conditions.push(inArray(articles.hierarchieId, await resolveDescendantIds(Number(ancestorId))));
   if (stockStatut === "rupture") conditions.push(sql`${articles.stockDisponible} = 0`);
   if (stockStatut === "faible") conditions.push(sql`${articles.stockDisponible} > 0 AND ${articles.stockDisponible} <= ${articles.stockMin}`);
 
@@ -37,10 +44,9 @@ articlesRouter.get("/", async (req, res) => {
         codeArticle: articles.codeArticle,
         designation: articles.designation,
         photoUrl: articles.photoUrl,
-        familleId: articles.familleId,
-        familleNom: familles.nom,
-        soumisControleReglementaire: familles.soumisControleReglementaire,
-        sousFamilleNom: sousFamilles.nom,
+        hierarchieId: articles.hierarchieId,
+        hierarchieNom: equipementHierarchie.nom,
+        soumisControleReglementaire: equipementHierarchie.soumisControleReglementaire,
         stockDisponible: articles.stockDisponible,
         stockReserve: articles.stockReserve,
         stockCommande: articles.stockCommande,
@@ -52,8 +58,7 @@ articlesRouter.get("/", async (req, res) => {
         unite: articles.unite,
       })
       .from(articles)
-      .leftJoin(familles, eq(articles.familleId, familles.id))
-      .leftJoin(sousFamilles, eq(articles.sousFamilleId, sousFamilles.id))
+      .leftJoin(equipementHierarchie, eq(articles.hierarchieId, equipementHierarchie.id))
       .where(where)
       .orderBy(articles.designation)
       .limit(ps)
@@ -75,11 +80,8 @@ articlesRouter.get("/:id", async (req, res) => {
       designation: articles.designation,
       description: articles.description,
       photoUrl: articles.photoUrl,
-      familleId: articles.familleId,
-      familleNom: familles.nom,
-      soumisControleReglementaire: familles.soumisControleReglementaire,
-      sousFamilleId: articles.sousFamilleId,
-      sousFamilleNom: sousFamilles.nom,
+      hierarchieId: articles.hierarchieId,
+      soumisControleReglementaire: equipementHierarchie.soumisControleReglementaire,
       referenceFabricant: articles.referenceFabricant,
       constructeur: articles.constructeur,
       normes: articles.normes,
@@ -110,18 +112,18 @@ articlesRouter.get("/:id", async (req, res) => {
       actif: articles.actif,
     })
     .from(articles)
-    .leftJoin(familles, eq(articles.familleId, familles.id))
-    .leftJoin(sousFamilles, eq(articles.sousFamilleId, sousFamilles.id))
+    .leftJoin(equipementHierarchie, eq(articles.hierarchieId, equipementHierarchie.id))
     .leftJoin(marches, eq(articles.marcheId, marches.id))
     .where(eq(articles.id, id));
   if (!article) return res.status(404).json({ error: "Article introuvable" });
 
-  const [mouvements, docs] = await Promise.all([
+  const [mouvements, docs, hierarchie] = await Promise.all([
     db.select().from(stockMouvements).where(eq(stockMouvements.articleId, id)).orderBy(desc(stockMouvements.dateMouvement)).limit(50),
     db.select().from(documents).where(and(eq(documents.entiteType, "article"), eq(documents.entiteId, id))),
+    article.hierarchieId ? getAncestorChain(article.hierarchieId) : Promise.resolve([]),
   ]);
 
-  res.json({ ...article, mouvements, documents: docs });
+  res.json({ ...article, mouvements, documents: docs, hierarchie });
 });
 
 articlesRouter.post("/", async (req: AuthedRequest, res) => {

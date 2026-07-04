@@ -15,11 +15,12 @@ import { StatutControleBadge } from "@/components/shared/Badges";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
 import { formatDate, formatMoney } from "@/lib/utils";
+import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
 
 interface Controle {
   id: number;
   designation: string;
-  familleNom: string | null;
+  hierarchieNom: string | null;
   soumisControleReglementaire: boolean;
   lieuEmplacement: string | null;
   numeroSerie: string | null;
@@ -31,7 +32,6 @@ interface Controle {
   statut: string;
   realiseParNom: string | null;
 }
-interface FamilleOpt { id: number; nom: string; soumisControleReglementaire: boolean }
 interface Reparation {
   id: number;
   designation: string;
@@ -56,23 +56,21 @@ export default function Controles() {
   const qc = useQueryClient();
   const [searchParams] = useSearchParams();
   const [statut, setStatut] = useState("all");
-  const [familleId, setFamilleId] = useState(searchParams.get("familleId") ?? "all");
+  const initialHierarchieId = searchParams.get("hierarchieId");
+  const [ancestorId, setAncestorId] = useState<number | null>(initialHierarchieId ? Number(initialHierarchieId) : null);
   const [reglementaireOnly, setReglementaireOnly] = useState(searchParams.get("reglementaireOnly") === "true");
   const [realiserTarget, setRealiserTarget] = useState<Controle | null>(null);
 
-  const { data: familles } = useQuery<FamilleOpt[]>({ queryKey: ["familles"], queryFn: () => apiGet("/articles/familles") });
-  const reglFamilles = familles?.filter((f) => f.soumisControleReglementaire) ?? [];
-
   const controlesQs = [
     statut !== "all" ? `statut=${statut}` : null,
-    familleId !== "all" ? `familleId=${familleId}` : null,
+    ancestorId != null ? `ancestorId=${ancestorId}` : null,
     reglementaireOnly ? "reglementaireOnly=true" : null,
   ]
     .filter(Boolean)
     .join("&");
 
   const { data: controles, isLoading } = useQuery<Controle[]>({
-    queryKey: ["controles", statut, familleId, reglementaireOnly],
+    queryKey: ["controles", statut, ancestorId, reglementaireOnly],
     queryFn: () => apiGet(`/controles${controlesQs ? `?${controlesQs}` : ""}`),
   });
   const { data: reparations } = useQuery<Reparation[]>({ queryKey: ["reparations"], queryFn: () => apiGet("/reparations") });
@@ -124,13 +122,7 @@ export default function Controles() {
                 <SelectItem value="realise">Réalisé</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={familleId} onValueChange={setFamilleId}>
-              <SelectTrigger className="w-56"><SelectValue placeholder="Famille" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes familles</SelectItem>
-                {reglFamilles.map((f) => <SelectItem key={f.id} value={String(f.id)}>{f.nom}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <HierarchieCascade value={ancestorId} onChange={setAncestorId} allowAll labels={["Catégorie générale", "Famille", "Sous-famille", "Type d'équipement"]} />
             <Button
               type="button"
               size="sm"
@@ -169,7 +161,7 @@ export default function Controles() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell>{c.familleNom ?? "—"}</TableCell>
+                    <TableCell>{c.hierarchieNom ?? "—"}</TableCell>
                     <TableCell>{TYPE_LABELS[c.type] ?? c.type}</TableCell>
                     <TableCell>{formatDate(c.datePlanifiee)}</TableCell>
                     <TableCell>{formatDate(c.dateRealisee)}</TableCell>

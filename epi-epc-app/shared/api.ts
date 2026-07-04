@@ -79,3 +79,16 @@ export interface DashboardReglementaire {
   expires: ReglementaireEcheance[];
   aVenir: ReglementaireEcheance[];
 }
+
+// Référentiel de classification des équipements (Catégorie générale > Famille >
+// Sous-famille > Type, profondeur variable) — voir server/db/schema.ts,
+// equipement_hierarchie et GET /api/articles/hierarchie?parentId=.
+export interface HierarchieNode {
+  id: number;
+  parentId: number | null;
+  code: string;
+  nom: string;
+  niveau: number;
+  ordre: number;
+  soumisControleReglementaire: boolean;
+}

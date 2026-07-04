@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { affectations, articles, agents, equipes, kitTemplateLignes, reformes, familles } from "../db/schema";
+import { affectations, articles, agents, equipes, kitTemplateLignes, reformes, equipementHierarchie } from "../db/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { applyStockMouvement } from "../services/stockService";
 import { logHistorique } from "../services/historiqueService";
@@ -78,13 +78,13 @@ affectationsRouter.get("/", async (req, res) => {
         dateFabricationUnite: affectations.dateFabricationUnite,
         observations: affectations.observations,
         caracteristiques: affectations.caracteristiques,
-        soumisControleReglementaire: familles.soumisControleReglementaire,
+        soumisControleReglementaire: equipementHierarchie.soumisControleReglementaire,
       })
       .from(affectations)
       .innerJoin(articles, eq(affectations.articleId, articles.id))
       .leftJoin(agents, eq(affectations.agentId, agents.id))
       .leftJoin(equipes, eq(affectations.equipeId, equipes.id))
-      .leftJoin(familles, eq(articles.familleId, familles.id))
+      .leftJoin(equipementHierarchie, eq(articles.hierarchieId, equipementHierarchie.id))
       .where(where)
       .orderBy(desc(affectations.dateAffectation))
       .limit(ps)

@@ -5,6 +5,7 @@ import {
   real,
   index,
   uniqueIndex,
+  type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 
@@ -136,24 +137,50 @@ export const users = sqliteTable(
 // CATALOGUE ARTICLES — Familles / Sous-familles / Articles / Marchés
 // ============================================================================
 
+// Hiérarchie unique et extensible : Catégorie générale (niveau 1) > Famille (2) >
+// Sous-famille (3) > Type d'équipement (4) > ... — auto-référencée plutôt que 4 tables
+// fixes, pour rester enrichissable à n'importe quelle profondeur sans changement de code.
+// soumisControleReglementaire est dénormalisé sur CHAQUE nœud (y compris tous les
+// descendants d'un nœud marqué) au moment de la construction de l'arbre, pour éviter
+// toute remontée récursive à l'exécution : une simple jointure suffit partout où le
+// flag est utilisé (tableau de bord, contrôles, affectations).
+export const equipementHierarchie = sqliteTable(
+  "equipement_hierarchie",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    parentId: integer("parent_id").references((): AnySQLiteColumn => equipementHierarchie.id, { onDelete: "cascade" }),
+    code: text("code").notNull().unique(),
+    nom: text("nom").notNull(),
+    niveau: integer("niveau").notNull(), // 1=catégorie générale, 2=famille, 3=sous-famille, 4=type… (indicatif, non structurant)
+    ordre: integer("ordre").notNull().default(0),
+    soumisControleReglementaire: integer("soumis_controle_reglementaire", { mode: "boolean" }).notNull().default(false),
+    createdAt: text("created_at").default(now).notNull(),
+  },
+  (t) => ({
+    parentIdx: index("equipement_hierarchie_parent_idx").on(t.parentId),
+    uniqueNomParent: uniqueIndex("equipement_hierarchie_nom_parent_idx").on(t.nom, t.parentId),
+  }),
+);
+
+// TEMPORAIRE (à supprimer dans une migration de nettoyage séparée, une fois les
+// données transférées vers equipement_hierarchie) — évite toute ambiguïté de
+// "rename" pour drizzle-kit generate en scindant l'évolution en add-puis-drop.
+// Ne pas supprimer avant une version ultérieure : sur une base déjà installée,
+// migrateHierarchieIfNeeded() (server/db/migrateHierarchie.ts) doit encore
+// pouvoir lire ces tables pour transférer les données existantes — les migrations
+// Drizzle s'appliquent avant ce contrôle, donc les droper ici les ferait
+// disparaître avant tout transfert possible.
 export const familles = sqliteTable("familles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   nom: text("nom").notNull().unique(),
   ordre: integer("ordre").notNull().default(0),
-  // Familles dont les articles sont soumis à un contrôle et une réépreuve périodiques
-  // règlementaires (appareils de levage, extincteurs/LCI, appareils sous pression,
-  // perches isolantes) — pilote l'affichage dédié du tableau de bord et active le
-  // suivi par unité physique (voir affectations.numeroSerie etc.).
   soumisControleReglementaire: integer("soumis_controle_reglementaire", { mode: "boolean" }).notNull().default(false),
 });
-
 export const sousFamilles = sqliteTable(
   "sous_familles",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    familleId: integer("famille_id")
-      .notNull()
-      .references(() => familles.id, { onDelete: "cascade" }),
+    familleId: integer("famille_id").notNull().references(() => familles.id, { onDelete: "cascade" }),
     nom: text("nom").notNull(),
   },
   (t) => ({
@@ -187,11 +214,13 @@ export const articles = sqliteTable(
     codeArticle: text("code_article").notNull().unique(),
     codeInterne: text("code_interne"),
     codeFournisseur: text("code_fournisseur"),
+    // Pointe vers le nœud le plus précis de equipement_hierarchie auquel appartient
+    // l'article (généralement le "type d'équipement", niveau 4, mais peut être plus
+    // haut si aucune subdivision plus fine n'existe pour cette famille).
+    hierarchieId: integer("hierarchie_id").references(() => equipementHierarchie.id),
+    // TEMPORAIRE (à supprimer dans la migration de nettoyage — voir familles/sousFamilles ci-dessus)
     familleId: integer("famille_id").references(() => familles.id),
     sousFamilleId: integer("sous_famille_id").references(() => sousFamilles.id),
-    // Classement secondaire optionnel (ex. perches isolantes : famille principale
-    // "Perches isolantes" pour le suivi règlementaire, tout en restant rattachées à
-    // leur ancien classement "Matériel isolant" pour qui les y cherche encore).
     familleSecondaireId: integer("famille_secondaire_id").references(() => familles.id),
     designation: text("designation").notNull(),
     description: text("description"),
@@ -229,25 +258,23 @@ export const articles = sqliteTable(
   },
   (t) => ({
     codeIdx: uniqueIndex("articles_code_idx").on(t.codeArticle),
-    familleIdx: index("articles_famille_idx").on(t.familleId),
-    familleSecondaireIdx: index("articles_famille_secondaire_idx").on(t.familleSecondaireId),
+    hierarchieIdx: index("articles_hierarchie_idx").on(t.hierarchieId),
     designationIdx: index("articles_designation_idx").on(t.designation),
     stockDisponibleIdx: index("articles_stock_disponible_idx").on(t.stockDisponible),
   }),
 );
 
-export const famillesRelations = relations(familles, ({ many }) => ({
-  sousFamilles: many(sousFamilles),
-  articles: many(articles),
-}));
-export const sousFamillesRelations = relations(sousFamilles, ({ one, many }) => ({
-  famille: one(familles, { fields: [sousFamilles.familleId], references: [familles.id] }),
+export const equipementHierarchieRelations = relations(equipementHierarchie, ({ one, many }) => ({
+  parent: one(equipementHierarchie, {
+    fields: [equipementHierarchie.parentId],
+    references: [equipementHierarchie.id],
+    relationName: "hierarchieParent",
+  }),
+  enfants: many(equipementHierarchie, { relationName: "hierarchieParent" }),
   articles: many(articles),
 }));
 export const articlesRelations = relations(articles, ({ one, many }) => ({
-  famille: one(familles, { fields: [articles.familleId], references: [familles.id], relationName: "articleFamillePrincipale" }),
-  familleSecondaire: one(familles, { fields: [articles.familleSecondaireId], references: [familles.id], relationName: "articleFamilleSecondaire" }),
-  sousFamille: one(sousFamilles, { fields: [articles.sousFamilleId], references: [sousFamilles.id] }),
+  hierarchie: one(equipementHierarchie, { fields: [articles.hierarchieId], references: [equipementHierarchie.id] }),
   marche: one(marches, { fields: [articles.marcheId], references: [marches.id] }),
   mouvements: many(stockMouvements),
   affectations: many(affectations),

@@ -23,6 +23,7 @@ const TABLES_IN_DEPENDENCY_ORDER = [
   "kit_template_lignes",
   "kit_templates",
   "articles",
+  "equipement_hierarchie",
   "sous_familles",
   "familles",
   "marches",

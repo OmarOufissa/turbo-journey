@@ -19,8 +19,7 @@ interface ArticleDetailData {
   codeFournisseur: string | null;
   designation: string;
   description: string | null;
-  familleNom: string | null;
-  sousFamilleNom: string | null;
+  hierarchie: { id: number; nom: string }[];
   referenceFabricant: string | null;
   constructeur: string | null;
   normes: string | null;
@@ -92,7 +91,8 @@ export default function ArticleDetail() {
         <div>
           <h1 className="text-xl font-semibold">{data.designation}</h1>
           <p className="text-sm text-muted-foreground">
-            {data.codeArticle} {data.familleNom && `· ${data.familleNom}`} {data.sousFamilleNom && `· ${data.sousFamilleNom}`}
+            {data.codeArticle}
+            {data.hierarchie.map((n) => ` · ${n.nom}`).join("")}
           </p>
         </div>
         <StockBadge disponible={data.stockDisponible} min={data.stockMin} />

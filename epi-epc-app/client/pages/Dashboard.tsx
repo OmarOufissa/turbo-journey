@@ -92,7 +92,7 @@ export default function Dashboard() {
                 {reglementaire.parFamille.map((f) => (
                   <Link
                     key={f.familleId}
-                    to={`/controles?reglementaireOnly=true&familleId=${f.familleId}`}
+                    to={`/controles?reglementaireOnly=true&hierarchieId=${f.familleId}`}
                     className="rounded-lg border p-3 transition-colors hover:bg-muted/50"
                   >
                     <p className="truncate text-sm font-medium">{f.familleNom}</p>

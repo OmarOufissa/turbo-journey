@@ -10,6 +10,7 @@ import { db } from "./index";
 import { divisions } from "./schema";
 import { runMigrations } from "./migrate";
 import { seedDatabase } from "../seeds/seedData";
+import { migrateHierarchieIfNeeded } from "./migrateHierarchie";
 
 let ready: Promise<void> | null = null;
 
@@ -21,6 +22,10 @@ export function ensureDatabaseReady(): Promise<void> {
       if (!existing) {
         console.log("→ Base de données vide : chargement initial des données réelles DTC…");
         await seedDatabase();
+      } else {
+        // Base déjà installée (données utilisateur réelles) : ne rejoue jamais le seed
+        // complet, ne transforme que la classification des articles si nécessaire.
+        await migrateHierarchieIfNeeded();
       }
     })();
   }

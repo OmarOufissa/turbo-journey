@@ -24,6 +24,7 @@ import { fileURLToPath } from "node:url";
 import bcrypt from "bcryptjs";
 import { db } from "../db";
 import * as s from "../db/schema";
+import { HIERARCHIE_TREE, type HierarchieNodeDef } from "./hierarchie";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "data");
@@ -37,15 +38,13 @@ function loadJSON<T>(name: string): T {
 // ---------------------------------------------------------------------------
 interface ArticleFixture {
   designation: string;
-  categorie: string;
-  sous_famille: string;
+  // Chemin complet dans equipement_hierarchie, de la catégorie générale (racine)
+  // jusqu'au nœud le plus précis auquel appartient l'article (voir seeds/hierarchie.ts).
+  hierarchie_path: string[];
   a_taille: boolean;
   a_pointure: boolean;
   unite_gestion: string;
   code: string;
-  // Classement secondaire optionnel (ex. perches isolantes, rattachées en plus à
-  // leur ancienne famille "Matériel isolant" — voir articles.familleSecondaireId).
-  categorie_secondaire?: string;
 }
 interface KitTemplateFixture {
   label: string;
@@ -91,67 +90,67 @@ async function chunkedInsert<T extends Record<string, unknown>>(
   return out;
 }
 
+// Insère récursivement HIERARCHIE_TREE dans equipement_hierarchie, en propageant
+// le flag soumisControleReglementaire d'un nœud à tous ses descendants (dénormalisé
+// à l'insertion pour éviter toute requête récursive lors de la lecture), et retourne
+// une table de correspondance "Cat > Famille > …" (chemin complet) -> id inséré.
+export async function seedHierarchie(): Promise<Map<string, number>> {
+  const idByPath = new Map<string, number>();
+
+  async function insertLevel(
+    nodes: HierarchieNodeDef[],
+    parentId: number | null,
+    parentPath: string[],
+    parentReglementaire: boolean,
+    niveau: number,
+  ) {
+    for (const [i, node] of nodes.entries()) {
+      const nodePath = [...parentPath, node.nom];
+      const reglementaire = parentReglementaire || node.reglementaire === true;
+      const code = slugify(nodePath.join(" "));
+      const [row] = await db
+        .insert(s.equipementHierarchie)
+        .values({ parentId, code, nom: node.nom, niveau, ordre: i, soumisControleReglementaire: reglementaire })
+        .returning({ id: s.equipementHierarchie.id });
+      idByPath.set(nodePath.join("||"), row.id);
+      if (node.enfants?.length) {
+        await insertLevel(node.enfants, row.id, nodePath, reglementaire, niveau + 1);
+      }
+    }
+  }
+
+  await insertLevel(HIERARCHIE_TREE, null, [], false, 1);
+  return idByPath;
+}
+
 export async function seedDatabase() {
   // -------------------------------------------------------------------------
-  // 1. Familles / Sous-familles / Articles
+  // 1. Référentiel de classification (equipement_hierarchie) / Articles
   // -------------------------------------------------------------------------
+  console.log("→ Référentiel de classification des équipements…");
+  const hierarchieIdByPath = await seedHierarchie();
+  console.log(`  ${hierarchieIdByPath.size} nœuds de classification insérés`);
+
   console.log("→ Catalogue articles…");
   const articlesFixture = loadJSON<ArticleFixture[]>("articles.json");
-
-  // soumisControleReglementaire : familles dont chaque article/unité fait l'objet
-  // d'un contrôle et d'une réépreuve périodiques règlementaires obligatoires
-  // (appareils de levage, extincteurs/LCI, appareils sous pression, perches
-  // isolantes) — pilote la section dédiée du tableau de bord.
-  const FAMILLE_ORDER: { nom: string; soumisControleReglementaire?: boolean }[] = [
-    { nom: "EPI" },
-    { nom: "EPC" },
-    { nom: "Vêtement de travail" },
-    { nom: "Chaussure de sécurité" },
-    { nom: "Matériel de consignation" },
-    { nom: "Matériel isolant" },
-    { nom: "Matériel de lutte contre l'incendie", soumisControleReglementaire: true },
-    { nom: "Autre" },
-    { nom: "Appareils de levage", soumisControleReglementaire: true },
-    { nom: "Appareils sous pression", soumisControleReglementaire: true },
-    { nom: "Perches isolantes", soumisControleReglementaire: true },
-    { nom: "Outillage TST BT" },
-  ];
-  const familleIdByName = new Map<string, number>();
-  for (const [i, { nom, soumisControleReglementaire }] of FAMILLE_ORDER.entries()) {
-    const [row] = await db
-      .insert(s.familles)
-      .values({ nom, ordre: i, soumisControleReglementaire: soumisControleReglementaire ?? false })
-      .returning({ id: s.familles.id });
-    familleIdByName.set(nom, row.id);
-  }
-
-  const sousFamillePairs = new Map<string, string>(); // "famille||sousfamille" -> famille
-  for (const a of articlesFixture) sousFamillePairs.set(`${a.categorie}||${a.sous_famille}`, a.categorie);
-  const sousFamilleIdByKey = new Map<string, number>();
-  for (const [key, famille] of sousFamillePairs) {
-    const nom = key.split("||")[1];
-    const [row] = await db
-      .insert(s.sousFamilles)
-      .values({ nom, familleId: familleIdByName.get(famille)! })
-      .returning({ id: s.sousFamilles.id });
-    sousFamilleIdByKey.set(key, row.id);
-  }
 
   // Champs volontairement absents (non fournis par les fichiers sources) :
   // prixUnitaire, marcheId, fournisseur, dateFabrication, dureeVieMois,
   // dateLimiteUtilisation, garantieMois, stockMin/Max/Disponible/Reserve/Commande
   // (tous restent à leurs valeurs par défaut — null ou 0 — jusqu'à saisie réelle).
   const articleCodeToId = new Map<string, number>();
-  const articleRows = articlesFixture.map((a) => ({
-    codeArticle: a.code,
-    familleId: familleIdByName.get(a.categorie)!,
-    familleSecondaireId: a.categorie_secondaire ? (familleIdByName.get(a.categorie_secondaire) ?? null) : null,
-    sousFamilleId: sousFamilleIdByKey.get(`${a.categorie}||${a.sous_famille}`)!,
-    designation: a.designation,
-    aTaille: a.a_taille,
-    aPointure: a.a_pointure,
-    unite: "pièce",
-  }));
+  const articleRows = articlesFixture.map((a) => {
+    const hierarchieId = hierarchieIdByPath.get(a.hierarchie_path.join("||"));
+    if (!hierarchieId) throw new Error(`Nœud de hiérarchie introuvable pour l'article ${a.code} : ${a.hierarchie_path.join(" > ")}`);
+    return {
+      codeArticle: a.code,
+      hierarchieId,
+      designation: a.designation,
+      aTaille: a.a_taille,
+      aPointure: a.a_pointure,
+      unite: "pièce",
+    };
+  });
   const insertedArticles = await chunkedInsert(s.articles, articleRows as any);
   articlesFixture.forEach((a, i) => articleCodeToId.set(a.code, insertedArticles[i].id));
   console.log(`  ${insertedArticles.length} articles insérés (catalogue réel — aucune donnée de prix/stock estimée)`);

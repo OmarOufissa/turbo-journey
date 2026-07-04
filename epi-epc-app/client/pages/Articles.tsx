@@ -14,14 +14,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
 import { formatMoney } from "@/lib/utils";
+import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
 
-interface Famille { id: number; nom: string }
 interface ArticleRow {
   id: number;
   codeArticle: string;
   designation: string;
-  familleNom: string | null;
-  sousFamilleNom: string | null;
+  hierarchieNom: string | null;
   stockDisponible: number;
   stockMin: number;
   stockMax: number | null;
@@ -31,20 +30,22 @@ interface ArticleRow {
   unite: string;
 }
 
+const HIERARCHIE_LABELS = ["Catégorie générale", "Famille", "Sous-famille", "Type d'équipement"];
+
 export default function Articles() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
-  const [familleId, setFamilleId] = useState<string>("all");
+  const [ancestorId, setAncestorId] = useState<number | null>(null);
   const [stockStatut, setStockStatut] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
+  const [createHierarchieId, setCreateHierarchieId] = useState<number | null>(null);
 
-  const { data: familles } = useQuery<Famille[]>({ queryKey: ["familles"], queryFn: () => apiGet("/articles/familles") });
   const { data, isLoading } = useQuery<{ rows: ArticleRow[]; total: number }>({
-    queryKey: ["articles", q, familleId, stockStatut],
+    queryKey: ["articles", q, ancestorId, stockStatut],
     queryFn: () =>
       apiGet(
-        `/articles?pageSize=200${q ? `&q=${encodeURIComponent(q)}` : ""}${familleId !== "all" ? `&familleId=${familleId}` : ""}${stockStatut !== "all" ? `&stockStatut=${stockStatut}` : ""}`,
+        `/articles?pageSize=200${q ? `&q=${encodeURIComponent(q)}` : ""}${ancestorId != null ? `&ancestorId=${ancestorId}` : ""}${stockStatut !== "all" ? `&stockStatut=${stockStatut}` : ""}`,
       ),
   });
 
@@ -54,6 +55,7 @@ export default function Articles() {
       toast.success("Article créé");
       qc.invalidateQueries({ queryKey: ["articles"] });
       setCreateOpen(false);
+      setCreateHierarchieId(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -64,7 +66,7 @@ export default function Articles() {
     createMutation.mutate({
       codeArticle: fd.get("codeArticle"),
       designation: fd.get("designation"),
-      familleId: fd.get("familleId") ? Number(fd.get("familleId")) : null,
+      hierarchieId: createHierarchieId,
       constructeur: fd.get("constructeur") || null,
       normes: fd.get("normes") || null,
       fournisseur: fd.get("fournisseur") || null,
@@ -95,13 +97,7 @@ export default function Articles() {
             <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un article, un code…" className="pl-8" />
           </div>
-          <Select value={familleId} onValueChange={setFamilleId}>
-            <SelectTrigger className="w-52"><SelectValue placeholder="Famille" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les familles</SelectItem>
-              {familles?.map((f) => <SelectItem key={f.id} value={String(f.id)}>{f.nom}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <HierarchieCascade value={ancestorId} onChange={setAncestorId} allowAll labels={HIERARCHIE_LABELS} />
           <Select value={stockStatut} onValueChange={setStockStatut}>
             <SelectTrigger className="w-44"><SelectValue placeholder="État du stock" /></SelectTrigger>
             <SelectContent>
@@ -139,7 +135,7 @@ export default function Articles() {
                   {a.designation}
                   {(a.aTaille || a.aPointure) && <span className="ml-2 text-xs text-muted-foreground">({a.aTaille ? "taille" : "pointure"})</span>}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{a.familleNom}</TableCell>
+                <TableCell className="text-muted-foreground">{a.hierarchieNom}</TableCell>
                 <TableCell className="text-right tabular-nums">{a.stockDisponible}</TableCell>
                 <TableCell><StockBadge disponible={a.stockDisponible} min={a.stockMin} /></TableCell>
                 <TableCell className="text-right tabular-nums">{formatMoney(a.prixUnitaire)}</TableCell>
@@ -149,7 +145,13 @@ export default function Articles() {
         </Table>
       </Card>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog
+        open={createOpen}
+        onOpenChange={(open) => {
+          setCreateOpen(open);
+          if (!open) setCreateHierarchieId(null);
+        }}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Nouvel article</DialogTitle></DialogHeader>
           <form onSubmit={onCreate} className="grid grid-cols-2 gap-4">
@@ -157,12 +159,9 @@ export default function Articles() {
               <Label htmlFor="codeArticle">Code article *</Label>
               <Input id="codeArticle" name="codeArticle" required placeholder="EPI-127" />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="familleId">Famille</Label>
-              <select id="familleId" name="familleId" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm">
-                <option value="">—</option>
-                {familles?.map((f) => <option key={f.id} value={f.id}>{f.nom}</option>)}
-              </select>
+            <div className="col-span-2 space-y-1.5">
+              <Label>Classification</Label>
+              <HierarchieCascade value={createHierarchieId} onChange={setCreateHierarchieId} labels={HIERARCHIE_LABELS} />
             </div>
             <div className="col-span-2 space-y-1.5">
               <Label htmlFor="designation">Désignation *</Label>

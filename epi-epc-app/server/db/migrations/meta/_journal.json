@@ -15,6 +15,13 @@
       "when": 1783120958695,
       "tag": "0001_lying_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783206515280,
+      "tag": "0002_add_equipement_hierarchie",
+      "breakpoints": true
     }
   ]
 }
