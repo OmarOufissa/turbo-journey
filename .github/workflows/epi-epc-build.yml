@@ -4,10 +4,10 @@ on:
   push:
     branches: [main, claude/onee-epi-epc-app-k5yqqk]
     tags: ['epi-epc-v*']
-    paths: ['epi-epc-app/**']
+    paths: ['epi-epc-app/**', '.github/workflows/epi-epc-build.yml']
   pull_request:
     branches: [main]
-    paths: ['epi-epc-app/**']
+    paths: ['epi-epc-app/**', '.github/workflows/epi-epc-build.yml']
 jobs:
   build:
     strategy:
