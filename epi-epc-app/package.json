@@ -115,7 +115,7 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": ["nsis", "portable"]
     },
     "mac": {
       "target": "dmg",
