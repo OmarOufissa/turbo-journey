@@ -7,6 +7,7 @@
 // lancement.
 const { app, BrowserWindow, shell, dialog } = require("electron");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 
 const PORT = process.env.PORT || 8080;
 let serverReady = null;
@@ -19,7 +20,11 @@ function startServer() {
     // node-build.js est un module ESM (build Vite) ; l'import dynamique
     // fonctionne depuis ce point d'entrée CommonJS et n'est résolu qu'une
     // fois le serveur effectivement en écoute (top-level await côté serveur).
-    serverReady = import(path.join(__dirname, "..", "dist", "server", "node-build.js"));
+    // pathToFileURL est indispensable sous Windows : un chemin brut "C:\..."
+    // n'est pas un spécificateur valide pour import() (ERR_UNSUPPORTED_ESM_URL_SCHEME),
+    // il faut une véritable URL file://.
+    const entryPoint = pathToFileURL(path.join(__dirname, "..", "dist", "server", "node-build.js")).href;
+    serverReady = import(entryPoint);
   }
   return serverReady;
 }
