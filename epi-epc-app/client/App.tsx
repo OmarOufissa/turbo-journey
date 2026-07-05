@@ -12,6 +12,9 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Articles from "@/pages/Articles";
 import ArticleDetail from "@/pages/ArticleDetail";
+import Hierarchie from "@/pages/Hierarchie";
+import ArticlesReference from "@/pages/ArticlesReference";
+import ArticleReferenceDetail from "@/pages/ArticleReferenceDetail";
 import Marches from "@/pages/Marches";
 import Agents from "@/pages/Agents";
 import AgentDetail from "@/pages/AgentDetail";
@@ -53,6 +56,9 @@ const App = () => (
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/articles" element={<Articles />} />
                 <Route path="/articles/:id" element={<ArticleDetail />} />
+                <Route path="/classification" element={<Hierarchie />} />
+                <Route path="/articles-reference" element={<ArticlesReference />} />
+                <Route path="/articles-reference/:id" element={<ArticleReferenceDetail />} />
                 <Route path="/marches" element={<Marches />} />
                 <Route path="/agents" element={<Agents />} />
                 <Route path="/agents/:id" element={<AgentDetail />} />

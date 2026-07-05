@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Plus, Undo2, Trash2, ChevronRight, ChevronDown, LayoutList, Layers, ShieldCheck } from "lucide-react";
+import { Plus, Undo2, Trash2, ChevronRight, ChevronDown, LayoutList, Layers, ShieldCheck, AlertTriangle, History } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { StatutAffectationBadge } from "@/components/shared/Badges";
 import { toast } from "@/components/ui/toaster";
 import { formatDate, cn } from "@/lib/utils";
@@ -54,6 +55,9 @@ export default function Affectations() {
   const [beneficiaireType, setBeneficiaireType] = useState("all");
   const [open, setOpen] = useState(false);
   const [retourTarget, setRetourTarget] = useState<AffectationRow | null>(null);
+  const [perduTarget, setPerduTarget] = useState<AffectationRow | null>(null);
+  const [reformeTarget, setReformeTarget] = useState<AffectationRow | null>(null);
+  const [historiqueTarget, setHistoriqueTarget] = useState<AffectationRow | null>(null);
   const [beneficiaireKind, setBeneficiaireKind] = useState<"agent" | "equipe">("agent");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selectedArticleId, setSelectedArticleId] = useState("");
@@ -106,6 +110,18 @@ export default function Affectations() {
       toast.success("Équipement réformé");
       qc.invalidateQueries({ queryKey: ["affectations"] });
       qc.invalidateQueries({ queryKey: ["affectations-groupes"] });
+      setReformeTarget(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const perduMutation = useMutation({
+    mutationFn: (body: { id: number; datePerte: string; motif: string }) => apiPost(`/affectations/${body.id}/perdu`, body),
+    onSuccess: () => {
+      toast.success("Perte déclarée");
+      qc.invalidateQueries({ queryKey: ["affectations"] });
+      qc.invalidateQueries({ queryKey: ["affectations-groupes"] });
+      setPerduTarget(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -157,6 +173,20 @@ export default function Affectations() {
     if (!retourTarget) return;
     const fd = new FormData(e.currentTarget);
     retourMutation.mutate({ id: retourTarget.id, dateRetour: String(fd.get("dateRetour")), etatRetour: String(fd.get("etatRetour")) });
+  }
+
+  function onPerduSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!perduTarget) return;
+    const fd = new FormData(e.currentTarget);
+    perduMutation.mutate({ id: perduTarget.id, datePerte: String(fd.get("datePerte")), motif: String(fd.get("motif") || "") });
+  }
+
+  function onReformeSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!reformeTarget) return;
+    const fd = new FormData(e.currentTarget);
+    reformeMutation.mutate({ id: reformeTarget.id, motif: String(fd.get("motif") || "") });
   }
 
   function toggleExpanded(key: string) {
@@ -267,8 +297,10 @@ export default function Affectations() {
                             beneficiaireType={g.beneficiaireType}
                             statut={statut}
                             onRetour={setRetourTarget}
-                            onReforme={(id) => reformeMutation.mutate({ id, motif: "Fin de vie / hors service" })}
+                            onPerdu={setPerduTarget}
+                            onReforme={setReformeTarget}
                             onPlanifierControle={setControleTarget}
+                            onHistorique={setHistoriqueTarget}
                           />
                         </TableCell>
                       </TableRow>
@@ -299,8 +331,10 @@ export default function Affectations() {
                   key={a.id}
                   a={a}
                   onRetour={setRetourTarget}
-                  onReforme={(id) => reformeMutation.mutate({ id, motif: "Fin de vie / hors service" })}
+                  onPerdu={setPerduTarget}
+                  onReforme={setReformeTarget}
                   onPlanifierControle={setControleTarget}
+                  onHistorique={setHistoriqueTarget}
                 />
               ))}
             </TableBody>
@@ -399,6 +433,50 @@ export default function Affectations() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!perduTarget} onOpenChange={(o) => !o && setPerduTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Déclarer la perte de l'équipement</DialogTitle></DialogHeader>
+          {perduTarget && (
+            <p className="-mt-2 text-sm text-muted-foreground">
+              {perduTarget.designation} — {perduTarget.agentNom ?? perduTarget.equipeNom}
+            </p>
+          )}
+          <form onSubmit={onPerduSubmit} className="space-y-4">
+            <div className="space-y-1.5"><Label htmlFor="datePerte">Date de constatation</Label><Input id="datePerte" name="datePerte" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></div>
+            <div className="space-y-1.5"><Label htmlFor="motif">Motif *</Label><Textarea id="motif" name="motif" required rows={2} placeholder="Circonstances de la perte…" /></div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setPerduTarget(null)}>Annuler</Button>
+              <Button type="submit" variant="destructive" disabled={perduMutation.isPending}>Confirmer la déclaration de perte</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!reformeTarget} onOpenChange={(o) => !o && setReformeTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Réformer l'équipement</DialogTitle></DialogHeader>
+          {reformeTarget && (
+            <p className="-mt-2 text-sm text-muted-foreground">
+              {reformeTarget.designation} — {reformeTarget.agentNom ?? reformeTarget.equipeNom}
+            </p>
+          )}
+          <form onSubmit={onReformeSubmit} className="space-y-4">
+            <div className="space-y-1.5"><Label htmlFor="motif">Motif de réforme *</Label><Textarea id="motif" name="motif" required rows={2} placeholder="Fin de vie, hors d'usage, non conforme…" /></div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setReformeTarget(null)}>Annuler</Button>
+              <Button type="submit" variant="destructive" disabled={reformeMutation.isPending}>Confirmer la réforme</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!historiqueTarget} onOpenChange={(o) => !o && setHistoriqueTarget(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Historique de l'affectation</DialogTitle></DialogHeader>
+          {historiqueTarget && <HistoriquePanel affectationId={historiqueTarget.id} />}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!controleTarget} onOpenChange={(o) => !o && setControleTarget(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Planifier un contrôle règlementaire</DialogTitle></DialogHeader>
@@ -437,15 +515,19 @@ function GroupDetail({
   beneficiaireType,
   statut,
   onRetour,
+  onPerdu,
   onReforme,
   onPlanifierControle,
+  onHistorique,
 }: {
   articleId: number;
   beneficiaireType: string;
   statut: string;
   onRetour: (a: AffectationRow) => void;
-  onReforme: (id: number) => void;
+  onPerdu: (a: AffectationRow) => void;
+  onReforme: (a: AffectationRow) => void;
   onPlanifierControle: (a: AffectationRow) => void;
+  onHistorique: (a: AffectationRow) => void;
 }) {
   const { data, isLoading } = useQuery<{ rows: AffectationRow[]; total: number }>({
     queryKey: ["affectations", "groupe-detail", articleId, beneficiaireType, statut],
@@ -459,7 +541,7 @@ function GroupDetail({
     <Table>
       <TableBody>
         {data?.rows.map((a) => (
-          <AffectationDetailRow key={a.id} a={a} onRetour={onRetour} onReforme={onReforme} onPlanifierControle={onPlanifierControle} indented />
+          <AffectationDetailRow key={a.id} a={a} onRetour={onRetour} onPerdu={onPerdu} onReforme={onReforme} onPlanifierControle={onPlanifierControle} onHistorique={onHistorique} indented />
         ))}
       </TableBody>
     </Table>
@@ -469,14 +551,18 @@ function GroupDetail({
 function AffectationDetailRow({
   a,
   onRetour,
+  onPerdu,
   onReforme,
   onPlanifierControle,
+  onHistorique,
   indented,
 }: {
   a: AffectationRow;
   onRetour: (a: AffectationRow) => void;
-  onReforme: (id: number) => void;
+  onPerdu: (a: AffectationRow) => void;
+  onReforme: (a: AffectationRow) => void;
   onPlanifierControle: (a: AffectationRow) => void;
+  onHistorique: (a: AffectationRow) => void;
   indented?: boolean;
 }) {
   return (
@@ -503,18 +589,70 @@ function AffectationDetailRow({
       <TableCell>{formatDate(a.dateAffectation)}</TableCell>
       <TableCell><StatutAffectationBadge statut={a.statut} /></TableCell>
       <TableCell className="text-right">
-        {a.statut === "actif" && (
-          <div className="flex justify-end gap-1">
-            {a.soumisControleReglementaire && (
-              <Button size="sm" variant="ghost" onClick={() => onPlanifierControle(a)}><ShieldCheck className="h-3.5 w-3.5" /> Contrôle</Button>
-            )}
-            <Button size="sm" variant="ghost" onClick={() => onRetour(a)}><Undo2 className="h-3.5 w-3.5" /> Retour</Button>
-            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onReforme(a.id)}>
-              <Trash2 className="h-3.5 w-3.5" /> Réformer
-            </Button>
-          </div>
-        )}
+        <div className="flex justify-end gap-1">
+          {a.statut === "actif" && a.soumisControleReglementaire && (
+            <Button size="sm" variant="ghost" onClick={() => onPlanifierControle(a)}><ShieldCheck className="h-3.5 w-3.5" /> Contrôle</Button>
+          )}
+          {a.statut === "actif" && (
+            <>
+              <Button size="sm" variant="ghost" onClick={() => onRetour(a)}><Undo2 className="h-3.5 w-3.5" /> Retour</Button>
+              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onPerdu(a)}>
+                <AlertTriangle className="h-3.5 w-3.5" /> Perdu
+              </Button>
+              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onReforme(a)}>
+                <Trash2 className="h-3.5 w-3.5" /> Réformer
+              </Button>
+            </>
+          )}
+          <Button size="sm" variant="ghost" onClick={() => onHistorique(a)}><History className="h-3.5 w-3.5" /></Button>
+        </div>
       </TableCell>
     </TableRow>
+  );
+}
+
+interface HistoriqueRow {
+  id: number;
+  typeEvenement: string;
+  utilisateurNom: string | null;
+  details: unknown;
+  dateEvenement: string;
+}
+
+const EVENEMENT_LABELS: Record<string, string> = {
+  dotation: "Dotation",
+  dotation_kit: "Application d'un gabarit",
+  retour: "Retour",
+  declaration_perte: "Déclaration de perte",
+  reforme: "Réforme",
+  maj_unite_equipement: "Mise à jour de l'unité",
+  planification_controle: "Planification d'un contrôle",
+  controle_realise: "Contrôle réalisé",
+};
+
+function HistoriquePanel({ affectationId }: { affectationId: number }) {
+  const { data, isLoading } = useQuery<{ rows: HistoriqueRow[] }>({
+    queryKey: ["historique", "affectation", affectationId],
+    queryFn: () => apiGet(`/historique?entiteType=affectation&entiteId=${affectationId}&pageSize=100`),
+  });
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">Chargement…</p>;
+  if (!data || data.rows.length === 0) return <p className="text-sm text-muted-foreground">Aucun événement enregistré</p>;
+
+  return (
+    <div className="max-h-[60vh] space-y-2 overflow-y-auto">
+      {data.rows.map((h) => (
+        <div key={h.id} className="rounded-md border border-border p-2.5 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="font-medium">{EVENEMENT_LABELS[h.typeEvenement] ?? h.typeEvenement}</span>
+            <span className="text-xs text-muted-foreground">{formatDate(h.dateEvenement)}</span>
+          </div>
+          {h.utilisateurNom && <p className="text-xs text-muted-foreground">Par {h.utilisateurNom}</p>}
+          {h.details != null && (
+            <pre className="mt-1 whitespace-pre-wrap break-words text-xs text-muted-foreground">{JSON.stringify(h.details, null, 0)}</pre>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }

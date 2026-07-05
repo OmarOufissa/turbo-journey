@@ -103,14 +103,26 @@ articlesRouter.delete("/hierarchie/:id", async (req: AuthedRequest, res) => {
   res.status(204).end();
 });
 
+// Liste des fournisseurs distincts déjà utilisés au catalogue — alimente le filtre
+// fournisseur d'Articles.tsx sans dupliquer une table de référence à part.
+articlesRouter.get("/fournisseurs", async (_req, res) => {
+  const rows = await db
+    .selectDistinct({ fournisseur: articles.fournisseur })
+    .from(articles)
+    .where(sql`${articles.fournisseur} is not null and ${articles.fournisseur} != ''`)
+    .orderBy(articles.fournisseur);
+  res.json(rows.map((r) => r.fournisseur));
+});
+
 articlesRouter.get("/", async (req, res) => {
-  const { q, hierarchieId, ancestorId, stockStatut, page = "1", pageSize = "50" } = req.query as Record<string, string>;
+  const { q, hierarchieId, ancestorId, stockStatut, fournisseur, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [eq(articles.actif, true)];
   if (q) conditions.push(or(like(articles.designation, `%${q}%`), like(articles.codeArticle, `%${q}%`), like(articles.codeInterne, `%${q}%`))!);
   if (hierarchieId) conditions.push(eq(articlesReference.hierarchieParentId, Number(hierarchieId)));
   if (ancestorId) conditions.push(inArray(articlesReference.hierarchieParentId, await resolveDescendantIds(Number(ancestorId))));
   if (stockStatut === "rupture") conditions.push(sql`${articles.stockDisponible} = 0`);
   if (stockStatut === "faible") conditions.push(sql`${articles.stockDisponible} > 0 AND ${articles.stockDisponible} <= ${articles.stockMin}`);
+  if (fournisseur) conditions.push(eq(articles.fournisseur, fournisseur));
 
   const where = and(...conditions);
   const p = Math.max(1, Number(page));
@@ -138,6 +150,7 @@ articlesRouter.get("/", async (req, res) => {
         aTaille: articles.aTaille,
         aPointure: articles.aPointure,
         unite: articles.unite,
+        fournisseur: articles.fournisseur,
       })
       .from(articles)
       .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))

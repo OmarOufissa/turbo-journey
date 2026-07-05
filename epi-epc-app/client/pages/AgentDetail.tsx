@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { ArrowLeft, FileDown, PackagePlus } from "lucide-react";
-import { apiGet, apiPost, downloadFile } from "@/lib/api";
+import { ArrowLeft, FileDown, PackagePlus, Pencil, Plus, Trash2, Ruler } from "lucide-react";
+import { apiGet, apiPost, apiPut, downloadFile } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toaster";
 import { initials, formatDate } from "@/lib/utils";
+import { MENSURATION_KEYS, mensurationLabel } from "@/lib/mensurations";
 
 interface AgentData {
   id: number;
@@ -27,6 +28,7 @@ interface AgentData {
   serviceNom: string | null;
   equipeNom: string | null;
   equipeId: number | null;
+  mensurations: { cle: string; valeur: string }[];
   dotations: { id: number; designation: string; quantite: number; taille: string | null; pointure: string | null; dateAffectation: string; statut: string; motif: string | null }[];
 }
 interface KitTemplate { id: number; code: string; label: string; appliesToType: string }
@@ -35,9 +37,31 @@ export default function AgentDetail() {
   const { id } = useParams();
   const qc = useQueryClient();
   const [kitOpen, setKitOpen] = useState(false);
+  const [mensurationsOpen, setMensurationsOpen] = useState(false);
+  const [mensurationRows, setMensurationRows] = useState<{ cle: string; valeur: string }[]>([]);
 
   const { data, isLoading } = useQuery<AgentData>({ queryKey: ["agent", id], queryFn: () => apiGet(`/agents/${id}`) });
   const { data: kits } = useQuery<KitTemplate[]>({ queryKey: ["kit-templates"], queryFn: () => apiGet("/kit-templates") });
+
+  const updateMensurationsMutation = useMutation({
+    mutationFn: (mensurations: { cle: string; valeur: string }[]) => apiPut(`/agents/${id}/mensurations`, { mensurations }),
+    onSuccess: () => {
+      toast.success("Mensurations enregistrées");
+      qc.invalidateQueries({ queryKey: ["agent", id] });
+      setMensurationsOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function openMensurations() {
+    const existing = new Map(data?.mensurations.map((m) => [m.cle, m.valeur]));
+    const rows = MENSURATION_KEYS.map((k) => ({ cle: k.cle, valeur: existing.get(k.cle) ?? "" }));
+    for (const m of data?.mensurations ?? []) {
+      if (!MENSURATION_KEYS.some((k) => k.cle === m.cle)) rows.push({ cle: m.cle, valeur: m.valeur });
+    }
+    setMensurationRows(rows);
+    setMensurationsOpen(true);
+  }
 
   const applyKit = useMutation({
     mutationFn: (body: Record<string, unknown>) => apiPost("/affectations/kit/appliquer", body),
@@ -98,6 +122,19 @@ export default function AgentDetail() {
       </Card>
 
       <Card>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <CardTitle>Mensurations</CardTitle>
+          <Button size="sm" variant="outline" onClick={openMensurations}><Pencil className="h-3.5 w-3.5" /> Modifier</Button>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-x-8 gap-y-3 p-5 text-sm sm:grid-cols-4">
+          {data.mensurations.length === 0 && <p className="col-span-full text-sm text-muted-foreground">Aucune mensuration renseignée</p>}
+          {data.mensurations.map((m) => (
+            <Field key={m.cle} label={mensurationLabel(m.cle)} value={m.valeur} />
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader><CardTitle>Dotation individuelle (EPI)</CardTitle></CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -125,6 +162,50 @@ export default function AgentDetail() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={mensurationsOpen} onOpenChange={setMensurationsOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Mensurations</DialogTitle></DialogHeader>
+          <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
+            {mensurationRows.map((row, i) => (
+              <div key={row.cle || i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
+                <Label className="text-sm">{mensurationLabel(row.cle) || row.cle}</Label>
+                <Input
+                  value={row.valeur}
+                  onChange={(e) => setMensurationRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, valeur: e.target.value } : r)))}
+                />
+                {!MENSURATION_KEYS.some((k) => k.cle === row.cle) && (
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setMensurationRows((prev) => prev.filter((_, idx) => idx !== i))}>
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <div className="flex items-center gap-2 pt-2">
+              <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Mensuration personnalisée :</span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setMensurationRows((prev) => [...prev, { cle: `custom_${Date.now()}`, valeur: "" }])}
+              >
+                <Plus className="h-3.5 w-3.5" /> Ajouter
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setMensurationsOpen(false)}>Annuler</Button>
+            <Button
+              type="button"
+              disabled={updateMensurationsMutation.isPending}
+              onClick={() => updateMensurationsMutation.mutate(mensurationRows.filter((r) => r.valeur.trim()))}
+            >
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={kitOpen} onOpenChange={setKitOpen}>
         <DialogContent>

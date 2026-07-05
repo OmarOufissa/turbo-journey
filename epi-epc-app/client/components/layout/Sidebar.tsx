@@ -11,6 +11,8 @@ import {
   History,
   FileBarChart,
   HardHat,
+  Tag,
+  FolderTree,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,6 +20,8 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/", label: "Tableau de bord", icon: LayoutDashboard, end: true },
   { to: "/articles", label: "Articles", icon: Package },
+  { to: "/articles-reference", label: "Articles de référence", icon: Tag },
+  { to: "/classification", label: "Classification", icon: FolderTree },
   { to: "/marches", label: "Marchés", icon: FileStack },
   { to: "/agents", label: "Bénéficiaires", icon: Users },
   { to: "/organisation", label: "Organisation", icon: Network },

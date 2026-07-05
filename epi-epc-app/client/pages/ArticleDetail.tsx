@@ -1,13 +1,17 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { ArrowLeft, Upload, FileText } from "lucide-react";
-import { apiGet, apiPost } from "@/lib/api";
+import { ArrowLeft, Upload, FileText, Pencil, Power, Trash2 } from "lucide-react";
+import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { StockBadge } from "@/components/shared/Badges";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { toast } from "@/components/ui/toaster";
@@ -17,14 +21,21 @@ interface ArticleDetailData {
   codeArticle: string;
   codeInterne: string | null;
   codeFournisseur: string | null;
+  articleReferenceId: number | null;
+  articleReferenceCode: string | null;
+  articleReferenceDesignation: string | null;
   designation: string;
   description: string | null;
   hierarchie: { id: number; nom: string }[];
   referenceFabricant: string | null;
   constructeur: string | null;
+  marque: string | null;
+  modele: string | null;
   normes: string | null;
   certification: string | null;
   dateFabrication: string | null;
+  dateAcquisition: string | null;
+  numeroSerie: string | null;
   dureeVieMois: number | null;
   dateLimiteUtilisation: string | null;
   poidsKg: string | null;
@@ -43,6 +54,7 @@ interface ArticleDetailData {
   stockReserve: number;
   stockCommande: number;
   unite: string;
+  actif: boolean;
   mouvements: { id: number; type: string; quantite: number; dateMouvement: string; motif: string | null }[];
   documents: { id: number; typeDocument: string; nomFichier: string; url: string }[];
 }
@@ -60,6 +72,7 @@ export default function ArticleDetail() {
   const { id } = useParams();
   const qc = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const { data, isLoading } = useQuery<ArticleDetailData>({ queryKey: ["article", id], queryFn: () => apiGet(`/articles/${id}`) });
 
@@ -79,6 +92,53 @@ export default function ArticleDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteDocMutation = useMutation({
+    mutationFn: (docId: number) => apiDelete(`/documents/${docId}`),
+    onSuccess: () => {
+      toast.success("Document supprimé");
+      qc.invalidateQueries({ queryKey: ["article", id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (body: Record<string, unknown>) => apiPut(`/articles/${id}`, body),
+    onSuccess: () => {
+      toast.success("Article modifié");
+      qc.invalidateQueries({ queryKey: ["article", id] });
+      setEditOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleActifMutation = useMutation({
+    mutationFn: () => apiPost(`/articles/${id}/${data?.actif ? "desactiver" : "reactiver"}`),
+    onSuccess: () => {
+      toast.success(data?.actif ? "Article désactivé" : "Article réactivé");
+      qc.invalidateQueries({ queryKey: ["article", id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function onSubmitEdit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    updateMutation.mutate({
+      designation: String(fd.get("designation")),
+      constructeur: String(fd.get("constructeur") || "") || null,
+      marque: String(fd.get("marque") || "") || null,
+      modele: String(fd.get("modele") || "") || null,
+      fournisseur: String(fd.get("fournisseur") || "") || null,
+      normes: String(fd.get("normes") || "") || null,
+      certification: String(fd.get("certification") || "") || null,
+      dateAcquisition: String(fd.get("dateAcquisition") || "") || null,
+      numeroSerie: String(fd.get("numeroSerie") || "") || null,
+      garantieMois: fd.get("garantieMois") ? Number(fd.get("garantieMois")) : null,
+      prixUnitaire: String(fd.get("prixUnitaire") || "") || null,
+      observations: String(fd.get("observations") || "") || null,
+    });
+  }
+
   if (isLoading || !data) return <p className="text-sm text-muted-foreground">Chargement…</p>;
 
   return (
@@ -92,10 +152,18 @@ export default function ArticleDetail() {
           <h1 className="text-xl font-semibold">{data.designation}</h1>
           <p className="text-sm text-muted-foreground">
             {data.codeArticle}
+            {data.articleReferenceDesignation && ` · Réf. ${data.articleReferenceDesignation} (${data.articleReferenceCode})`}
             {data.hierarchie.map((n) => ` · ${n.nom}`).join("")}
           </p>
         </div>
-        <StockBadge disponible={data.stockDisponible} min={data.stockMin} />
+        <div className="flex items-center gap-2">
+          {!data.actif && <Badge variant="muted">Inactif</Badge>}
+          <StockBadge disponible={data.stockDisponible} min={data.stockMin} />
+          <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}><Pencil className="h-3.5 w-3.5" /> Modifier</Button>
+          <Button size="sm" variant="outline" onClick={() => toggleActifMutation.mutate()}>
+            <Power className="h-3.5 w-3.5" /> {data.actif ? "Désactiver" : "Réactiver"}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -119,11 +187,15 @@ export default function ArticleDetail() {
               <Field label="Code fournisseur" value={data.codeFournisseur} />
               <Field label="Référence fabricant" value={data.referenceFabricant} />
               <Field label="Constructeur" value={data.constructeur} />
+              <Field label="Marque" value={data.marque} />
+              <Field label="Modèle" value={data.modele} />
               <Field label="Fournisseur" value={data.fournisseur} />
               <Field label="Marché" value={data.marcheNumero} />
               <Field label="Normes" value={data.normes} />
               <Field label="Certification" value={data.certification} />
               <Field label="Date de fabrication" value={formatDate(data.dateFabrication)} />
+              <Field label="Date d'acquisition" value={formatDate(data.dateAcquisition)} />
+              <Field label="Numéro de série (lot)" value={data.numeroSerie} />
               <Field label="Durée de vie" value={data.dureeVieMois ? `${data.dureeVieMois} mois` : null} />
               <Field label="Date limite d'utilisation" value={formatDate(data.dateLimiteUtilisation)} />
               <Field label="Garantie" value={data.garantieMois ? `${data.garantieMois} mois` : null} />
@@ -181,16 +253,79 @@ export default function ArticleDetail() {
             <CardContent className="space-y-2">
               {data.documents.length === 0 && <p className="text-sm text-muted-foreground">Aucun document</p>}
               {data.documents.map((d) => (
-                <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-md border border-border p-2.5 text-sm hover:bg-accent">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="flex-1 truncate">{d.nomFichier}</span>
+                <div key={d.id} className="flex items-center gap-2 rounded-md border border-border p-2.5 text-sm hover:bg-accent">
+                  <a href={d.url} target="_blank" rel="noreferrer" className="flex flex-1 items-center gap-2 truncate">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span className="flex-1 truncate">{d.nomFichier}</span>
+                  </a>
                   <Badge variant="outline">{d.typeDocument}</Badge>
-                </a>
+                  <Button size="sm" variant="ghost" onClick={() => deleteDocMutation.mutate(d.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                </div>
               ))}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Modifier l'article</DialogTitle></DialogHeader>
+          <form onSubmit={onSubmitEdit} className="grid max-h-[70vh] grid-cols-2 gap-4 overflow-y-auto pr-1">
+            <div className="col-span-2 space-y-1.5">
+              <Label htmlFor="designation">Désignation *</Label>
+              <Input id="designation" name="designation" required defaultValue={data.designation} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="constructeur">Constructeur</Label>
+              <Input id="constructeur" name="constructeur" defaultValue={data.constructeur ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="marque">Marque</Label>
+              <Input id="marque" name="marque" defaultValue={data.marque ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="modele">Modèle</Label>
+              <Input id="modele" name="modele" defaultValue={data.modele ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="fournisseur">Fournisseur</Label>
+              <Input id="fournisseur" name="fournisseur" defaultValue={data.fournisseur ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="normes">Normes</Label>
+              <Input id="normes" name="normes" defaultValue={data.normes ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="certification">Certification</Label>
+              <Input id="certification" name="certification" defaultValue={data.certification ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="dateAcquisition">Date d'acquisition</Label>
+              <Input id="dateAcquisition" name="dateAcquisition" type="date" defaultValue={data.dateAcquisition ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="numeroSerie">Numéro de série (lot)</Label>
+              <Input id="numeroSerie" name="numeroSerie" defaultValue={data.numeroSerie ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="garantieMois">Garantie (mois)</Label>
+              <Input id="garantieMois" name="garantieMois" type="number" defaultValue={data.garantieMois ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prixUnitaire">Prix unitaire (MAD)</Label>
+              <Input id="prixUnitaire" name="prixUnitaire" type="number" step="0.01" defaultValue={data.prixUnitaire ?? ""} />
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label htmlFor="observations">Observations</Label>
+              <Textarea id="observations" name="observations" rows={2} defaultValue={data.observations ?? ""} />
+            </div>
+            <DialogFooter className="col-span-2">
+              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Annuler</Button>
+              <Button type="submit" disabled={updateMutation.isPending}>Enregistrer</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
