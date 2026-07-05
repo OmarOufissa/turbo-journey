@@ -117,6 +117,12 @@
     "win": {
       "target": ["nsis", "portable"]
     },
+    "nsis": {
+      "artifactName": "GEPI-DTC-INSTALLEUR-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "GEPI-DTC-PORTABLE-sans-installation-${version}.${ext}"
+    },
     "mac": {
       "target": "dmg",
       "category": "public.app-category.business"
