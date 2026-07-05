@@ -5,7 +5,7 @@
 // documents uploadés vivent dans le dossier de données de l'application
 // (app.getPath('userData')), créé et initialisé automatiquement au premier
 // lancement.
-const { app, BrowserWindow, shell } = require("electron");
+const { app, BrowserWindow, shell, dialog } = require("electron");
 const path = require("node:path");
 
 const PORT = process.env.PORT || 8080;
@@ -50,12 +50,26 @@ async function createWindow() {
   await win.loadURL(`http://localhost:${PORT}`);
 }
 
-app.whenReady().then(createWindow);
+// Un échec au démarrage (ex. base de données corrompue, port déjà utilisé) ne
+// doit jamais laisser l'application figée sans fenêtre ni message : on
+// affiche l'erreur réelle puis on quitte proprement plutôt que de rester en
+// tâche de fond à 0% CPU sans qu'aucune fenêtre ne s'ouvre jamais.
+app.whenReady().then(() =>
+  createWindow().catch((err) => {
+    dialog.showErrorBox("GEPI DTC — Échec du démarrage", String(err?.stack || err));
+    app.exit(1);
+  }),
+);
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
 app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow().catch((err) => {
+      dialog.showErrorBox("GEPI DTC — Échec du démarrage", String(err?.stack || err));
+      app.exit(1);
+    });
+  }
 });
