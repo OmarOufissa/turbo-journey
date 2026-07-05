@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Plus, Undo2, Trash2, ChevronRight, ChevronDown, LayoutList, Layers, ShieldCheck, AlertTriangle, History } from "lucide-react";
+import { Plus, Undo2, Trash2, ChevronRight, ChevronDown, LayoutList, Layers, ShieldCheck, AlertTriangle, History, Search } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { StatutAffectationBadge } from "@/components/shared/Badges";
+import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
 import { toast } from "@/components/ui/toaster";
 import { formatDate, cn } from "@/lib/utils";
 
@@ -53,6 +54,8 @@ export default function Affectations() {
   const [vue, setVue] = useState<"groupee" | "detaillee">("groupee");
   const [statut, setStatut] = useState("all");
   const [beneficiaireType, setBeneficiaireType] = useState("all");
+  const [q, setQ] = useState("");
+  const [ancestorId, setAncestorId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
   const [retourTarget, setRetourTarget] = useState<AffectationRow | null>(null);
   const [perduTarget, setPerduTarget] = useState<AffectationRow | null>(null);
@@ -63,16 +66,16 @@ export default function Affectations() {
   const [selectedArticleId, setSelectedArticleId] = useState("");
   const [controleTarget, setControleTarget] = useState<AffectationRow | null>(null);
 
-  const filterQs = `${statut !== "all" ? `&statut=${statut}` : ""}${beneficiaireType !== "all" ? `&beneficiaireType=${beneficiaireType}` : ""}`;
+  const filterQs = `${statut !== "all" ? `&statut=${statut}` : ""}${beneficiaireType !== "all" ? `&beneficiaireType=${beneficiaireType}` : ""}${q ? `&q=${encodeURIComponent(q)}` : ""}${ancestorId != null ? `&ancestorId=${ancestorId}` : ""}`;
 
   const { data: groups, isLoading: loadingGroups } = useQuery<GroupRow[]>({
-    queryKey: ["affectations-groupes", statut, beneficiaireType],
+    queryKey: ["affectations-groupes", statut, beneficiaireType, q, ancestorId],
     queryFn: () => apiGet(`/affectations/groupes?${filterQs.replace(/^&/, "")}`),
     enabled: vue === "groupee",
   });
 
   const { data, isLoading } = useQuery<{ rows: AffectationRow[]; total: number }>({
-    queryKey: ["affectations", statut, beneficiaireType],
+    queryKey: ["affectations", statut, beneficiaireType, q, ancestorId],
     queryFn: () => apiGet(`/affectations?pageSize=300${filterQs}`),
     enabled: vue === "detaillee",
   });
@@ -214,6 +217,11 @@ export default function Affectations() {
       <Card className="p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap gap-2">
+            <div className="relative w-56">
+              <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un article, un agent…" className="pl-8" />
+            </div>
+            <HierarchieCascade value={ancestorId} onChange={setAncestorId} allowAll labels={["Catégorie générale", "Famille", "Sous-famille"]} />
             <Select value={beneficiaireType} onValueChange={setBeneficiaireType}>
               <SelectTrigger className="w-52"><SelectValue placeholder="Bénéficiaire" /></SelectTrigger>
               <SelectContent>

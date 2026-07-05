@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { db } from "../db";
 import { affectations, articles, articlesReference, agents, equipes, kitTemplateLignes, reformes, equipementHierarchie } from "../db/schema";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import { applyStockMouvement } from "../services/stockService";
 import { logHistorique } from "../services/historiqueService";
+import { resolveDescendantIds } from "../services/hierarchieService";
 import type { AuthedRequest } from "../middleware/auth";
 
 export const affectationsRouter = Router();
@@ -13,10 +14,12 @@ export const affectationsRouter = Router();
 // date de retour, etc.) restent consultables via GET /?articleId=&beneficiaireType= —
 // aucune donnée n'est fusionnée en base, seul l'affichage est condensé.
 affectationsRouter.get("/groupes", async (req, res) => {
-  const { statut, beneficiaireType } = req.query as Record<string, string>;
+  const { statut, beneficiaireType, q, ancestorId } = req.query as Record<string, string>;
   const conditions = [];
   if (statut) conditions.push(eq(affectations.statut, statut));
   if (beneficiaireType) conditions.push(eq(affectations.beneficiaireType, beneficiaireType));
+  if (ancestorId) conditions.push(inArray(articlesReference.hierarchieParentId, await resolveDescendantIds(Number(ancestorId))));
+  if (q) conditions.push(or(like(articles.designation, `%${q}%`), like(articles.codeArticle, `%${q}%`))!);
   const where = conditions.length ? and(...conditions) : undefined;
 
   const rows = await db
@@ -34,6 +37,7 @@ affectationsRouter.get("/groupes", async (req, res) => {
     })
     .from(affectations)
     .innerJoin(articles, eq(affectations.articleId, articles.id))
+    .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
     .where(where)
     .groupBy(affectations.articleId, articles.designation, articles.codeArticle, affectations.beneficiaireType)
     .orderBy(sql`count(*) desc`);
@@ -42,13 +46,25 @@ affectationsRouter.get("/groupes", async (req, res) => {
 });
 
 affectationsRouter.get("/", async (req, res) => {
-  const { agentId, equipeId, articleId, statut, beneficiaireType, page = "1", pageSize = "50" } = req.query as Record<string, string>;
+  const { agentId, equipeId, articleId, statut, beneficiaireType, q, ancestorId, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [];
   if (agentId) conditions.push(eq(affectations.agentId, Number(agentId)));
   if (equipeId) conditions.push(eq(affectations.equipeId, Number(equipeId)));
   if (articleId) conditions.push(eq(affectations.articleId, Number(articleId)));
   if (statut) conditions.push(eq(affectations.statut, statut));
   if (beneficiaireType) conditions.push(eq(affectations.beneficiaireType, beneficiaireType));
+  if (ancestorId) conditions.push(inArray(articlesReference.hierarchieParentId, await resolveDescendantIds(Number(ancestorId))));
+  if (q) {
+    conditions.push(
+      or(
+        like(articles.designation, `%${q}%`),
+        like(articles.codeArticle, `%${q}%`),
+        like(agents.nom, `%${q}%`),
+        like(equipes.nom, `%${q}%`),
+        like(affectations.numeroSerie, `%${q}%`),
+      )!,
+    );
+  }
   const where = conditions.length ? and(...conditions) : undefined;
   const p = Math.max(1, Number(page));
   const ps = Math.min(500, Math.max(1, Number(pageSize)));
@@ -90,7 +106,14 @@ affectationsRouter.get("/", async (req, res) => {
       .orderBy(desc(affectations.dateAffectation))
       .limit(ps)
       .offset((p - 1) * ps),
-    db.select({ total: sql<number>`count(*)` }).from(affectations).where(where),
+    db
+      .select({ total: sql<number>`count(*)` })
+      .from(affectations)
+      .innerJoin(articles, eq(affectations.articleId, articles.id))
+      .leftJoin(agents, eq(affectations.agentId, agents.id))
+      .leftJoin(equipes, eq(affectations.equipeId, equipes.id))
+      .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
+      .where(where),
   ]);
 
   res.json({ rows, total, page: p, pageSize: ps });

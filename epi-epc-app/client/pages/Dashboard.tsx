@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
@@ -16,15 +17,51 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-import { Package, Boxes, Truck, AlertTriangle, Ban, CalendarClock, Users, Network, ShieldCheck, ArrowRight } from "lucide-react";
+import { Package, Boxes, Truck, AlertTriangle, Ban, CalendarClock, Users, Network, ShieldCheck, ArrowRight, ClipboardList, Filter, Trash2 } from "lucide-react";
 import { apiGet } from "@/lib/api";
-import type { DashboardKpis, DashboardCharts, DashboardReglementaire } from "@shared/api";
+import type { DashboardKpis, DashboardCharts, DashboardReglementaire, Division, Service, Equipe, BesoinLine } from "@shared/api";
 import { StatCard } from "@/components/shared/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { categoricalColor, coverageColor } from "@/lib/chartColors";
+
+interface DashboardFilters {
+  divisionId: number | null;
+  serviceId: number | null;
+  equipeId: number | null;
+  fournisseur: string | null;
+  hierarchieAncestorId: number | null;
+  dateDebut: string;
+  dateFin: string;
+}
+
+const EMPTY_FILTERS: DashboardFilters = {
+  divisionId: null,
+  serviceId: null,
+  equipeId: null,
+  fournisseur: null,
+  hierarchieAncestorId: null,
+  dateDebut: "",
+  dateFin: "",
+};
+
+function buildFilterQs(f: DashboardFilters) {
+  const parts: string[] = [];
+  if (f.divisionId != null) parts.push(`divisionId=${f.divisionId}`);
+  if (f.serviceId != null) parts.push(`serviceId=${f.serviceId}`);
+  if (f.equipeId != null) parts.push(`equipeId=${f.equipeId}`);
+  if (f.fournisseur) parts.push(`fournisseur=${encodeURIComponent(f.fournisseur)}`);
+  if (f.hierarchieAncestorId != null) parts.push(`hierarchieAncestorId=${f.hierarchieAncestorId}`);
+  if (f.dateDebut) parts.push(`dateDebut=${f.dateDebut}`);
+  if (f.dateFin) parts.push(`dateFin=${f.dateFin}`);
+  return parts.join("&");
+}
 
 const GRID = "hsl(var(--border))";
 const AXIS_TICK = { fill: "hsl(var(--muted-foreground))", fontSize: 11 };
@@ -37,13 +74,48 @@ function EmptyChartState({ message }: { message: string }) {
   );
 }
 
+interface ArticlesStatut {
+  expires: number;
+  arrivantAEcheance: number;
+  dureeVieAtteinte: number;
+  reformes: number;
+  disponibles: number;
+  indisponibles: number;
+}
+interface BesoinsResponse {
+  parDivision: { divisionId: number | null; besoin: number; dote: number }[];
+  parEquipe: { equipeId: number; equipeNom: string; besoin: number; dote: number }[];
+  parAgent: { agentId: number; agentNom: string; besoin: number; dote: number }[];
+}
+
 export default function Dashboard() {
-  const { data: kpis, isLoading: loadingKpis } = useQuery<DashboardKpis>({ queryKey: ["dashboard", "kpis"], queryFn: () => apiGet("/dashboard/kpis") });
-  const { data: charts, isLoading: loadingCharts } = useQuery<DashboardCharts>({ queryKey: ["dashboard", "charts"], queryFn: () => apiGet("/dashboard/charts") });
+  const [filters, setFilters] = useState<DashboardFilters>(EMPTY_FILTERS);
+  const qs = useMemo(() => buildFilterQs(filters), [filters]);
+  const qsSuffix = qs ? `?${qs}` : "";
+
+  const { data: divisions } = useQuery<Division[]>({ queryKey: ["org-divisions"], queryFn: () => apiGet("/org/divisions") });
+  const { data: services } = useQuery<Service[]>({ queryKey: ["org-services"], queryFn: () => apiGet("/org/services") });
+  const { data: equipes } = useQuery<Equipe[]>({ queryKey: ["org-equipes"], queryFn: () => apiGet("/org/equipes") });
+  const { data: fournisseurs } = useQuery<string[]>({ queryKey: ["articles-fournisseurs"], queryFn: () => apiGet("/articles/fournisseurs") });
+
+  const { data: kpis, isLoading: loadingKpis } = useQuery<DashboardKpis>({ queryKey: ["dashboard", "kpis", qs], queryFn: () => apiGet(`/dashboard/kpis${qsSuffix}`) });
+  const { data: charts, isLoading: loadingCharts } = useQuery<DashboardCharts>({ queryKey: ["dashboard", "charts", qs], queryFn: () => apiGet(`/dashboard/charts${qsSuffix}`) });
   const { data: reglementaire, isLoading: loadingReglementaire } = useQuery<DashboardReglementaire>({
-    queryKey: ["dashboard", "reglementaire"],
-    queryFn: () => apiGet("/dashboard/reglementaire"),
+    queryKey: ["dashboard", "reglementaire", qs],
+    queryFn: () => apiGet(`/dashboard/reglementaire${qsSuffix}`),
   });
+  const { data: besoins, isLoading: loadingBesoins } = useQuery<BesoinsResponse>({
+    queryKey: ["dashboard", "besoins", qs],
+    queryFn: () => apiGet(`/dashboard/besoins${qsSuffix}`),
+  });
+  const { data: articlesStatut, isLoading: loadingArticlesStatut } = useQuery<ArticlesStatut>({
+    queryKey: ["dashboard", "articles-statut", qs],
+    queryFn: () => apiGet(`/dashboard/articles-statut${qsSuffix}`),
+  });
+
+  const servicesForDivision = filters.divisionId != null ? services?.filter((s) => s.divisionId === filters.divisionId) : services;
+  const equipesForService = filters.serviceId != null ? equipes?.filter((e) => e.serviceId === filters.serviceId) : equipes;
+  const divisionNomById = useMemo(() => new Map(divisions?.map((d) => [d.id, d.nom])), [divisions]);
 
   return (
     <div className="space-y-6">
@@ -51,6 +123,48 @@ export default function Dashboard() {
         <h1 className="text-xl font-semibold">Tableau de bord</h1>
         <p className="text-sm text-muted-foreground">Vue d'ensemble de la dotation EPI/EPC — Direction Transport Casablanca</p>
       </div>
+
+      <Card className="p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Filter className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <HierarchieCascade
+            value={filters.hierarchieAncestorId}
+            onChange={(id) => setFilters((f) => ({ ...f, hierarchieAncestorId: id }))}
+            allowAll
+            labels={["Catégorie générale", "Famille", "Sous-famille"]}
+          />
+          <Select value={filters.divisionId != null ? String(filters.divisionId) : "all"} onValueChange={(v) => setFilters((f) => ({ ...f, divisionId: v === "all" ? null : Number(v), serviceId: null, equipeId: null }))}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Division" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes divisions</SelectItem>
+              {divisions?.map((d) => <SelectItem key={d.id} value={String(d.id)}>{d.nom}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filters.serviceId != null ? String(filters.serviceId) : "all"} onValueChange={(v) => setFilters((f) => ({ ...f, serviceId: v === "all" ? null : Number(v), equipeId: null }))}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Service" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous services</SelectItem>
+              {servicesForDivision?.map((s) => <SelectItem key={s.id} value={String(s.id)}>{s.nom}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filters.equipeId != null ? String(filters.equipeId) : "all"} onValueChange={(v) => setFilters((f) => ({ ...f, equipeId: v === "all" ? null : Number(v) }))}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Équipe" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes équipes</SelectItem>
+              {equipesForService?.map((e) => <SelectItem key={e.id} value={String(e.id)}>{e.nom}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={filters.fournisseur ?? "all"} onValueChange={(v) => setFilters((f) => ({ ...f, fournisseur: v === "all" ? null : v }))}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Fournisseur" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous fournisseurs</SelectItem>
+              {fournisseurs?.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Input type="date" className="w-40" value={filters.dateDebut} onChange={(e) => setFilters((f) => ({ ...f, dateDebut: e.target.value }))} placeholder="Du" />
+          <Input type="date" className="w-40" value={filters.dateFin} onChange={(e) => setFilters((f) => ({ ...f, dateFin: e.target.value }))} placeholder="Au" />
+        </div>
+      </Card>
 
       {loadingKpis || !kpis ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -149,6 +263,48 @@ export default function Dashboard() {
                 </div>
               </div>
             </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Ban className="h-4 w-4" /> État des articles</CardTitle>
+          <p className="text-xs text-muted-foreground">Expirés, arrivant à échéance, durée de vie atteinte, réformés, disponibles / indisponibles</p>
+        </CardHeader>
+        <CardContent>
+          {loadingArticlesStatut || !articlesStatut ? (
+            <Skeleton className="h-20" />
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              <StatCard label="Expirés" value={articlesStatut.expires} icon={Ban} tone={articlesStatut.expires ? "critical" : "success"} />
+              <StatCard label="Arrivant à échéance" value={articlesStatut.arrivantAEcheance} icon={CalendarClock} tone={articlesStatut.arrivantAEcheance ? "warning" : "success"} />
+              <StatCard label="Durée de vie atteinte" value={articlesStatut.dureeVieAtteinte} icon={AlertTriangle} tone={articlesStatut.dureeVieAtteinte ? "warning" : "success"} />
+              <StatCard label="Réformés" value={articlesStatut.reformes} icon={Trash2} />
+              <StatCard label="Disponibles" value={articlesStatut.disponibles} icon={Boxes} tone="success" />
+              <StatCard label="Indisponibles" value={articlesStatut.indisponibles} icon={Ban} tone={articlesStatut.indisponibles ? "warning" : "success"} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><ClipboardList className="h-4 w-4" /> Besoins vs. dotation</CardTitle>
+          <p className="text-xs text-muted-foreground">Écart entre le gabarit de dotation applicable (besoin) et les affectations actives (doté), par division / équipe / agent</p>
+        </CardHeader>
+        <CardContent>
+          {loadingBesoins || !besoins ? (
+            <Skeleton className="h-48" />
+          ) : (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <BesoinTable
+                title="Par division"
+                rows={besoins.parDivision.map((r) => ({ label: r.divisionId != null ? (divisionNomById.get(r.divisionId) ?? "?") : "Sans division", besoin: r.besoin, dote: r.dote }))}
+              />
+              <BesoinTable title="Par équipe" rows={besoins.parEquipe.map((r) => ({ label: r.equipeNom, besoin: r.besoin, dote: r.dote }))} />
+              <BesoinTable title="Par agent" rows={besoins.parAgent.map((r) => ({ label: r.agentNom, besoin: r.besoin, dote: r.dote }))} />
+            </div>
           )}
         </CardContent>
       </Card>
@@ -315,6 +471,32 @@ export default function Dashboard() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function BesoinTable({ title, rows }: { title: string; rows: { label: string; besoin: number; dote: number }[] }) {
+  const sorted = [...rows].sort((a, b) => b.besoin - a.besoin - (b.dote - a.dote)).slice(0, 12);
+  return (
+    <div>
+      <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+      <Table>
+        <TableHeader>
+          <TableRow><TableHead className="h-8">Nom</TableHead><TableHead className="h-8 text-right">Besoin</TableHead><TableHead className="h-8 text-right">Doté</TableHead></TableRow>
+        </TableHeader>
+        <TableBody>
+          {sorted.length === 0 && <TableRow><TableCell colSpan={3} className="py-4 text-center text-xs text-muted-foreground">Aucune donnée</TableCell></TableRow>}
+          {sorted.map((r, i) => (
+            <TableRow key={i}>
+              <TableCell className="truncate text-sm">{r.label}</TableCell>
+              <TableCell className="text-right tabular-nums text-sm">{r.besoin}</TableCell>
+              <TableCell className="text-right tabular-nums text-sm">
+                <span className={r.dote < r.besoin ? "text-destructive font-medium" : ""}>{r.dote}</span>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

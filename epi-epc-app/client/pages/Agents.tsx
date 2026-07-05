@@ -1,19 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Plus, Search } from "lucide-react";
-import { apiGet, apiPost } from "@/lib/api";
-import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { Search } from "lucide-react";
+import { apiGet } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/toaster";
 import { initials } from "@/lib/utils";
+import type { Division, Service, Equipe } from "@shared/api";
 
 interface AgentRow {
   id: number;
@@ -25,52 +22,35 @@ interface AgentRow {
   serviceNom: string | null;
   equipeNom: string | null;
 }
-interface Division { id: number; nom: string }
 
 export default function Agents() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [divisionId, setDivisionId] = useState("all");
-  const [open, setOpen] = useState(false);
+  const [serviceId, setServiceId] = useState("all");
+  const [equipeId, setEquipeId] = useState("all");
+  const [statut, setStatut] = useState("all");
 
-  const { data: divisions } = useQuery<Division[]>({ queryKey: ["divisions"], queryFn: () => apiGet("/org/divisions") });
+  const { data: divisions } = useQuery<Division[]>({ queryKey: ["org-divisions"], queryFn: () => apiGet("/org/divisions") });
+  const { data: services } = useQuery<Service[]>({ queryKey: ["org-services"], queryFn: () => apiGet("/org/services") });
+  const { data: equipes } = useQuery<Equipe[]>({ queryKey: ["org-equipes"], queryFn: () => apiGet("/org/equipes") });
+
   const { data, isLoading } = useQuery<{ rows: AgentRow[]; total: number }>({
-    queryKey: ["agents", q, divisionId],
-    queryFn: () => apiGet(`/agents?pageSize=300${q ? `&q=${encodeURIComponent(q)}` : ""}${divisionId !== "all" ? `&divisionId=${divisionId}` : ""}`),
+    queryKey: ["agents", q, divisionId, serviceId, equipeId, statut],
+    queryFn: () =>
+      apiGet(
+        `/agents?pageSize=300${q ? `&q=${encodeURIComponent(q)}` : ""}${divisionId !== "all" ? `&divisionId=${divisionId}` : ""}${serviceId !== "all" ? `&serviceId=${serviceId}` : ""}${equipeId !== "all" ? `&equipeId=${equipeId}` : ""}${statut !== "all" ? `&statut=${statut}` : ""}`,
+      ),
   });
 
-  const createMutation = useMutation({
-    mutationFn: (body: Record<string, unknown>) => apiPost("/agents", body),
-    onSuccess: () => {
-      toast.success("Bénéficiaire créé");
-      qc.invalidateQueries({ queryKey: ["agents"] });
-      setOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    createMutation.mutate({
-      matricule: fd.get("matricule"),
-      nom: fd.get("nom"),
-      fonction: fd.get("fonction") || null,
-      poste: fd.get("poste") || null,
-      telephone: fd.get("telephone") || null,
-      dateEmbauche: fd.get("dateEmbauche") || null,
-    });
-  }
+  const servicesForDivision = divisionId !== "all" ? services?.filter((s) => String(s.divisionId) === divisionId) : services;
+  const equipesForService = serviceId !== "all" ? equipes?.filter((e) => String(e.serviceId) === serviceId) : equipes;
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Bénéficiaires</h1>
-          <p className="text-sm text-muted-foreground">{data?.total ?? "…"} agent(s)</p>
-        </div>
-        <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Nouveau bénéficiaire</Button>
+      <div>
+        <h1 className="text-xl font-semibold">Bénéficiaires</h1>
+        <p className="text-sm text-muted-foreground">{data?.total ?? "…"} agent(s) — l'ajout, la modification et l'archivage se font depuis la page Organisation</p>
       </div>
 
       <Card className="p-3">
@@ -79,11 +59,34 @@ export default function Agents() {
             <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nom, matricule, fonction…" className="pl-8" />
           </div>
-          <Select value={divisionId} onValueChange={setDivisionId}>
-            <SelectTrigger className="w-64"><SelectValue placeholder="Division" /></SelectTrigger>
+          <Select value={divisionId} onValueChange={(v) => { setDivisionId(v); setServiceId("all"); setEquipeId("all"); }}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Division" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toutes les divisions</SelectItem>
               {divisions?.map((d) => <SelectItem key={d.id} value={String(d.id)}>{d.nom}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={serviceId} onValueChange={(v) => { setServiceId(v); setEquipeId("all"); }}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Service" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les services</SelectItem>
+              {servicesForDivision?.map((s) => <SelectItem key={s.id} value={String(s.id)}>{s.nom}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={equipeId} onValueChange={setEquipeId}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Équipe" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les équipes</SelectItem>
+              {equipesForService?.map((e) => <SelectItem key={e.id} value={String(e.id)}>{e.nom}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={statut} onValueChange={setStatut}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Statut" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous statuts</SelectItem>
+              <SelectItem value="actif">Actif</SelectItem>
+              <SelectItem value="inactif">Inactif</SelectItem>
+              <SelectItem value="archive">Archivé</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -122,25 +125,6 @@ export default function Agents() {
           </TableBody>
         </Table>
       </Card>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Nouveau bénéficiaire</DialogTitle></DialogHeader>
-          <form onSubmit={onSubmit} className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label htmlFor="matricule">Matricule *</Label><Input id="matricule" name="matricule" required /></div>
-            <div className="space-y-1.5"><Label htmlFor="nom">Nom complet *</Label><Input id="nom" name="nom" required /></div>
-            <div className="space-y-1.5"><Label htmlFor="fonction">Fonction</Label><Input id="fonction" name="fonction" /></div>
-            <div className="space-y-1.5"><Label htmlFor="poste">Poste</Label><Input id="poste" name="poste" /></div>
-            <div className="space-y-1.5"><Label htmlFor="telephone">Téléphone</Label><Input id="telephone" name="telephone" /></div>
-            <div className="space-y-1.5"><Label htmlFor="dateEmbauche">Date d'embauche</Label><Input id="dateEmbauche" name="dateEmbauche" type="date" /></div>
-            <p className="col-span-2 text-xs text-muted-foreground">L'affectation à une division / service / équipe se fait depuis la page Organisation.</p>
-            <DialogFooter className="col-span-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={createMutation.isPending}>Créer</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
