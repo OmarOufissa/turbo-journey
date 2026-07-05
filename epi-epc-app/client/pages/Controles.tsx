@@ -6,7 +6,6 @@ import { apiGet, apiPost } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -14,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { StatutControleBadge } from "@/components/shared/Badges";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
-import { formatDate, formatMoney } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
 
 interface Controle {
@@ -31,17 +30,6 @@ interface Controle {
   prochaineEcheance: string | null;
   statut: string;
   realiseParNom: string | null;
-}
-interface Reparation {
-  id: number;
-  designation: string;
-  dateEnvoi: string;
-  dateRetourPrevue: string | null;
-  dateRetourReelle: string | null;
-  prestataire: string | null;
-  cout: string | null;
-  statut: string;
-  motif: string | null;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -73,7 +61,6 @@ export default function Controles() {
     queryKey: ["controles", statut, ancestorId, reglementaireOnly],
     queryFn: () => apiGet(`/controles${controlesQs ? `?${controlesQs}` : ""}`),
   });
-  const { data: reparations } = useQuery<Reparation[]>({ queryKey: ["reparations"], queryFn: () => apiGet("/reparations") });
 
   const realiserMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) => apiPost(`/controles/${body.id}/realiser`, body),
@@ -101,114 +88,75 @@ export default function Controles() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Contrôles périodiques & réparations</h1>
-        <p className="text-sm text-muted-foreground">Inspections, essais diélectriques, étalonnages, maintenance et suivi des réparations</p>
+        <h1 className="text-xl font-semibold">Contrôles</h1>
+        <p className="text-sm text-muted-foreground">Inspections, essais diélectriques, étalonnages, maintenance</p>
       </div>
 
-      <Tabs defaultValue="controles">
-        <TabsList>
-          <TabsTrigger value="controles">Contrôles périodiques</TabsTrigger>
-          <TabsTrigger value="reparations">Réparations</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="controles" className="space-y-4">
-          <Card className="flex flex-wrap items-center gap-2 p-3">
-            <Select value={statut} onValueChange={setStatut}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Statut" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous statuts</SelectItem>
-                <SelectItem value="planifie">Planifié</SelectItem>
-                <SelectItem value="en_retard">En retard</SelectItem>
-                <SelectItem value="realise">Réalisé</SelectItem>
-              </SelectContent>
-            </Select>
-            <HierarchieCascade value={ancestorId} onChange={setAncestorId} allowAll labels={["Catégorie générale", "Famille", "Sous-famille", "Type d'équipement"]} />
-            <Button
-              type="button"
-              size="sm"
-              variant={reglementaireOnly ? "default" : "outline"}
-              onClick={() => setReglementaireOnly((v) => !v)}
-            >
-              <ShieldCheck className="h-3.5 w-3.5" /> Soumis à contrôle règlementaire uniquement
-            </Button>
-          </Card>
-          <Card className="overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Article</TableHead>
-                  <TableHead>Famille</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Échéance</TableHead>
-                  <TableHead>Réalisé le</TableHead>
-                  <TableHead>Résultat</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading && <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
-                {!isLoading && controles?.length === 0 && (
-                  <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucun contrôle planifié pour le moment</TableCell></TableRow>
-                )}
-                {controles?.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-medium">
-                      {c.designation}
-                      {(c.lieuEmplacement || c.numeroSerie) && (
-                        <div className="text-xs font-normal text-muted-foreground">
-                          {[c.lieuEmplacement, c.numeroSerie].filter(Boolean).join(" · ")}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>{c.hierarchieNom ?? "—"}</TableCell>
-                    <TableCell>{TYPE_LABELS[c.type] ?? c.type}</TableCell>
-                    <TableCell>{formatDate(c.datePlanifiee)}</TableCell>
-                    <TableCell>{formatDate(c.dateRealisee)}</TableCell>
-                    <TableCell>{c.resultat ? <Badge variant={c.resultat === "conforme" ? "success" : "warning"}>{c.resultat.replace("_", " ")}</Badge> : "—"}</TableCell>
-                    <TableCell><StatutControleBadge statut={c.statut} /></TableCell>
-                    <TableCell className="text-right">
-                      {c.statut !== "realise" && (
-                        <Button size="sm" variant="ghost" onClick={() => setRealiserTarget(c)}><CheckCircle2 className="h-3.5 w-3.5" /> Réaliser</Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="reparations">
-          <Card className="overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Article</TableHead>
-                  <TableHead>Prestataire</TableHead>
-                  <TableHead>Envoi</TableHead>
-                  <TableHead>Retour prévu</TableHead>
-                  <TableHead className="text-right">Coût</TableHead>
-                  <TableHead>Statut</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reparations?.length === 0 && <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Aucune réparation en cours</TableCell></TableRow>}
-                {reparations?.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-medium">{r.designation}</TableCell>
-                    <TableCell>{r.prestataire ?? "—"}</TableCell>
-                    <TableCell>{formatDate(r.dateEnvoi)}</TableCell>
-                    <TableCell>{formatDate(r.dateRetourPrevue)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatMoney(r.cout)}</TableCell>
-                    <TableCell><Badge variant={r.statut === "terminee" ? "success" : r.statut === "irreparable" ? "destructive" : "muted"}>{r.statut}</Badge></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <Card className="flex flex-wrap items-center gap-2 p-3">
+        <Select value={statut} onValueChange={setStatut}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Statut" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous statuts</SelectItem>
+            <SelectItem value="planifie">Planifié</SelectItem>
+            <SelectItem value="en_retard">En retard</SelectItem>
+            <SelectItem value="realise">Réalisé</SelectItem>
+          </SelectContent>
+        </Select>
+        <HierarchieCascade value={ancestorId} onChange={setAncestorId} allowAll labels={["Catégorie générale", "Famille", "Sous-famille", "Type d'équipement"]} />
+        <Button
+          type="button"
+          size="sm"
+          variant={reglementaireOnly ? "default" : "outline"}
+          onClick={() => setReglementaireOnly((v) => !v)}
+        >
+          <ShieldCheck className="h-3.5 w-3.5" /> Soumis à contrôle règlementaire uniquement
+        </Button>
+      </Card>
+      <Card className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Article</TableHead>
+              <TableHead>Famille</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Échéance</TableHead>
+              <TableHead>Réalisé le</TableHead>
+              <TableHead>Résultat</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead className="text-right">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading && <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>}
+            {!isLoading && controles?.length === 0 && (
+              <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucun contrôle planifié pour le moment</TableCell></TableRow>
+            )}
+            {controles?.map((c) => (
+              <TableRow key={c.id}>
+                <TableCell className="font-medium">
+                  {c.designation}
+                  {(c.lieuEmplacement || c.numeroSerie) && (
+                    <div className="text-xs font-normal text-muted-foreground">
+                      {[c.lieuEmplacement, c.numeroSerie].filter(Boolean).join(" · ")}
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>{c.hierarchieNom ?? "—"}</TableCell>
+                <TableCell>{TYPE_LABELS[c.type] ?? c.type}</TableCell>
+                <TableCell>{formatDate(c.datePlanifiee)}</TableCell>
+                <TableCell>{formatDate(c.dateRealisee)}</TableCell>
+                <TableCell>{c.resultat ? <Badge variant={c.resultat === "conforme" ? "success" : "warning"}>{c.resultat.replace("_", " ")}</Badge> : "—"}</TableCell>
+                <TableCell><StatutControleBadge statut={c.statut} /></TableCell>
+                <TableCell className="text-right">
+                  {c.statut !== "realise" && (
+                    <Button size="sm" variant="ghost" onClick={() => setRealiserTarget(c)}><CheckCircle2 className="h-3.5 w-3.5" /> Réaliser</Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
 
       <Dialog open={!!realiserTarget} onOpenChange={(o) => !o && setRealiserTarget(null)}>
         <DialogContent>

@@ -22,7 +22,7 @@ const NAV = [
   { to: "/agents", label: "Bénéficiaires", icon: Users },
   { to: "/organisation", label: "Organisation", icon: Network },
   { to: "/affectations", label: "Affectations", icon: ClipboardList },
-  { to: "/controles", label: "Contrôles & réparations", icon: ShieldCheck },
+  { to: "/controles", label: "Contrôles", icon: ShieldCheck },
   { to: "/alertes", label: "Alertes", icon: Bell },
   { to: "/historique", label: "Historique", icon: History },
   { to: "/rapports", label: "Rapports", icon: FileBarChart },

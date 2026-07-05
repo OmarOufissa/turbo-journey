@@ -6,9 +6,14 @@ import { db } from "../db";
 import { documents } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
+import { getDataDir } from "../config";
 import type { AuthedRequest } from "../middleware/auth";
 
-const UPLOAD_ROOT = path.join(process.cwd(), "uploads", "documents");
+// Doit utiliser la même racine que le montage express.static("/uploads", …) dans
+// server/index.ts — sinon les fichiers sont écrits ailleurs que là où ils sont servis
+// (c'était le bug : cette constante utilisait process.cwd() seul, qui ne coïncide avec
+// DATA_DIR qu'en dev où DATA_DIR n'est pas positionné).
+const UPLOAD_ROOT = path.join(getDataDir(), "uploads", "documents");
 fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
 
 const storage = multer.diskStorage({
@@ -57,4 +62,20 @@ documentsRouter.post("/upload", upload.single("fichier"), async (req: AuthedRequ
     .returning();
   await logHistorique({ typeEvenement: "ajout_document", entiteType, entiteId: Number(entiteId), utilisateurId: req.user?.id, details: { typeDocument, nomFichier: req.file.originalname } });
   res.status(201).json(row);
+});
+
+documentsRouter.delete("/:id", async (req: AuthedRequest, res) => {
+  const id = Number(req.params.id);
+  const [row] = await db.select().from(documents).where(eq(documents.id, id));
+  if (!row) return res.status(404).json({ error: "Document introuvable" });
+
+  const filePath = path.join(getDataDir(), row.url.replace(/^\//, ""));
+  try {
+    fs.unlinkSync(filePath);
+  } catch (err: any) {
+    if (err?.code !== "ENOENT") throw err;
+  }
+  await db.delete(documents).where(eq(documents.id, id));
+  await logHistorique({ typeEvenement: "suppression_document", entiteType: row.entiteType, entiteId: row.entiteId, utilisateurId: req.user?.id, details: { nomFichier: row.nomFichier } });
+  res.status(204).end();
 });

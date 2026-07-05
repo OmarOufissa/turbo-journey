@@ -45,6 +45,9 @@ export function apiPost<T = unknown>(path: string, body?: unknown) {
 export function apiPut<T = unknown>(path: string, body?: unknown) {
   return api<T>(path, { method: "PUT", body: JSON.stringify(body ?? {}) });
 }
+export function apiDelete<T = unknown>(path: string) {
+  return api<T>(path, { method: "DELETE" });
+}
 
 export function downloadFile(path: string) {
   const token = getToken();

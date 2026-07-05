@@ -7,10 +7,11 @@ import { authRouter } from "./routes/auth";
 import { orgRouter } from "./routes/org";
 import { agentsRouter } from "./routes/agents";
 import { articlesRouter } from "./routes/articles";
+import { articlesReferenceRouter } from "./routes/articlesReference";
 import { marchesRouter } from "./routes/marches";
 import { affectationsRouter } from "./routes/affectations";
 import { kitTemplatesRouter } from "./routes/kitTemplates";
-import { controlesRouter, reparationsRouter } from "./routes/controles";
+import { controlesRouter } from "./routes/controles";
 import { documentsRouter } from "./routes/documents";
 import { alertesRouter } from "./routes/alertes";
 import { historiqueRouter } from "./routes/historique";
@@ -19,6 +20,7 @@ import { dashboardRouter } from "./routes/dashboard";
 import { rapportsRouter } from "./routes/rapports";
 import { requireAuth } from "./middleware/auth";
 import { ensureDatabaseReady } from "./db/bootstrap";
+import { getDataDir } from "./config";
 
 export async function createServer() {
   await ensureDatabaseReady();
@@ -29,7 +31,7 @@ export async function createServer() {
   app.use(express.json({ limit: "5mb" }));
   app.use(express.urlencoded({ extended: true }));
 
-  const uploadsDir = path.join(process.env.DATA_DIR || process.cwd(), "uploads");
+  const uploadsDir = path.join(getDataDir(), "uploads");
   fs.mkdirSync(uploadsDir, { recursive: true });
   app.use("/uploads", express.static(uploadsDir));
 
@@ -43,11 +45,11 @@ export async function createServer() {
   app.use("/api/org", requireAuth, orgRouter);
   app.use("/api/agents", requireAuth, agentsRouter);
   app.use("/api/articles", requireAuth, articlesRouter);
+  app.use("/api/articles-reference", requireAuth, articlesReferenceRouter);
   app.use("/api/marches", requireAuth, marchesRouter);
   app.use("/api/affectations", requireAuth, affectationsRouter);
   app.use("/api/kit-templates", requireAuth, kitTemplatesRouter);
   app.use("/api/controles", requireAuth, controlesRouter);
-  app.use("/api/reparations", requireAuth, reparationsRouter);
   app.use("/api/documents", requireAuth, documentsRouter);
   app.use("/api/alertes", requireAuth, alertesRouter);
   app.use("/api/historique", requireAuth, historiqueRouter);

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import ExcelJS from "exceljs";
 import { db } from "../db";
-import { agents, articles, affectations, equipes, services, divisions, marches, historique, controlesPeriodiques } from "../db/schema";
+import { agents, articles, articlesReference, affectations, equipes, services, divisions, marches, historique, controlesPeriodiques } from "../db/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { startPdf, pdfTable } from "../services/pdfService";
 import { getFamilleAncestorMap } from "../services/hierarchieService";
@@ -108,7 +108,7 @@ rapportsRouter.get("/etat-stock.xlsx", async (_req, res) => {
       .select({
         code: articles.codeArticle,
         designation: articles.designation,
-        hierarchieId: articles.hierarchieId,
+        hierarchieParentId: articlesReference.hierarchieParentId,
         disponible: articles.stockDisponible,
         reserve: articles.stockReserve,
         commande: articles.stockCommande,
@@ -117,11 +117,12 @@ rapportsRouter.get("/etat-stock.xlsx", async (_req, res) => {
         prix: articles.prixUnitaire,
       })
       .from(articles)
+      .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
       .where(eq(articles.actif, true)),
     getFamilleAncestorMap(),
   ]);
   const rows = rowsRaw
-    .map((r) => ({ ...r, famille: r.hierarchieId ? (familleAncestorMap.get(r.hierarchieId)?.nom ?? null) : null }))
+    .map((r) => ({ ...r, famille: r.hierarchieParentId ? (familleAncestorMap.get(r.hierarchieParentId)?.nom ?? null) : null }))
     .sort((a, b) => (a.famille ?? "").localeCompare(b.famille ?? "") || a.designation.localeCompare(b.designation));
 
   const wb = new ExcelJS.Workbook();
@@ -156,7 +157,7 @@ rapportsRouter.get("/inventaire.xlsx", async (_req, res) => {
         code: articles.codeArticle,
         codeInterne: articles.codeInterne,
         designation: articles.designation,
-        hierarchieId: articles.hierarchieId,
+        hierarchieParentId: articlesReference.hierarchieParentId,
         constructeur: articles.constructeur,
         normes: articles.normes,
         fournisseur: articles.fournisseur,
@@ -167,10 +168,11 @@ rapportsRouter.get("/inventaire.xlsx", async (_req, res) => {
         garantieMois: articles.garantieMois,
       })
       .from(articles)
+      .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
       .where(eq(articles.actif, true)),
     getFamilleAncestorMap(),
   ]);
-  const rows = rowsRaw.map((r) => ({ ...r, famille: r.hierarchieId ? (familleAncestorMap.get(r.hierarchieId)?.nom ?? null) : null }));
+  const rows = rowsRaw.map((r) => ({ ...r, famille: r.hierarchieParentId ? (familleAncestorMap.get(r.hierarchieParentId)?.nom ?? null) : null }));
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Inventaire");
@@ -224,16 +226,17 @@ rapportsRouter.get("/consommation-annuelle.xlsx", async (_req, res) => {
       .select({
         annee: sql<string>`strftime('%Y', ${affectations.dateAffectation})`,
         designation: articles.designation,
-        hierarchieId: articles.hierarchieId,
+        hierarchieParentId: articlesReference.hierarchieParentId,
         quantite: sql<number>`sum(${affectations.quantite})`,
       })
       .from(affectations)
       .innerJoin(articles, eq(affectations.articleId, articles.id))
-      .groupBy(sql`strftime('%Y', ${affectations.dateAffectation})`, articles.designation, articles.hierarchieId)
+      .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
+      .groupBy(sql`strftime('%Y', ${affectations.dateAffectation})`, articles.designation, articlesReference.hierarchieParentId)
       .orderBy(sql`strftime('%Y', ${affectations.dateAffectation})`),
     getFamilleAncestorMap(),
   ]);
-  const rows = rowsRaw.map(({ hierarchieId, ...r }) => ({ ...r, famille: hierarchieId ? (familleAncestorMap.get(hierarchieId)?.nom ?? null) : null }));
+  const rows = rowsRaw.map(({ hierarchieParentId, ...r }) => ({ ...r, famille: hierarchieParentId ? (familleAncestorMap.get(hierarchieParentId)?.nom ?? null) : null }));
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Consommation annuelle");
@@ -322,19 +325,20 @@ rapportsRouter.get("/budget.xlsx", async (_req, res) => {
     db
       .select({
         division: divisions.nom,
-        hierarchieId: articles.hierarchieId,
+        hierarchieParentId: articlesReference.hierarchieParentId,
         montant: sql<number>`coalesce(sum(${affectations.quantite} * ${articles.prixUnitaire}), 0)`,
       })
       .from(affectations)
       .innerJoin(articles, eq(affectations.articleId, articles.id))
+      .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
       .leftJoin(agents, eq(affectations.agentId, agents.id))
       .leftJoin(divisions, eq(agents.divisionId, divisions.id))
-      .groupBy(divisions.nom, articles.hierarchieId),
+      .groupBy(divisions.nom, articlesReference.hierarchieParentId),
     getFamilleAncestorMap(),
   ]);
   const budgetTotals = new Map<string, { division: string | null; famille: string | null; montant: number }>();
   for (const r of rowsRaw) {
-    const famille = r.hierarchieId ? (familleAncestorMap.get(r.hierarchieId)?.nom ?? null) : null;
+    const famille = r.hierarchieParentId ? (familleAncestorMap.get(r.hierarchieParentId)?.nom ?? null) : null;
     const key = `${r.division ?? ""}||${famille ?? ""}`;
     const entry = budgetTotals.get(key) ?? { division: r.division, famille, montant: 0 };
     entry.montant += Number(r.montant);

@@ -84,3 +84,45 @@ orgRouter.put("/equipes/:id", async (req, res) => {
   if (!row) return res.status(404).json({ error: "Équipe introuvable" });
   res.json(row);
 });
+
+orgRouter.delete("/divisions/:id", async (req: AuthedRequest, res) => {
+  const id = Number(req.params.id);
+  const [[{ n: nbServices }], [{ n: nbAgents }]] = await Promise.all([
+    db.select({ n: count() }).from(services).where(eq(services.divisionId, id)),
+    db.select({ n: count() }).from(agents).where(eq(agents.divisionId, id)),
+  ]);
+  if (nbServices > 0 || nbAgents > 0) {
+    return res.status(409).json({ error: "Impossible de supprimer : des services ou agents y sont rattachés", dependents: { services: nbServices, agents: nbAgents } });
+  }
+  const [row] = await db.delete(divisions).where(eq(divisions.id, id)).returning();
+  if (!row) return res.status(404).json({ error: "Division introuvable" });
+  await logHistorique({ typeEvenement: "suppression_division", entiteType: "division", entiteId: id, utilisateurId: req.user?.id, details: { nom: row.nom } });
+  res.status(204).end();
+});
+
+orgRouter.delete("/services/:id", async (req: AuthedRequest, res) => {
+  const id = Number(req.params.id);
+  const [[{ n: nbEquipes }], [{ n: nbAgents }]] = await Promise.all([
+    db.select({ n: count() }).from(equipes).where(eq(equipes.serviceId, id)),
+    db.select({ n: count() }).from(agents).where(eq(agents.serviceId, id)),
+  ]);
+  if (nbEquipes > 0 || nbAgents > 0) {
+    return res.status(409).json({ error: "Impossible de supprimer : des équipes ou agents y sont rattachés", dependents: { equipes: nbEquipes, agents: nbAgents } });
+  }
+  const [row] = await db.delete(services).where(eq(services.id, id)).returning();
+  if (!row) return res.status(404).json({ error: "Service introuvable" });
+  await logHistorique({ typeEvenement: "suppression_service", entiteType: "service", entiteId: id, utilisateurId: req.user?.id, details: { nom: row.nom } });
+  res.status(204).end();
+});
+
+orgRouter.delete("/equipes/:id", async (req: AuthedRequest, res) => {
+  const id = Number(req.params.id);
+  const [{ n: nbAgents }] = await db.select({ n: count() }).from(agents).where(eq(agents.equipeId, id));
+  if (nbAgents > 0) {
+    return res.status(409).json({ error: "Impossible de supprimer : des agents y sont rattachés", dependents: { agents: nbAgents } });
+  }
+  const [row] = await db.delete(equipes).where(eq(equipes.id, id)).returning();
+  if (!row) return res.status(404).json({ error: "Équipe introuvable" });
+  await logHistorique({ typeEvenement: "suppression_equipe", entiteType: "equipe", entiteId: id, utilisateurId: req.user?.id, details: { nom: row.nom } });
+  res.status(204).end();
+});

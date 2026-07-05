@@ -22,6 +22,20 @@
       "when": 1783206515280,
       "tag": "0002_add_equipement_hierarchie",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783277522925,
+      "tag": "0003_articles_reference",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1783277544034,
+      "tag": "0004_drop_reparations",
+      "breakpoints": true
     }
   ]
 }

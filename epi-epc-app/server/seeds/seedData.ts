@@ -25,6 +25,8 @@ import bcrypt from "bcryptjs";
 import { db } from "../db";
 import * as s from "../db/schema";
 import { HIERARCHIE_TREE, type HierarchieNodeDef } from "./hierarchie";
+import { generateCodeAbrege, generateReferenceCode } from "../services/codificationService";
+import { CARACTERISTIQUES_STARTER } from "./caracteristiquesStarter";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, "data");
@@ -90,12 +92,24 @@ async function chunkedInsert<T extends Record<string, unknown>>(
   return out;
 }
 
-// Insère récursivement HIERARCHIE_TREE dans equipement_hierarchie, en propageant
-// le flag soumisControleReglementaire d'un nœud à tous ses descendants (dénormalisé
-// à l'insertion pour éviter toute requête récursive lors de la lecture), et retourne
-// une table de correspondance "Cat > Famille > …" (chemin complet) -> id inséré.
-export async function seedHierarchie(): Promise<Map<string, number>> {
+export interface SeedHierarchieResult {
+  // Chemin complet ("Cat||Famille||...") -> id — uniquement les nœuds retenus dans l'arbre
+  // de classification (catégorie/famille/sous-famille), jamais les feuilles.
+  idByPath: Map<string, number>;
+  // Chemin complet ("Cat||Famille||...||Type") -> id d'article de référence — toute feuille
+  // de HIERARCHIE_TREE (quel que soit son niveau) est promue en article de référence plutôt
+  // que de rester un nœud terminal de l'arbre.
+  referenceIdByPath: Map<string, number>;
+}
+
+// Insère récursivement HIERARCHIE_TREE : les nœuds internes vont dans equipement_hierarchie
+// (en propageant soumisControleReglementaire à tous leurs descendants, dénormalisé à
+// l'insertion pour éviter toute requête récursive à la lecture), et chaque feuille (nœud
+// sans enfants, quel que soit son niveau) devient un article_reference rattaché à son
+// parent — c'est le "type d'équipement" qui constitue le modèle normalisé du catalogue.
+export async function seedHierarchie(): Promise<SeedHierarchieResult> {
   const idByPath = new Map<string, number>();
+  const referenceIdByPath = new Map<string, number>();
 
   async function insertLevel(
     nodes: HierarchieNodeDef[],
@@ -107,20 +121,46 @@ export async function seedHierarchie(): Promise<Map<string, number>> {
     for (const [i, node] of nodes.entries()) {
       const nodePath = [...parentPath, node.nom];
       const reglementaire = parentReglementaire || node.reglementaire === true;
-      const code = slugify(nodePath.join(" "));
-      const [row] = await db
-        .insert(s.equipementHierarchie)
-        .values({ parentId, code, nom: node.nom, niveau, ordre: i, soumisControleReglementaire: reglementaire })
-        .returning({ id: s.equipementHierarchie.id });
-      idByPath.set(nodePath.join("||"), row.id);
-      if (node.enfants?.length) {
-        await insertLevel(node.enfants, row.id, nodePath, reglementaire, niveau + 1);
+      const isLeaf = !node.enfants || node.enfants.length === 0;
+
+      if (isLeaf) {
+        if (parentId == null) throw new Error(`Nœud racine sans enfants inattendu : "${node.nom}" — HIERARCHIE_TREE doit garder au moins 2 niveaux.`);
+        const code = await generateReferenceCode(parentId);
+        const starter = CARACTERISTIQUES_STARTER[node.nom];
+        const [row] = await db
+          .insert(s.articlesReference)
+          .values({
+            code,
+            hierarchieParentId: parentId,
+            designation: node.nom,
+            caracteristiquesTechniques: starter ?? null,
+          })
+          .returning({ id: s.articlesReference.id });
+        referenceIdByPath.set(nodePath.join("||"), row.id);
+      } else {
+        const code = slugify(nodePath.join(" "));
+        const codeAbrege = await generateCodeAbrege(node.nom, parentId);
+        const [row] = await db
+          .insert(s.equipementHierarchie)
+          .values({
+            parentId,
+            code,
+            codeAbrege,
+            nom: node.nom,
+            niveau,
+            ordre: i,
+            soumisControleReglementaire: reglementaire,
+            soumisControleReglementaireExplicite: node.reglementaire === true,
+          })
+          .returning({ id: s.equipementHierarchie.id });
+        idByPath.set(nodePath.join("||"), row.id);
+        await insertLevel(node.enfants!, row.id, nodePath, reglementaire, niveau + 1);
       }
     }
   }
 
   await insertLevel(HIERARCHIE_TREE, null, [], false, 1);
-  return idByPath;
+  return { idByPath, referenceIdByPath };
 }
 
 export async function seedDatabase() {
@@ -128,8 +168,8 @@ export async function seedDatabase() {
   // 1. Référentiel de classification (equipement_hierarchie) / Articles
   // -------------------------------------------------------------------------
   console.log("→ Référentiel de classification des équipements…");
-  const hierarchieIdByPath = await seedHierarchie();
-  console.log(`  ${hierarchieIdByPath.size} nœuds de classification insérés`);
+  const { idByPath: hierarchieIdByPath, referenceIdByPath } = await seedHierarchie();
+  console.log(`  ${hierarchieIdByPath.size} nœuds de classification + ${referenceIdByPath.size} articles de référence insérés`);
 
   console.log("→ Catalogue articles…");
   const articlesFixture = loadJSON<ArticleFixture[]>("articles.json");
@@ -140,11 +180,11 @@ export async function seedDatabase() {
   // (tous restent à leurs valeurs par défaut — null ou 0 — jusqu'à saisie réelle).
   const articleCodeToId = new Map<string, number>();
   const articleRows = articlesFixture.map((a) => {
-    const hierarchieId = hierarchieIdByPath.get(a.hierarchie_path.join("||"));
-    if (!hierarchieId) throw new Error(`Nœud de hiérarchie introuvable pour l'article ${a.code} : ${a.hierarchie_path.join(" > ")}`);
+    const articleReferenceId = referenceIdByPath.get(a.hierarchie_path.join("||"));
+    if (!articleReferenceId) throw new Error(`Article de référence introuvable pour l'article ${a.code} : ${a.hierarchie_path.join(" > ")}`);
     return {
       codeArticle: a.code,
-      hierarchieId,
+      articleReferenceId,
       designation: a.designation,
       aTaille: a.a_taille,
       aPointure: a.a_pointure,
@@ -152,7 +192,11 @@ export async function seedDatabase() {
     };
   });
   const insertedArticles = await chunkedInsert(s.articles, articleRows as any);
-  articlesFixture.forEach((a, i) => articleCodeToId.set(a.code, insertedArticles[i].id));
+  const articleCodeToReferenceId = new Map<string, number>();
+  articlesFixture.forEach((a, i) => {
+    articleCodeToId.set(a.code, insertedArticles[i].id);
+    articleCodeToReferenceId.set(a.code, articleRows[i].articleReferenceId);
+  });
   console.log(`  ${insertedArticles.length} articles insérés (catalogue réel — aucune donnée de prix/stock estimée)`);
 
   // -------------------------------------------------------------------------
@@ -215,7 +259,7 @@ export async function seedDatabase() {
   console.log("→ Gabarits de dotation standard…");
   const kitTemplatesFixture = loadJSON<Record<string, KitTemplateFixture>>("kit_templates.json");
   const kitTemplateIdByKey = new Map<string, number>();
-  const kitTemplateLinesByKey = new Map<string, { articleId: number; qty: number }[]>();
+  const kitTemplateLinesByKey = new Map<string, { articleId: number; articleReferenceId: number; qty: number }[]>();
 
   for (const [key, tpl] of Object.entries(kitTemplatesFixture)) {
     const categorie = key.startsWith("epc_") ? "EPC" : "EPI";
@@ -229,13 +273,13 @@ export async function seedDatabase() {
 
     const lines = tpl.lines
       .filter((l) => articleCodeToId.has(l.article_code))
-      .map((l) => ({ articleId: articleCodeToId.get(l.article_code)!, qty: l.qty }));
+      .map((l) => ({ articleId: articleCodeToId.get(l.article_code)!, articleReferenceId: articleCodeToReferenceId.get(l.article_code)!, qty: l.qty }));
     kitTemplateLinesByKey.set(key, lines);
 
     if (lines.length) {
       await chunkedInsert(
         s.kitTemplateLignes,
-        lines.map((l) => ({ kitTemplateId: row.id, articleId: l.articleId, quantite: l.qty })) as any,
+        lines.map((l) => ({ kitTemplateId: row.id, articleId: l.articleId, articleReferenceId: l.articleReferenceId, quantite: l.qty })) as any,
       );
     }
   }

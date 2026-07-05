@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { equipementHierarchie } from "../db/schema";
 
@@ -5,10 +6,12 @@ export interface HierarchieNode {
   id: number;
   parentId: number | null;
   code: string;
+  codeAbrege: string | null;
   nom: string;
   niveau: number;
   ordre: number;
   soumisControleReglementaire: boolean;
+  soumisControleReglementaireExplicite: boolean;
 }
 
 // L'arborescence (≈230 nœuds, alimentée uniquement par la migration/le seed, jamais
@@ -74,4 +77,34 @@ export async function getAncestorChain(nodeId: number): Promise<HierarchieNode[]
     current = current.parentId != null ? byId.get(current.parentId) : undefined;
   }
   return chain;
+}
+
+// Recalcule soumisControleReglementaire (dénormalisé) pour tout l'arbre à partir de
+// soumisControleReglementaireExplicite (posé nœud par nœud) : effective = explicite ||
+// effective(parent). Un parcours top-down (racines d'abord) suffit car chaque nœud n'a
+// besoin que de la valeur déjà calculée de son parent. À appeler après toute création/
+// modification qui touche soumisControleReglementaireExplicite ou le rattachement d'un nœud.
+export async function recomputeReglementaireCascade(): Promise<void> {
+  const all = await loadAllNodes();
+  const byParent = new Map<number | null, HierarchieNode[]>();
+  for (const n of all) {
+    const list = byParent.get(n.parentId) ?? [];
+    list.push(n);
+    byParent.set(n.parentId, list);
+  }
+  const effectiveById = new Map<number, boolean>();
+  const queue = [...(byParent.get(null) ?? [])];
+  while (queue.length) {
+    const node = queue.shift()!;
+    const parentEffective = node.parentId != null ? (effectiveById.get(node.parentId) ?? false) : false;
+    const effective = node.soumisControleReglementaireExplicite || parentEffective;
+    effectiveById.set(node.id, effective);
+    queue.push(...(byParent.get(node.id) ?? []));
+  }
+  for (const n of all) {
+    const effective = effectiveById.get(n.id) ?? false;
+    if (effective !== n.soumisControleReglementaire) {
+      await db.update(equipementHierarchie).set({ soumisControleReglementaire: effective }).where(eq(equipementHierarchie.id, n.id));
+    }
+  }
 }

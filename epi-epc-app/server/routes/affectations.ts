@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { affectations, articles, agents, equipes, kitTemplateLignes, reformes, equipementHierarchie } from "../db/schema";
+import { affectations, articles, articlesReference, agents, equipes, kitTemplateLignes, reformes, equipementHierarchie } from "../db/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { applyStockMouvement } from "../services/stockService";
 import { logHistorique } from "../services/historiqueService";
@@ -84,7 +84,8 @@ affectationsRouter.get("/", async (req, res) => {
       .innerJoin(articles, eq(affectations.articleId, articles.id))
       .leftJoin(agents, eq(affectations.agentId, agents.id))
       .leftJoin(equipes, eq(affectations.equipeId, equipes.id))
-      .leftJoin(equipementHierarchie, eq(articles.hierarchieId, equipementHierarchie.id))
+      .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
+      .leftJoin(equipementHierarchie, eq(articlesReference.hierarchieParentId, equipementHierarchie.id))
       .where(where)
       .orderBy(desc(affectations.dateAffectation))
       .limit(ps)
@@ -253,7 +254,7 @@ affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
 
   const [row] = await db
     .update(affectations)
-    .set({ statut: "retourne", dateRetour, etatRetour, updatedAt: new Date().toISOString() })
+    .set({ statut: "retourne", dateRetour, dateClotureStatut: dateRetour, etatRetour, updatedAt: new Date().toISOString() })
     .where(eq(affectations.id, id))
     .returning();
 
@@ -281,16 +282,50 @@ affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
   res.json(row);
 });
 
+// Déclaration de perte — statut jusqu'ici inaccessible via l'API malgré son existence dans
+// le schéma. L'unité ne revient jamais en stock (contrairement à /retour) : aucun mouvement
+// de stock n'est appliqué, seul le statut et l'historique sont mis à jour.
+affectationsRouter.post("/:id/perdu", async (req: AuthedRequest, res) => {
+  const id = Number(req.params.id);
+  const { datePerte, motif } = req.body as { datePerte: string; motif?: string };
+  if (!datePerte) return res.status(400).json({ error: "Date de perte requise" });
+  const [affectation] = await db.select().from(affectations).where(eq(affectations.id, id));
+  if (!affectation) return res.status(404).json({ error: "Affectation introuvable" });
+  if (affectation.statut !== "actif") return res.status(409).json({ error: "Seule une affectation active peut être déclarée perdue" });
+
+  const [row] = await db
+    .update(affectations)
+    .set({ statut: "perdu", dateClotureStatut: datePerte, updatedAt: new Date().toISOString() })
+    .where(eq(affectations.id, id))
+    .returning();
+  await logHistorique({
+    typeEvenement: "declaration_perte",
+    entiteType: "affectation",
+    entiteId: id,
+    agentId: affectation.agentId,
+    equipeId: affectation.equipeId,
+    articleId: affectation.articleId,
+    utilisateurId: req.user?.id,
+    details: { motif },
+  });
+  res.json(row);
+});
+
 affectationsRouter.post("/:id/reforme", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
   const { motif, decision } = req.body as { motif: string; decision?: string };
   const [affectation] = await db.select().from(affectations).where(eq(affectations.id, id));
   if (!affectation) return res.status(404).json({ error: "Affectation introuvable" });
 
-  const [row] = await db.update(affectations).set({ statut: "reforme", updatedAt: new Date().toISOString() }).where(eq(affectations.id, id)).returning();
+  const dateReforme = new Date().toISOString().slice(0, 10);
+  const [row] = await db
+    .update(affectations)
+    .set({ statut: "reforme", dateClotureStatut: dateReforme, updatedAt: new Date().toISOString() })
+    .where(eq(affectations.id, id))
+    .returning();
   const [reforme] = await db
     .insert(reformes)
-    .values({ articleId: affectation.articleId, affectationId: id, dateReforme: new Date().toISOString().slice(0, 10), quantite: affectation.quantite, motif, decision })
+    .values({ articleId: affectation.articleId, affectationId: id, dateReforme, quantite: affectation.quantite, motif, decision })
     .returning();
 
   await applyStockMouvement({

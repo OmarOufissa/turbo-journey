@@ -11,6 +11,7 @@ import { divisions } from "./schema";
 import { runMigrations } from "./migrate";
 import { seedDatabase } from "../seeds/seedData";
 import { migrateHierarchieIfNeeded } from "./migrateHierarchie";
+import { migrateArticlesReferenceIfNeeded } from "./migrateArticlesReference";
 
 let ready: Promise<void> | null = null;
 
@@ -25,7 +26,13 @@ export function ensureDatabaseReady(): Promise<void> {
       } else {
         // Base déjà installée (données utilisateur réelles) : ne rejoue jamais le seed
         // complet, ne transforme que la classification des articles si nécessaire.
+        // L'ordre compte : migrateHierarchieIfNeeded() traite le cas d'une base très
+        // ancienne (avant même equipement_hierarchie) et construit alors directement la
+        // forme finale ; migrateArticlesReferenceIfNeeded() traite le cas intermédiaire
+        // (equipement_hierarchie déjà peuplé à l'ancien format 4 niveaux, mais sans
+        // articles_reference) — chacun se no-op si son cas ne s'applique pas.
         await migrateHierarchieIfNeeded();
+        await migrateArticlesReferenceIfNeeded();
       }
     })();
   }

@@ -107,10 +107,38 @@ export const equipesRelations = relations(equipes, ({ one, many }) => ({
   service: one(services, { fields: [equipes.serviceId], references: [services.id] }),
   agents: many(agents),
 }));
-export const agentsRelations = relations(agents, ({ one }) => ({
+export const agentsRelations = relations(agents, ({ one, many }) => ({
   division: one(divisions, { fields: [agents.divisionId], references: [divisions.id] }),
   service: one(services, { fields: [agents.serviceId], references: [services.id] }),
   equipe: one(equipes, { fields: [agents.equipeId], references: [equipes.id] }),
+  mensurations: many(agentMensurations),
+}));
+
+// Profil de mensurations d'un agent — table enfant plutôt que colonnes fixes ou JSON, pour
+// qu'une nouvelle mensuration future soit une simple ligne (nouvelle "cle") sans jamais
+// nécessiter de migration de schéma.
+export const agentMensurations = sqliteTable(
+  "agent_mensurations",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    agentId: integer("agent_id")
+      .notNull()
+      .references(() => agents.id, { onDelete: "cascade" }),
+    // pointure_chaussures | pointure_bottes | taille_pantalon | taille_veste |
+    // taille_combinaison | taille_gants | taille_casque | tour_de_tete | taille_harnais |
+    // taille_masque_respiratoire | (toute clé future libre)
+    cle: text("cle").notNull(),
+    valeur: text("valeur").notNull(),
+    createdAt: text("created_at").default(now).notNull(),
+    updatedAt: text("updated_at").default(now).notNull(),
+  },
+  (t) => ({
+    agentIdx: index("agent_mensurations_agent_idx").on(t.agentId),
+    uniqueClePerAgent: uniqueIndex("agent_mensurations_agent_cle_idx").on(t.agentId, t.cle),
+  }),
+);
+export const agentMensurationsRelations = relations(agentMensurations, ({ one }) => ({
+  agent: one(agents, { fields: [agentMensurations.agentId], references: [agents.id] }),
 }));
 
 // ============================================================================
@@ -150,15 +178,25 @@ export const equipementHierarchie = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     parentId: integer("parent_id").references((): AnySQLiteColumn => equipementHierarchie.id, { onDelete: "cascade" }),
     code: text("code").notNull().unique(),
+    // Abréviation courte (ex. "EPI", "CAS") utilisée par codificationService pour composer
+    // les codes d'article de référence/article — générée automatiquement, éditable via
+    // l'interface de gestion de la hiérarchie.
+    codeAbrege: text("code_abrege"),
     nom: text("nom").notNull(),
-    niveau: integer("niveau").notNull(), // 1=catégorie générale, 2=famille, 3=sous-famille, 4=type… (indicatif, non structurant)
+    niveau: integer("niveau").notNull(), // 1=catégorie générale, 2=famille, 3=sous-famille… (indicatif, non structurant)
     ordre: integer("ordre").notNull().default(0),
+    // soumisControleReglementaire est dénormalisé (cascade complète, y compris héritage) —
+    // soumisControleReglementaireExplicite distingue "posé sur ce nœud" d'"hérité d'un
+    // ancêtre", indispensable dès que le flag devient éditable (voir
+    // hierarchieService.recomputeReglementaireCascade).
     soumisControleReglementaire: integer("soumis_controle_reglementaire", { mode: "boolean" }).notNull().default(false),
+    soumisControleReglementaireExplicite: integer("soumis_controle_reglementaire_explicite", { mode: "boolean" }).notNull().default(false),
     createdAt: text("created_at").default(now).notNull(),
   },
   (t) => ({
     parentIdx: index("equipement_hierarchie_parent_idx").on(t.parentId),
     uniqueNomParent: uniqueIndex("equipement_hierarchie_nom_parent_idx").on(t.nom, t.parentId),
+    uniqueAbregeParent: uniqueIndex("equipement_hierarchie_parent_abrege_idx").on(t.parentId, t.codeAbrege),
   }),
 );
 
@@ -207,6 +245,43 @@ export const marches = sqliteTable(
   (t) => ({ numeroIdx: uniqueIndex("marches_numero_annee_idx").on(t.numero, t.annee) }),
 );
 
+// Article de référence — modèle normalisé de l'équipement (bibliothèque technique utilisée
+// pour tous les achats). Tout article physique doit obligatoirement y être rattaché
+// (articles.articleReferenceId). hierarchieParentId pointe vers le nœud immédiat de
+// equipement_hierarchie sous lequel la référence est classée — niveau 2 (famille) pour la
+// plupart des branches, niveau 3 (sous-famille) pour les branches qui vont plus profond
+// (Appareils de levage, Appareils sous pression) ; profondeur variable, non fixe.
+export const articlesReference = sqliteTable(
+  "articles_reference",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    code: text("code").notNull().unique(), // auto-généré (codificationService), éditable
+    hierarchieParentId: integer("hierarchie_parent_id")
+      .notNull()
+      .references(() => equipementHierarchie.id),
+    designation: text("designation").notNull(),
+    caracteristiquesTechniques: text("caracteristiques_techniques", { mode: "json" }), // {clé, valeur, unite?}[]
+    ficheTechniquePdfUrl: text("fiche_technique_pdf_url"),
+    photoUrl: text("photo_url"),
+    normes: text("normes", { mode: "json" }), // string[]
+    certifications: text("certifications", { mode: "json" }), // string[]
+    dureeVieRecommandeeMois: integer("duree_vie_recommandee_mois"),
+    // Préremplissage UI uniquement (ligne de gabarit de dotation) — jamais lu par le moteur
+    // de calcul de besoin, qui se base sur kit_template_lignes.quantite (voir besoinService).
+    quantiteReference: integer("quantite_reference"),
+    typeDotation: text("type_dotation"), // individuelle | collective (indicatif, éditable)
+    observations: text("observations"),
+    actif: integer("actif", { mode: "boolean" }).notNull().default(true),
+    createdAt: text("created_at").default(now).notNull(),
+    updatedAt: text("updated_at").default(now).notNull(),
+  },
+  (t) => ({
+    codeIdx: uniqueIndex("articles_reference_code_idx").on(t.code),
+    parentIdx: index("articles_reference_parent_idx").on(t.hierarchieParentId),
+    designationIdx: index("articles_reference_designation_idx").on(t.designation),
+  }),
+);
+
 export const articles = sqliteTable(
   "articles",
   {
@@ -214,9 +289,15 @@ export const articles = sqliteTable(
     codeArticle: text("code_article").notNull().unique(),
     codeInterne: text("code_interne"),
     codeFournisseur: text("code_fournisseur"),
+    // Article de référence auquel ce lot/article physique est obligatoirement rattaché —
+    // porte les caractéristiques techniques inhérentes à ce type d'équipement (héritées,
+    // non dupliquées ici).
+    articleReferenceId: integer("article_reference_id").references(() => articlesReference.id),
     // Pointe vers le nœud le plus précis de equipement_hierarchie auquel appartient
-    // l'article (généralement le "type d'équipement", niveau 4, mais peut être plus
-    // haut si aucune subdivision plus fine n'existe pour cette famille).
+    // l'article. TEMPORAIRE (à supprimer dans une migration de nettoyage séparée, une fois
+    // les données transférées vers articles_reference) — voir familles/sousFamilles
+    // ci-dessus pour le même principe : migrateArticlesReferenceIfNeeded() doit encore
+    // pouvoir lire cette colonne pour transférer les bases déjà installées.
     hierarchieId: integer("hierarchie_id").references(() => equipementHierarchie.id),
     // TEMPORAIRE (à supprimer dans la migration de nettoyage — voir familles/sousFamilles ci-dessus)
     familleId: integer("famille_id").references(() => familles.id),
@@ -227,9 +308,17 @@ export const articles = sqliteTable(
     photoUrl: text("photo_url"),
     referenceFabricant: text("reference_fabricant"),
     constructeur: text("constructeur"),
+    marque: text("marque"),
+    modele: text("modele"),
     normes: text("normes"),
     certification: text("certification"),
     dateFabrication: text("date_fabrication"),
+    // Date d'acquisition du lot — distincte de dateFabrication (fabrication du matériel).
+    dateAcquisition: text("date_acquisition"),
+    // Numéro de série du lot lorsque celui-ci constitue lui-même une unité physique
+    // sérialisée (ex. un pont roulant de rechange en stock avant affectation) — distinct de
+    // affectations.numeroSerie, qui suit une unité individuelle une fois affectée.
+    numeroSerie: text("numero_serie"),
     dureeVieMois: integer("duree_vie_mois"),
     dateLimiteUtilisation: text("date_limite_utilisation"),
     noticePdfUrl: text("notice_pdf_url"),
@@ -258,6 +347,7 @@ export const articles = sqliteTable(
   },
   (t) => ({
     codeIdx: uniqueIndex("articles_code_idx").on(t.codeArticle),
+    articleReferenceIdx: index("articles_article_reference_idx").on(t.articleReferenceId),
     hierarchieIdx: index("articles_hierarchie_idx").on(t.hierarchieId),
     designationIdx: index("articles_designation_idx").on(t.designation),
     stockDisponibleIdx: index("articles_stock_disponible_idx").on(t.stockDisponible),
@@ -272,8 +362,15 @@ export const equipementHierarchieRelations = relations(equipementHierarchie, ({ 
   }),
   enfants: many(equipementHierarchie, { relationName: "hierarchieParent" }),
   articles: many(articles),
+  articlesReference: many(articlesReference),
+}));
+export const articlesReferenceRelations = relations(articlesReference, ({ one, many }) => ({
+  hierarchieParent: one(equipementHierarchie, { fields: [articlesReference.hierarchieParentId], references: [equipementHierarchie.id] }),
+  articles: many(articles),
+  kitTemplateLignes: many(kitTemplateLignes),
 }));
 export const articlesRelations = relations(articles, ({ one, many }) => ({
+  articleReference: one(articlesReference, { fields: [articles.articleReferenceId], references: [articlesReference.id] }),
   hierarchie: one(equipementHierarchie, { fields: [articles.hierarchieId], references: [equipementHierarchie.id] }),
   marche: one(marches, { fields: [articles.marcheId], references: [marches.id] }),
   mouvements: many(stockMouvements),
@@ -306,9 +403,15 @@ export const kitTemplateLignes = sqliteTable(
     kitTemplateId: integer("kit_template_id")
       .notNull()
       .references(() => kitTemplates.id, { onDelete: "cascade" }),
+    // TEMPORAIRE (à supprimer dans une migration de nettoyage — voir familles/sousFamilles) :
+    // conservé le temps que migrateArticlesReferenceIfNeeded() puisse encore en dériver
+    // articleReferenceId sur une base déjà installée.
     articleId: integer("article_id")
       .notNull()
       .references(() => articles.id),
+    // Référence authentique du moteur de besoin (besoinService) — quantité type par
+    // poste/type d'équipe pour cette référence, indépendamment du lot/article physique acheté.
+    articleReferenceId: integer("article_reference_id").references(() => articlesReference.id),
     quantite: integer("quantite").notNull().default(1),
   },
   (t) => ({ kitIdx: index("kit_template_lignes_kit_idx").on(t.kitTemplateId) }),
@@ -318,6 +421,7 @@ export const kitTemplatesRelations = relations(kitTemplates, ({ many }) => ({ li
 export const kitTemplateLignesRelations = relations(kitTemplateLignes, ({ one }) => ({
   kitTemplate: one(kitTemplates, { fields: [kitTemplateLignes.kitTemplateId], references: [kitTemplates.id] }),
   article: one(articles, { fields: [kitTemplateLignes.articleId], references: [articles.id] }),
+  articleReference: one(articlesReference, { fields: [kitTemplateLignes.articleReferenceId], references: [articlesReference.id] }),
 }));
 
 // ============================================================================
@@ -375,6 +479,10 @@ export const affectations = sqliteTable(
     statut: text("statut").notNull().default("actif"),
     dateRetour: text("date_retour"),
     etatRetour: text("etat_retour"), // bon | usage_normal | endommage | hors_service
+    // Date à laquelle le statut a quitté "actif" — enregistrée automatiquement par /retour,
+    // /perdu et /reforme, quel que soit le motif ; contrairement à dateRetour (propre au
+    // retour), couvre uniformément toutes les transitions de statut.
+    dateClotureStatut: text("date_cloture_statut"),
     kitTemplateId: integer("kit_template_id").references(() => kitTemplates.id),
     // Champs de suivi par unité physique — utilisés pour les équipements soumis à
     // contrôle règlementaire (appareils de levage, extincteurs/LCI, appareils sous
@@ -412,30 +520,6 @@ export const affectationsRelations = relations(affectations, ({ one }) => ({
   equipe: one(equipes, { fields: [affectations.equipeId], references: [equipes.id] }),
   kitTemplate: one(kitTemplates, { fields: [affectations.kitTemplateId], references: [kitTemplates.id] }),
 }));
-
-// ============================================================================
-// RÉPARATIONS
-// ============================================================================
-
-export const reparations = sqliteTable(
-  "reparations",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    articleId: integer("article_id")
-      .notNull()
-      .references(() => articles.id),
-    affectationId: integer("affectation_id").references(() => affectations.id),
-    dateEnvoi: text("date_envoi").notNull(),
-    dateRetourPrevue: text("date_retour_prevue"),
-    dateRetourReelle: text("date_retour_reelle"),
-    prestataire: text("prestataire"),
-    cout: real("cout"),
-    statut: text("statut").notNull().default("en_cours"), // en_cours | terminee | irreparable
-    motif: text("motif"),
-    createdAt: text("created_at").default(now).notNull(),
-  },
-  (t) => ({ articleIdx: index("reparations_article_idx").on(t.articleId) }),
-);
 
 // ============================================================================
 // CONTRÔLES PÉRIODIQUES
@@ -492,7 +576,7 @@ export const reformes = sqliteTable(
 // DOCUMENTS — pièces jointes polymorphes
 // ============================================================================
 
-// entiteType: article | agent | marche | affectation
+// entiteType: article | article_reference | agent | marche | affectation
 // typeDocument: notice | photo | certificat | declaration_ce | norme | pv_essai | rapport | autre
 export const documents = sqliteTable(
   "documents",
