@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { articles, articlesReference, equipementHierarchie, marches, stockMouvements, documents } from "../db/schema";
+import { articles, articlesReference, equipementHierarchie, marches, stockMouvements, documents, affectations, controlesPeriodiques, reformes, kitTemplateLignes } from "../db/schema";
 import { and, desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
 import { listChildren, resolveDescendantIds, getAncestorChain, recomputeReglementaireCascade } from "../services/hierarchieService";
@@ -270,4 +270,30 @@ articlesRouter.post("/:id/reactiver", async (req: AuthedRequest, res) => {
   if (!row) return res.status(404).json({ error: "Article introuvable" });
   await logHistorique({ typeEvenement: "reactivation_article", entiteType: "article", entiteId: id, articleId: id, utilisateurId: req.user?.id });
   res.json(row);
+});
+
+// Suppression physique — seulement possible pour un article qui n'a jamais été affecté,
+// contrôlé, mouvementé en stock ou réformé (créé par erreur, jamais utilisé sur le
+// terrain) : au premier événement réel, l'historique associé devient irremplaçable et
+// seule la désactivation reste possible, conformément au principe général "aucune donnée
+// ne doit être supprimée" une fois qu'un article a une vie opérationnelle.
+articlesRouter.delete("/:id", async (req: AuthedRequest, res) => {
+  const id = Number(req.params.id);
+  const [[{ n: nbAffectations }], [{ n: nbMouvements }], [{ n: nbControles }], [{ n: nbReformes }], [{ n: nbLignes }]] = await Promise.all([
+    db.select({ n: sql<number>`count(*)` }).from(affectations).where(eq(affectations.articleId, id)),
+    db.select({ n: sql<number>`count(*)` }).from(stockMouvements).where(eq(stockMouvements.articleId, id)),
+    db.select({ n: sql<number>`count(*)` }).from(controlesPeriodiques).where(eq(controlesPeriodiques.articleId, id)),
+    db.select({ n: sql<number>`count(*)` }).from(reformes).where(eq(reformes.articleId, id)),
+    db.select({ n: sql<number>`count(*)` }).from(kitTemplateLignes).where(eq(kitTemplateLignes.articleId, id)),
+  ]);
+  if (nbAffectations > 0 || nbMouvements > 0 || nbControles > 0 || nbReformes > 0 || nbLignes > 0) {
+    return res.status(409).json({
+      error: "Impossible de supprimer : cet article a un historique (affectations, mouvements de stock, contrôles ou réformes) — désactivez-le plutôt",
+      dependents: { affectations: nbAffectations, mouvements: nbMouvements, controles: nbControles, reformes: nbReformes, lignesGabarit: nbLignes },
+    });
+  }
+  const [row] = await db.delete(articles).where(eq(articles.id, id)).returning();
+  if (!row) return res.status(404).json({ error: "Article introuvable" });
+  await logHistorique({ typeEvenement: "suppression_article", entiteType: "article", entiteId: id, utilisateurId: req.user?.id, details: { designation: row.designation, codeArticle: row.codeArticle } });
+  res.status(204).end();
 });

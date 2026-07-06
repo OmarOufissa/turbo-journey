@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Upload, FileText, Pencil, Power, Trash2, ClipboardPlus, Undo2, AlertTriangle, RotateCcw } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
@@ -73,9 +73,11 @@ const MOUVEMENT_LABELS: Record<string, string> = {
 
 export default function ArticleDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [affecterOpen, setAffecterOpen] = useState(false);
   const [retourTarget, setRetourTarget] = useState<Affectation | null>(null);
   const [perduTarget, setPerduTarget] = useState<Affectation | null>(null);
@@ -162,6 +164,18 @@ export default function ArticleDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => apiDelete(`/articles/${id}`),
+    onSuccess: () => {
+      toast.success("Article supprimé");
+      navigate("/articles");
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+      setDeleteConfirmOpen(false);
+    },
+  });
+
   function onSubmitEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -205,6 +219,9 @@ export default function ArticleDetail() {
           <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}><Pencil className="h-3.5 w-3.5" /> Modifier</Button>
           <Button size="sm" variant="outline" onClick={() => toggleActifMutation.mutate()}>
             <Power className="h-3.5 w-3.5" /> {data.actif ? "Désactiver" : "Réactiver"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setDeleteConfirmOpen(true)}>
+            <Trash2 className="h-3.5 w-3.5 text-destructive" /> Supprimer
           </Button>
         </div>
       </div>
@@ -419,6 +436,21 @@ export default function ArticleDetail() {
       </Dialog>
 
       <AffecterDialog open={affecterOpen} onClose={() => setAffecterOpen(false)} initial={{ articleId: Number(id) }} />
+
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Confirmer la suppression</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Supprimer « {data.designation} » ? Cette action est irréversible et échouera si l'article a déjà un historique (affectations, contrôles, mouvements de stock, réforme) — désactivez-le dans ce cas plutôt que de le supprimer.
+          </p>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setDeleteConfirmOpen(false)}>Annuler</Button>
+            <Button type="button" variant="destructive" disabled={deleteMutation.isPending} onClick={() => deleteMutation.mutate()}>
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!retourTarget} onOpenChange={(o) => !o && setRetourTarget(null)}>
         <DialogContent>
