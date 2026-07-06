@@ -88,7 +88,7 @@ export default function ArticleDetail() {
   });
 
   const retourMutation = useMutation({
-    mutationFn: (body: { id: number; dateRetour: string; etatRetour: string; commentaire?: string }) => apiPost(`/affectations/${body.id}/retour`, body),
+    mutationFn: (body: { id: number; dateRetour: string; etatRetour: string; motif: string; commentaire?: string }) => apiPost(`/affectations/${body.id}/retour`, body),
     onSuccess: () => {
       toast.success("Affectation retirée");
       qc.invalidateQueries({ queryKey: ["article-affectations", id] });
@@ -432,6 +432,7 @@ export default function ArticleDetail() {
                 id: retourTarget.id,
                 dateRetour: String(fd.get("dateRetour")),
                 etatRetour: String(fd.get("etatRetour")),
+                motif: String(fd.get("motif") || ""),
                 commentaire: String(fd.get("commentaire") || "") || undefined,
               });
             }}
@@ -447,6 +448,7 @@ export default function ArticleDetail() {
                 <option value="hors_service">Hors service — hors stock</option>
               </select>
             </div>
+            <div className="space-y-1.5"><Label htmlFor="motif">Motif du retrait *</Label><Input id="motif" name="motif" required placeholder="Fin de mission, mutation, retour normal…" /></div>
             <div className="space-y-1.5"><Label htmlFor="commentaire">Commentaire</Label><Textarea id="commentaire" name="commentaire" rows={2} /></div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setRetourTarget(null)}>Annuler</Button>

@@ -270,13 +270,17 @@ affectationsRouter.post("/kit/appliquer", async (req: AuthedRequest, res) => {
 });
 
 // "Retirer l'affectation" — l'unité redevient disponible (état bon/usage normal) ou sort
-// définitivement du disponible (endommagé/hors service) ; le commentaire éventuel de
-// l'utilisateur est conservé dans l'historique, jamais perdu ni écrasé.
+// définitivement du disponible (endommagé/hors service). Le motif du retrait et le
+// commentaire éventuel de l'utilisateur sont conservés dans l'historique (jamais perdus
+// ni écrasés) plutôt que dans affectations.motif, qui reste la raison de la dotation
+// d'origine (Dotation initiale, Renouvellement…) — écraser cette colonne au retrait
+// effacerait l'information "pourquoi cet équipement a été affecté" de l'historique actif.
 affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
-  const { dateRetour, etatRetour, commentaire } = req.body as {
+  const { dateRetour, etatRetour, motif, commentaire } = req.body as {
     dateRetour: string;
     etatRetour: "bon" | "usage_normal" | "endommage" | "hors_service";
+    motif?: string;
     commentaire?: string;
   };
   const [affectation] = await db.select().from(affectations).where(eq(affectations.id, id));
@@ -307,7 +311,7 @@ affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
     equipeId: affectation.equipeId,
     articleId: affectation.articleId,
     utilisateurId: req.user?.id,
-    details: { etatRetour, commentaire },
+    details: { etatRetour, motif, commentaire },
   });
   res.json(row);
 });
