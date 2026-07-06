@@ -115,11 +115,12 @@ articlesRouter.get("/fournisseurs", async (_req, res) => {
 });
 
 articlesRouter.get("/", async (req, res) => {
-  const { q, hierarchieId, ancestorId, stockStatut, fournisseur, page = "1", pageSize = "50" } = req.query as Record<string, string>;
+  const { q, hierarchieId, ancestorId, articleReferenceId, stockStatut, fournisseur, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [eq(articles.actif, true)];
   if (q) conditions.push(or(like(articles.designation, `%${q}%`), like(articles.codeArticle, `%${q}%`), like(articles.codeInterne, `%${q}%`))!);
   if (hierarchieId) conditions.push(eq(articlesReference.hierarchieParentId, Number(hierarchieId)));
   if (ancestorId) conditions.push(inArray(articlesReference.hierarchieParentId, await resolveDescendantIds(Number(ancestorId))));
+  if (articleReferenceId) conditions.push(eq(articles.articleReferenceId, Number(articleReferenceId)));
   if (stockStatut === "rupture") conditions.push(sql`${articles.stockDisponible} = 0`);
   if (stockStatut === "faible") conditions.push(sql`${articles.stockDisponible} > 0 AND ${articles.stockDisponible} <= ${articles.stockMin}`);
   if (fournisseur) conditions.push(eq(articles.fournisseur, fournisseur));

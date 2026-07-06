@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { ArrowLeft, Upload, FileText, Pencil, Power, Trash2 } from "lucide-react";
+import { ArrowLeft, Upload, FileText, Pencil, Power, Trash2, ClipboardPlus, Undo2, AlertTriangle, RotateCcw } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { StockBadge } from "@/components/shared/Badges";
+import { StatutAffectationBadge } from "@/components/shared/Badges";
+import { AffecterDialog } from "@/components/shared/AffecterDialog";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { toast } from "@/components/ui/toaster";
+import type { Affectation } from "@shared/api";
 
 interface ArticleDetailData {
   id: number;
@@ -73,8 +76,47 @@ export default function ArticleDetail() {
   const qc = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [affecterOpen, setAffecterOpen] = useState(false);
+  const [retourTarget, setRetourTarget] = useState<Affectation | null>(null);
+  const [perduTarget, setPerduTarget] = useState<Affectation | null>(null);
+  const [reformeTarget, setReformeTarget] = useState<Affectation | null>(null);
 
   const { data, isLoading } = useQuery<ArticleDetailData>({ queryKey: ["article", id], queryFn: () => apiGet(`/articles/${id}`) });
+  const { data: affectationsData } = useQuery<{ rows: Affectation[] }>({
+    queryKey: ["article-affectations", id],
+    queryFn: () => apiGet(`/affectations?articleId=${id}&pageSize=200`),
+  });
+
+  const retourMutation = useMutation({
+    mutationFn: (body: { id: number; dateRetour: string; etatRetour: string; commentaire?: string }) => apiPost(`/affectations/${body.id}/retour`, body),
+    onSuccess: () => {
+      toast.success("Affectation retirée");
+      qc.invalidateQueries({ queryKey: ["article-affectations", id] });
+      qc.invalidateQueries({ queryKey: ["article", id] });
+      setRetourTarget(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const perduMutation = useMutation({
+    mutationFn: (body: { id: number; datePerte: string; motif: string }) => apiPost(`/affectations/${body.id}/perdu`, body),
+    onSuccess: () => {
+      toast.success("Perte déclarée");
+      qc.invalidateQueries({ queryKey: ["article-affectations", id] });
+      setPerduTarget(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const reformeMutation = useMutation({
+    mutationFn: (body: { id: number; motif: string }) => apiPost(`/affectations/${body.id}/reforme`, body),
+    onSuccess: () => {
+      toast.success("Équipement réformé");
+      qc.invalidateQueries({ queryKey: ["article-affectations", id] });
+      setReformeTarget(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => {
@@ -159,6 +201,7 @@ export default function ArticleDetail() {
         <div className="flex items-center gap-2">
           {!data.actif && <Badge variant="muted">Inactif</Badge>}
           <StockBadge disponible={data.stockDisponible} min={data.stockMin} />
+          <Button size="sm" onClick={() => setAffecterOpen(true)}><ClipboardPlus className="h-3.5 w-3.5" /> Affecter</Button>
           <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}><Pencil className="h-3.5 w-3.5" /> Modifier</Button>
           <Button size="sm" variant="outline" onClick={() => toggleActifMutation.mutate()}>
             <Power className="h-3.5 w-3.5" /> {data.actif ? "Désactiver" : "Réactiver"}
@@ -176,6 +219,7 @@ export default function ArticleDetail() {
       <Tabs defaultValue="info">
         <TabsList>
           <TabsTrigger value="info">Fiche technique</TabsTrigger>
+          <TabsTrigger value="affectations">Affectations</TabsTrigger>
           <TabsTrigger value="stock">Mouvements de stock</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
@@ -212,6 +256,53 @@ export default function ArticleDetail() {
                 </div>
               )}
             </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="affectations">
+          <Card className="overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Bénéficiaire</TableHead>
+                  <TableHead>Motif</TableHead>
+                  <TableHead>Date d'affectation</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Date de clôture</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(!affectationsData || affectationsData.rows.length === 0) && (
+                  <TableRow><TableCell colSpan={6} className="py-6 text-center text-muted-foreground">Cet article n'a jamais été affecté</TableCell></TableRow>
+                )}
+                {affectationsData?.rows.map((a) => (
+                  <TableRow key={a.id}>
+                    <TableCell className="font-medium">
+                      {a.agentNom ?? a.equipeNom}
+                      <span className="ml-1.5 text-xs font-normal text-muted-foreground">{a.beneficiaireType === "agent" ? "(EPI)" : "(EPC)"}</span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{a.motif ?? "—"}</TableCell>
+                    <TableCell>{formatDate(a.dateAffectation)}</TableCell>
+                    <TableCell><StatutAffectationBadge statut={a.statut} /></TableCell>
+                    <TableCell className="text-muted-foreground">{a.dateClotureStatut ? formatDate(a.dateClotureStatut) : "—"}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        {a.statut === "actif" ? (
+                          <>
+                            <Button size="sm" variant="ghost" onClick={() => setRetourTarget(a)}><Undo2 className="h-3.5 w-3.5" /> Retirer</Button>
+                            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setPerduTarget(a)}><AlertTriangle className="h-3.5 w-3.5" /> Perdu</Button>
+                            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setReformeTarget(a)}><Trash2 className="h-3.5 w-3.5" /> Réformer</Button>
+                          </>
+                        ) : (
+                          <Button size="sm" variant="ghost" onClick={() => setAffecterOpen(true)}><RotateCcw className="h-3.5 w-3.5" /> Réaffecter</Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </Card>
         </TabsContent>
 
@@ -322,6 +413,87 @@ export default function ArticleDetail() {
             <DialogFooter className="col-span-2">
               <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Annuler</Button>
               <Button type="submit" disabled={updateMutation.isPending}>Enregistrer</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <AffecterDialog open={affecterOpen} onClose={() => setAffecterOpen(false)} initial={{ articleId: Number(id) }} />
+
+      <Dialog open={!!retourTarget} onOpenChange={(o) => !o && setRetourTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Retirer l'affectation</DialogTitle></DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!retourTarget) return;
+              const fd = new FormData(e.currentTarget);
+              retourMutation.mutate({
+                id: retourTarget.id,
+                dateRetour: String(fd.get("dateRetour")),
+                etatRetour: String(fd.get("etatRetour")),
+                commentaire: String(fd.get("commentaire") || "") || undefined,
+              });
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5"><Label htmlFor="dateRetour">Date de retrait</Label><Input id="dateRetour" name="dateRetour" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></div>
+            <div className="space-y-1.5">
+              <Label htmlFor="etatRetour">État à réception</Label>
+              <select id="etatRetour" name="etatRetour" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm">
+                <option value="bon">Bon état — remis en stock</option>
+                <option value="usage_normal">Usure normale — remis en stock</option>
+                <option value="endommage">Endommagé — hors stock</option>
+                <option value="hors_service">Hors service — hors stock</option>
+              </select>
+            </div>
+            <div className="space-y-1.5"><Label htmlFor="commentaire">Commentaire</Label><Textarea id="commentaire" name="commentaire" rows={2} /></div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setRetourTarget(null)}>Annuler</Button>
+              <Button type="submit" disabled={retourMutation.isPending}>Confirmer le retrait</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!perduTarget} onOpenChange={(o) => !o && setPerduTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Déclarer la perte de l'équipement</DialogTitle></DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!perduTarget) return;
+              const fd = new FormData(e.currentTarget);
+              perduMutation.mutate({ id: perduTarget.id, datePerte: String(fd.get("datePerte")), motif: String(fd.get("motif") || "") });
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5"><Label htmlFor="datePerte">Date de constatation</Label><Input id="datePerte" name="datePerte" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></div>
+            <div className="space-y-1.5"><Label htmlFor="motif">Motif *</Label><Textarea id="motif" name="motif" required rows={2} /></div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setPerduTarget(null)}>Annuler</Button>
+              <Button type="submit" variant="destructive" disabled={perduMutation.isPending}>Confirmer la déclaration de perte</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!reformeTarget} onOpenChange={(o) => !o && setReformeTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Réformer l'équipement</DialogTitle></DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!reformeTarget) return;
+              const fd = new FormData(e.currentTarget);
+              reformeMutation.mutate({ id: reformeTarget.id, motif: String(fd.get("motif") || "") });
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5"><Label htmlFor="motif">Motif de réforme *</Label><Textarea id="motif" name="motif" required rows={2} /></div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setReformeTarget(null)}>Annuler</Button>
+              <Button type="submit" variant="destructive" disabled={reformeMutation.isPending}>Confirmer la réforme</Button>
             </DialogFooter>
           </form>
         </DialogContent>

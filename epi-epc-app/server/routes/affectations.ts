@@ -269,9 +269,16 @@ affectationsRouter.post("/kit/appliquer", async (req: AuthedRequest, res) => {
   res.status(201).json({ created: created.length, ignoredForStock: insufficient.map((i) => i.designation) });
 });
 
+// "Retirer l'affectation" — l'unité redevient disponible (état bon/usage normal) ou sort
+// définitivement du disponible (endommagé/hors service) ; le commentaire éventuel de
+// l'utilisateur est conservé dans l'historique, jamais perdu ni écrasé.
 affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
-  const { dateRetour, etatRetour } = req.body as { dateRetour: string; etatRetour: "bon" | "usage_normal" | "endommage" | "hors_service" };
+  const { dateRetour, etatRetour, commentaire } = req.body as {
+    dateRetour: string;
+    etatRetour: "bon" | "usage_normal" | "endommage" | "hors_service";
+    commentaire?: string;
+  };
   const [affectation] = await db.select().from(affectations).where(eq(affectations.id, id));
   if (!affectation) return res.status(404).json({ error: "Affectation introuvable" });
 
@@ -300,7 +307,7 @@ affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
     equipeId: affectation.equipeId,
     articleId: affectation.articleId,
     utilisateurId: req.user?.id,
-    details: { etatRetour },
+    details: { etatRetour, commentaire },
   });
   res.json(row);
 });

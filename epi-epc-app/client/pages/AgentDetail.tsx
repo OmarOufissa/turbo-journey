@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { ArrowLeft, FileDown, PackagePlus, Pencil, Plus, Trash2, Ruler } from "lucide-react";
+import { ArrowLeft, FileDown, PackagePlus, Pencil, Plus, Trash2, Ruler, ClipboardPlus } from "lucide-react";
 import { apiGet, apiPost, apiPut, downloadFile } from "@/lib/api";
+import { AffecterDialog } from "@/components/shared/AffecterDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export default function AgentDetail() {
   const { id } = useParams();
   const qc = useQueryClient();
   const [kitOpen, setKitOpen] = useState(false);
+  const [affecterOpen, setAffecterOpen] = useState(false);
   const [mensurationsOpen, setMensurationsOpen] = useState(false);
   const [mensurationRows, setMensurationRows] = useState<{ cle: string; valeur: string }[]>([]);
 
@@ -104,8 +106,11 @@ export default function AgentDetail() {
           <Button variant="outline" onClick={() => downloadFile(`/rapports/dotation-individuelle/${id}`)}>
             <FileDown className="h-4 w-4" /> Fiche de dotation
           </Button>
-          <Button onClick={() => setKitOpen(true)}>
+          <Button variant="outline" onClick={() => setKitOpen(true)}>
             <PackagePlus className="h-4 w-4" /> Appliquer un gabarit
+          </Button>
+          <Button onClick={() => setAffecterOpen(true)}>
+            <ClipboardPlus className="h-4 w-4" /> Affecter un matériel
           </Button>
         </div>
       </div>
@@ -235,6 +240,8 @@ export default function AgentDetail() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AffecterDialog open={affecterOpen} onClose={() => setAffecterOpen(false)} initial={{ beneficiaire: { type: "agent", id: Number(id) } }} />
     </div>
   );
 }

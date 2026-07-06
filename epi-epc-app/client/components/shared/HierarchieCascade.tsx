@@ -48,7 +48,10 @@ function CascadeLevel({
   if (!options || options.length === 0) return null;
 
   return (
-    <Select value={selected != null ? String(selected) : "all"} onValueChange={(v) => onSelect(v === "all" ? null : Number(v))}>
+    <Select
+      value={selected != null ? String(selected) : allowAll ? "all" : undefined}
+      onValueChange={(v) => onSelect(v === "all" ? null : Number(v))}
+    >
       <SelectTrigger className="w-56">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

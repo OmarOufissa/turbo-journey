@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { ChevronRight, ChevronDown, Building2, Briefcase, Users2, Plus, Pencil, Trash2, UserPlus, Archive } from "lucide-react";
+import { ChevronRight, ChevronDown, Building2, Briefcase, Users2, Plus, Pencil, Trash2, UserPlus, Archive, ClipboardPlus } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete, ApiError } from "@/lib/api";
 import type { Agent } from "@shared/api";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
+import { AffecterDialog } from "@/components/shared/AffecterDialog";
 
 interface EquipeNode { id: number; nom: string; teamType: string | null; effectif: number }
 interface ServiceNode { id: number; nom: string; effectifDirect: number; equipes: EquipeNode[] }
@@ -30,6 +31,7 @@ export default function Organisation() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [dialog, setDialog] = useState<OrgDialog | null>(null);
   const [deleteOrgTarget, setDeleteOrgTarget] = useState<DeleteOrgTarget | null>(null);
+  const [affecterEquipeId, setAffecterEquipeId] = useState<number | null>(null);
 
   function toggle(key: string) {
     setExpanded((prev) => {
@@ -172,6 +174,7 @@ export default function Organisation() {
                                         {eq.teamType && <Badge variant="muted">{eq.teamType}</Badge>}
                                         <Badge variant="outline">{eq.effectif} membre(s)</Badge>
                                       </button>
+                                      <Button size="sm" variant="ghost" onClick={() => setAffecterEquipeId(eq.id)}><ClipboardPlus className="h-3.5 w-3.5" /> Affecter</Button>
                                       <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "create-agent", divisionId: division.id, serviceId: service.id, equipeId: eq.id })}><UserPlus className="h-3.5 w-3.5" /></Button>
                                       <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "edit-org", kind: "equipe", id: eq.id, nom: eq.nom, teamType: eq.teamType })}><Pencil className="h-3.5 w-3.5" /></Button>
                                       <Button size="sm" variant="ghost" onClick={() => setDeleteOrgTarget({ kind: "equipe", id: eq.id, nom: eq.nom })}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
@@ -250,6 +253,8 @@ export default function Organisation() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AffecterDialog open={affecterEquipeId != null} onClose={() => setAffecterEquipeId(null)} initial={affecterEquipeId != null ? { beneficiaire: { type: "equipe", id: affecterEquipeId } } : undefined} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, ClipboardPlus } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { toast } from "@/components/ui/toaster";
 import { formatMoney } from "@/lib/utils";
 import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
 import { ArticleReferencePicker } from "@/components/shared/ArticleReferencePicker";
+import { AffecterDialog } from "@/components/shared/AffecterDialog";
 
 interface ArticleRow {
   id: number;
@@ -45,6 +46,7 @@ export default function Articles() {
   const [fournisseur, setFournisseur] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [createReferenceId, setCreateReferenceId] = useState<number | null>(null);
+  const [affecterArticleId, setAffecterArticleId] = useState<number | null>(null);
 
   const { data: fournisseurs } = useQuery<string[]>({ queryKey: ["articles-fournisseurs"], queryFn: () => apiGet("/articles/fournisseurs") });
 
@@ -144,14 +146,15 @@ export default function Articles() {
               <TableHead className="text-right">Disponible</TableHead>
               <TableHead>État</TableHead>
               <TableHead className="text-right">Prix unitaire</TableHead>
+              <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && (
-              <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>
             )}
             {!isLoading && data?.rows.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Aucun article ne correspond aux filtres</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucun article ne correspond aux filtres</TableCell></TableRow>
             )}
             {data?.rows.map((a) => (
               <TableRow key={a.id} className="cursor-pointer" onClick={() => navigate(`/articles/${a.id}`)}>
@@ -165,6 +168,11 @@ export default function Articles() {
                 <TableCell className="text-right tabular-nums">{a.stockDisponible}</TableCell>
                 <TableCell><StockBadge disponible={a.stockDisponible} min={a.stockMin} /></TableCell>
                 <TableCell className="text-right tabular-nums">{formatMoney(a.prixUnitaire)}</TableCell>
+                <TableCell className="text-right">
+                  <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setAffecterArticleId(a.id); }}>
+                    <ClipboardPlus className="h-3.5 w-3.5" /> Affecter
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -252,6 +260,8 @@ export default function Articles() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AffecterDialog open={affecterArticleId != null} onClose={() => setAffecterArticleId(null)} initial={affecterArticleId != null ? { articleId: affecterArticleId } : undefined} />
     </div>
   );
 }

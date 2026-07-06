@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { StatutAffectationBadge } from "@/components/shared/Badges";
 import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
+import { ArticleReferencePicker } from "@/components/shared/ArticleReferencePicker";
 import { toast } from "@/components/ui/toaster";
 import { formatDate, cn } from "@/lib/utils";
 
@@ -63,6 +64,7 @@ export default function Affectations() {
   const [historiqueTarget, setHistoriqueTarget] = useState<AffectationRow | null>(null);
   const [beneficiaireKind, setBeneficiaireKind] = useState<"agent" | "equipe">("agent");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [createReferenceId, setCreateReferenceId] = useState<number | null>(null);
   const [selectedArticleId, setSelectedArticleId] = useState("");
   const [controleTarget, setControleTarget] = useState<AffectationRow | null>(null);
 
@@ -80,7 +82,11 @@ export default function Affectations() {
     enabled: vue === "detaillee",
   });
 
-  const { data: articles } = useQuery<{ rows: ArticleOpt[] }>({ queryKey: ["articles-all"], queryFn: () => apiGet("/articles?pageSize=500") });
+  const { data: articlesAtReference } = useQuery<{ rows: ArticleOpt[] }>({
+    queryKey: ["articles-at-reference", createReferenceId],
+    queryFn: () => apiGet(`/articles?articleReferenceId=${createReferenceId}&pageSize=200`),
+    enabled: open && createReferenceId != null,
+  });
   const { data: agents } = useQuery<{ rows: AgentOpt[] }>({ queryKey: ["agents-all"], queryFn: () => apiGet("/agents?pageSize=500"), enabled: open && beneficiaireKind === "agent" });
   const { data: equipes } = useQuery<EquipeOpt[]>({ queryKey: ["equipes-all"], queryFn: () => apiGet("/org/equipes"), enabled: open && beneficiaireKind === "equipe" });
 
@@ -90,16 +96,18 @@ export default function Affectations() {
       toast.success("Affectation créée");
       qc.invalidateQueries({ queryKey: ["affectations"] });
       qc.invalidateQueries({ queryKey: ["affectations-groupes"] });
-      qc.invalidateQueries({ queryKey: ["articles-all"] });
+      qc.invalidateQueries({ queryKey: ["articles-at-reference"] });
       setOpen(false);
+      setCreateReferenceId(null);
+      setSelectedArticleId("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const retourMutation = useMutation({
-    mutationFn: (body: { id: number; dateRetour: string; etatRetour: string }) => apiPost(`/affectations/${body.id}/retour`, body),
+    mutationFn: (body: { id: number; dateRetour: string; etatRetour: string; commentaire?: string }) => apiPost(`/affectations/${body.id}/retour`, body),
     onSuccess: () => {
-      toast.success("Retour enregistré");
+      toast.success("Affectation retirée");
       qc.invalidateQueries({ queryKey: ["affectations"] });
       qc.invalidateQueries({ queryKey: ["affectations-groupes"] });
       setRetourTarget(null);
@@ -175,7 +183,12 @@ export default function Affectations() {
     e.preventDefault();
     if (!retourTarget) return;
     const fd = new FormData(e.currentTarget);
-    retourMutation.mutate({ id: retourTarget.id, dateRetour: String(fd.get("dateRetour")), etatRetour: String(fd.get("etatRetour")) });
+    retourMutation.mutate({
+      id: retourTarget.id,
+      dateRetour: String(fd.get("dateRetour")),
+      etatRetour: String(fd.get("etatRetour")),
+      commentaire: String(fd.get("commentaire") || "") || undefined,
+    });
   }
 
   function onPerduSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -350,7 +363,16 @@ export default function Affectations() {
         </Card>
       )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o);
+          if (!o) {
+            setCreateReferenceId(null);
+            setSelectedArticleId("");
+          }
+        }}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Nouvelle affectation</DialogTitle></DialogHeader>
           <form onSubmit={onSubmit} className="space-y-4">
@@ -359,20 +381,23 @@ export default function Affectations() {
               <Button type="button" size="sm" variant={beneficiaireKind === "equipe" ? "default" : "outline"} onClick={() => setBeneficiaireKind("equipe")}>À une équipe (EPC)</Button>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="articleId">Article *</Label>
-              <select
-                id="articleId"
-                name="articleId"
-                required
-                value={selectedArticleId}
-                onChange={(e) => setSelectedArticleId(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
-              >
-                <option value="">Sélectionner…</option>
-                {articles?.rows.map((a) => <option key={a.id} value={a.id}>{a.designation} ({a.stockDisponible} dispo)</option>)}
-              </select>
+              <Label>Article * (Catégorie / Famille / Sous-famille / Article de référence / Article)</Label>
+              <ArticleReferencePicker value={createReferenceId} onChange={(id) => { setCreateReferenceId(id); setSelectedArticleId(""); }} />
+              {createReferenceId != null && (
+                <select
+                  id="articleId"
+                  name="articleId"
+                  required
+                  value={selectedArticleId}
+                  onChange={(e) => setSelectedArticleId(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
+                >
+                  <option value="">Sélectionner l'unité…</option>
+                  {articlesAtReference?.rows.map((a) => <option key={a.id} value={a.id}>{a.codeArticle} — {a.designation} ({a.stockDisponible} dispo)</option>)}
+                </select>
+              )}
             </div>
-            {articles?.rows.find((a) => String(a.id) === selectedArticleId)?.soumisControleReglementaire && (
+            {articlesAtReference?.rows.find((a) => String(a.id) === selectedArticleId)?.soumisControleReglementaire && (
               <div className="space-y-3 rounded-md border border-dashed p-3">
                 <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   <ShieldCheck className="h-3.5 w-3.5" /> Équipement soumis à contrôle règlementaire — identifiez l'unité physique
@@ -412,7 +437,7 @@ export default function Affectations() {
             <div className="space-y-1.5"><Label htmlFor="dateAffectation">Date</Label><Input id="dateAffectation" name="dateAffectation" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></div>
             <div className="space-y-1.5"><Label htmlFor="motif">Motif</Label><Input id="motif" name="motif" placeholder="Dotation initiale, renouvellement, remplacement…" /></div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
+              <Button type="button" variant="outline" onClick={() => { setOpen(false); setCreateReferenceId(null); setSelectedArticleId(""); }}>Annuler</Button>
               <Button type="submit" disabled={createMutation.isPending}>Affecter</Button>
             </DialogFooter>
           </form>
@@ -421,9 +446,9 @@ export default function Affectations() {
 
       <Dialog open={!!retourTarget} onOpenChange={(o) => !o && setRetourTarget(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Retour d'équipement</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Retirer l'affectation</DialogTitle></DialogHeader>
           <form onSubmit={onRetourSubmit} className="space-y-4">
-            <div className="space-y-1.5"><Label htmlFor="dateRetour">Date de retour</Label><Input id="dateRetour" name="dateRetour" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></div>
+            <div className="space-y-1.5"><Label htmlFor="dateRetour">Date de retrait</Label><Input id="dateRetour" name="dateRetour" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></div>
             <div className="space-y-1.5">
               <Label htmlFor="etatRetour">État à réception</Label>
               <select id="etatRetour" name="etatRetour" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm">
@@ -433,9 +458,10 @@ export default function Affectations() {
                 <option value="hors_service">Hors service — hors stock</option>
               </select>
             </div>
+            <div className="space-y-1.5"><Label htmlFor="commentaire">Commentaire</Label><Textarea id="commentaire" name="commentaire" rows={2} /></div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setRetourTarget(null)}>Annuler</Button>
-              <Button type="submit" disabled={retourMutation.isPending}>Confirmer le retour</Button>
+              <Button type="submit" disabled={retourMutation.isPending}>Confirmer le retrait</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -603,7 +629,7 @@ function AffectationDetailRow({
           )}
           {a.statut === "actif" && (
             <>
-              <Button size="sm" variant="ghost" onClick={() => onRetour(a)}><Undo2 className="h-3.5 w-3.5" /> Retour</Button>
+              <Button size="sm" variant="ghost" onClick={() => onRetour(a)}><Undo2 className="h-3.5 w-3.5" /> Retirer</Button>
               <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onPerdu(a)}>
                 <AlertTriangle className="h-3.5 w-3.5" /> Perdu
               </Button>
@@ -630,7 +656,7 @@ interface HistoriqueRow {
 const EVENEMENT_LABELS: Record<string, string> = {
   dotation: "Dotation",
   dotation_kit: "Application d'un gabarit",
-  retour: "Retour",
+  retour: "Retrait de l'affectation",
   declaration_perte: "Déclaration de perte",
   reforme: "Réforme",
   maj_unite_equipement: "Mise à jour de l'unité",

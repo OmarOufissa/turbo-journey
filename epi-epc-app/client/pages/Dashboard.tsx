@@ -17,17 +17,19 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-import { Package, Boxes, Truck, AlertTriangle, Ban, CalendarClock, Users, Network, ShieldCheck, ArrowRight, ClipboardList, Filter, Trash2 } from "lucide-react";
+import { Package, Boxes, Truck, AlertTriangle, Ban, CalendarClock, Users, Network, ShieldCheck, ArrowRight, ClipboardList, Filter, Trash2, ClipboardPlus } from "lucide-react";
 import { apiGet } from "@/lib/api";
 import type { DashboardKpis, DashboardCharts, DashboardReglementaire, Division, Service, Equipe, BesoinLine } from "@shared/api";
 import { StatCard } from "@/components/shared/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
+import { AffecterDialog, type AffecterInitial } from "@/components/shared/AffecterDialog";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { categoricalColor, coverageColor } from "@/lib/chartColors";
 
@@ -90,6 +92,8 @@ interface BesoinsResponse {
 
 export default function Dashboard() {
   const [filters, setFilters] = useState<DashboardFilters>(EMPTY_FILTERS);
+  const [affecterOpen, setAffecterOpen] = useState(false);
+  const [affecterBeneficiaire, setAffecterBeneficiaire] = useState<{ type: "agent" | "equipe"; id: number } | null>(null);
   const qs = useMemo(() => buildFilterQs(filters), [filters]);
   const qsSuffix = qs ? `?${qs}` : "";
 
@@ -119,9 +123,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">Tableau de bord</h1>
-        <p className="text-sm text-muted-foreground">Vue d'ensemble de la dotation EPI/EPC — Direction Transport Casablanca</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Tableau de bord</h1>
+          <p className="text-sm text-muted-foreground">Vue d'ensemble de la dotation EPI/EPC — Direction Transport Casablanca</p>
+        </div>
+        <Button onClick={() => setAffecterOpen(true)}><ClipboardPlus className="h-4 w-4" /> Affecter un matériel</Button>
       </div>
 
       <Card className="p-3">
@@ -301,9 +308,18 @@ export default function Dashboard() {
               <BesoinTable
                 title="Par division"
                 rows={besoins.parDivision.map((r) => ({ label: r.divisionId != null ? (divisionNomById.get(r.divisionId) ?? "?") : "Sans division", besoin: r.besoin, dote: r.dote }))}
+                onAffecter={setAffecterBeneficiaire}
               />
-              <BesoinTable title="Par équipe" rows={besoins.parEquipe.map((r) => ({ label: r.equipeNom, besoin: r.besoin, dote: r.dote }))} />
-              <BesoinTable title="Par agent" rows={besoins.parAgent.map((r) => ({ label: r.agentNom, besoin: r.besoin, dote: r.dote }))} />
+              <BesoinTable
+                title="Par équipe"
+                rows={besoins.parEquipe.map((r) => ({ label: r.equipeNom, besoin: r.besoin, dote: r.dote, beneficiaire: { type: "equipe" as const, id: r.equipeId } }))}
+                onAffecter={setAffecterBeneficiaire}
+              />
+              <BesoinTable
+                title="Par agent"
+                rows={besoins.parAgent.map((r) => ({ label: r.agentNom, besoin: r.besoin, dote: r.dote, beneficiaire: { type: "agent" as const, id: r.agentId } }))}
+                onAffecter={setAffecterBeneficiaire}
+              />
             </div>
           )}
         </CardContent>
@@ -471,27 +487,45 @@ export default function Dashboard() {
           </div>
         </>
       )}
+
+      <AffecterDialog
+        open={affecterOpen || affecterBeneficiaire != null}
+        onClose={() => { setAffecterOpen(false); setAffecterBeneficiaire(null); }}
+        initial={affecterBeneficiaire != null ? ({ beneficiaire: affecterBeneficiaire } satisfies AffecterInitial) : undefined}
+      />
     </div>
   );
 }
 
-function BesoinTable({ title, rows }: { title: string; rows: { label: string; besoin: number; dote: number }[] }) {
+interface BesoinTableRow {
+  label: string;
+  besoin: number;
+  dote: number;
+  beneficiaire?: { type: "agent" | "equipe"; id: number };
+}
+
+function BesoinTable({ title, rows, onAffecter }: { title: string; rows: BesoinTableRow[]; onAffecter: (b: { type: "agent" | "equipe"; id: number }) => void }) {
   const sorted = [...rows].sort((a, b) => b.besoin - a.besoin - (b.dote - a.dote)).slice(0, 12);
   return (
     <div>
       <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
       <Table>
         <TableHeader>
-          <TableRow><TableHead className="h-8">Nom</TableHead><TableHead className="h-8 text-right">Besoin</TableHead><TableHead className="h-8 text-right">Doté</TableHead></TableRow>
+          <TableRow><TableHead className="h-8">Nom</TableHead><TableHead className="h-8 text-right">Besoin</TableHead><TableHead className="h-8 text-right">Doté</TableHead><TableHead className="h-8" /></TableRow>
         </TableHeader>
         <TableBody>
-          {sorted.length === 0 && <TableRow><TableCell colSpan={3} className="py-4 text-center text-xs text-muted-foreground">Aucune donnée</TableCell></TableRow>}
+          {sorted.length === 0 && <TableRow><TableCell colSpan={4} className="py-4 text-center text-xs text-muted-foreground">Aucune donnée</TableCell></TableRow>}
           {sorted.map((r, i) => (
             <TableRow key={i}>
               <TableCell className="truncate text-sm">{r.label}</TableCell>
               <TableCell className="text-right tabular-nums text-sm">{r.besoin}</TableCell>
               <TableCell className="text-right tabular-nums text-sm">
                 <span className={r.dote < r.besoin ? "text-destructive font-medium" : ""}>{r.dote}</span>
+              </TableCell>
+              <TableCell className="text-right">
+                {r.beneficiaire && r.dote < r.besoin && (
+                  <Button size="sm" variant="ghost" onClick={() => onAffecter(r.beneficiaire!)}><ClipboardPlus className="h-3.5 w-3.5" /></Button>
+                )}
               </TableCell>
             </TableRow>
           ))}
