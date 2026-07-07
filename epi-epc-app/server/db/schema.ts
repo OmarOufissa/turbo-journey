@@ -334,12 +334,6 @@ export const articles = sqliteTable(
     marcheId: integer("marche_id").references(() => marches.id),
     fournisseur: text("fournisseur"),
     garantieMois: integer("garantie_mois"),
-    stockMin: integer("stock_min").notNull().default(0),
-    stockMax: integer("stock_max"),
-    // Compteurs dérivés du ledger stock_mouvements, maintenus par l'API pour lecture rapide
-    stockDisponible: integer("stock_disponible").notNull().default(0),
-    stockReserve: integer("stock_reserve").notNull().default(0),
-    stockCommande: integer("stock_commande").notNull().default(0),
     unite: text("unite").notNull().default("pièce"),
     actif: integer("actif", { mode: "boolean" }).notNull().default(true),
     createdAt: text("created_at").default(now).notNull(),
@@ -350,7 +344,6 @@ export const articles = sqliteTable(
     articleReferenceIdx: index("articles_article_reference_idx").on(t.articleReferenceId),
     hierarchieIdx: index("articles_hierarchie_idx").on(t.hierarchieId),
     designationIdx: index("articles_designation_idx").on(t.designation),
-    stockDisponibleIdx: index("articles_stock_disponible_idx").on(t.stockDisponible),
   }),
 );
 
@@ -373,7 +366,6 @@ export const articlesRelations = relations(articles, ({ one, many }) => ({
   articleReference: one(articlesReference, { fields: [articles.articleReferenceId], references: [articlesReference.id] }),
   hierarchie: one(equipementHierarchie, { fields: [articles.hierarchieId], references: [equipementHierarchie.id] }),
   marche: one(marches, { fields: [articles.marcheId], references: [marches.id] }),
-  mouvements: many(stockMouvements),
   affectations: many(affectations),
 }));
 export const marchesRelations = relations(marches, ({ many }) => ({ articles: many(articles) }));
@@ -423,33 +415,6 @@ export const kitTemplateLignesRelations = relations(kitTemplateLignes, ({ one })
   article: one(articles, { fields: [kitTemplateLignes.articleId], references: [articles.id] }),
   articleReference: one(articlesReference, { fields: [kitTemplateLignes.articleReferenceId], references: [articlesReference.id] }),
 }));
-
-// ============================================================================
-// STOCK — mouvements (ledger append-only)
-// ============================================================================
-
-// type: entree_achat | entree_retour | sortie_affectation | sortie_reforme | sortie_perte | ajustement
-export const stockMouvements = sqliteTable(
-  "stock_mouvements",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    articleId: integer("article_id")
-      .notNull()
-      .references(() => articles.id),
-    type: text("type").notNull(),
-    quantite: integer("quantite").notNull(), // signé : + entrée, - sortie
-    referenceType: text("reference_type"), // marche | affectation | reforme | manuel
-    referenceId: integer("reference_id"),
-    motif: text("motif"),
-    dateMouvement: text("date_mouvement").default(now).notNull(),
-    creeParUserId: integer("cree_par_user_id").references(() => users.id),
-    createdAt: text("created_at").default(now).notNull(),
-  },
-  (t) => ({
-    articleIdx: index("stock_mouvements_article_idx").on(t.articleId),
-    dateIdx: index("stock_mouvements_date_idx").on(t.dateMouvement),
-  }),
-);
 
 // ============================================================================
 // AFFECTATIONS — dotation nominative ou collective

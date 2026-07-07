@@ -100,54 +100,6 @@ rapportsRouter.get("/dotation-equipe/:equipeId", async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Excel — État des stocks
-// ---------------------------------------------------------------------------
-rapportsRouter.get("/etat-stock.xlsx", async (_req, res) => {
-  const [rowsRaw, familleAncestorMap] = await Promise.all([
-    db
-      .select({
-        code: articles.codeArticle,
-        designation: articles.designation,
-        hierarchieParentId: articlesReference.hierarchieParentId,
-        disponible: articles.stockDisponible,
-        reserve: articles.stockReserve,
-        commande: articles.stockCommande,
-        min: articles.stockMin,
-        max: articles.stockMax,
-        prix: articles.prixUnitaire,
-      })
-      .from(articles)
-      .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
-      .where(eq(articles.actif, true)),
-    getFamilleAncestorMap(),
-  ]);
-  const rows = rowsRaw
-    .map((r) => ({ ...r, famille: r.hierarchieParentId ? (familleAncestorMap.get(r.hierarchieParentId)?.nom ?? null) : null }))
-    .sort((a, b) => (a.famille ?? "").localeCompare(b.famille ?? "") || a.designation.localeCompare(b.designation));
-
-  const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("État des stocks");
-  ws.columns = [
-    { header: "Code", key: "code", width: 12 },
-    { header: "Désignation", key: "designation", width: 50 },
-    { header: "Famille", key: "famille", width: 24 },
-    { header: "Disponible", key: "disponible", width: 12 },
-    { header: "Réservé", key: "reserve", width: 10 },
-    { header: "Commandé", key: "commande", width: 10 },
-    { header: "Stock min", key: "min", width: 10 },
-    { header: "Stock max", key: "max", width: 10 },
-    { header: "Prix unitaire (MAD)", key: "prix", width: 16 },
-    { header: "État", key: "etat", width: 14 },
-  ];
-  rows.forEach((r) => {
-    const etat = r.disponible === 0 ? "Rupture" : r.disponible <= r.min ? "Stock faible" : "Normal";
-    ws.addRow({ ...r, prix: r.prix ? Number(r.prix) : null, etat });
-  });
-  styleHeader(ws);
-  await sendWorkbook(res, wb, "etat-stock.xlsx");
-});
-
-// ---------------------------------------------------------------------------
 // Excel — Inventaire complet
 // ---------------------------------------------------------------------------
 rapportsRouter.get("/inventaire.xlsx", async (_req, res) => {
@@ -161,7 +113,6 @@ rapportsRouter.get("/inventaire.xlsx", async (_req, res) => {
         constructeur: articles.constructeur,
         normes: articles.normes,
         fournisseur: articles.fournisseur,
-        disponible: articles.stockDisponible,
         unite: articles.unite,
         prix: articles.prixUnitaire,
         dateLimiteUtilisation: articles.dateLimiteUtilisation,
@@ -184,7 +135,6 @@ rapportsRouter.get("/inventaire.xlsx", async (_req, res) => {
     { header: "Constructeur", key: "constructeur", width: 18 },
     { header: "Normes", key: "normes", width: 16 },
     { header: "Fournisseur", key: "fournisseur", width: 20 },
-    { header: "Qté disponible", key: "disponible", width: 12 },
     { header: "Unité", key: "unite", width: 10 },
     { header: "Prix unitaire", key: "prix", width: 12 },
     { header: "Limite d'utilisation", key: "dateLimiteUtilisation", width: 16 },

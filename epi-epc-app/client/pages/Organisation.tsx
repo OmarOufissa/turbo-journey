@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { ChevronRight, ChevronDown, Building2, Briefcase, Users2, Plus, Pencil, Trash2, UserPlus, Archive, ClipboardPlus } from "lucide-react";
+import { ChevronRight, ChevronDown, Building2, Briefcase, Users2, Plus, Pencil, Trash2, UserPlus, Archive, ClipboardPlus, ArrowUpRight } from "lucide-react";
 import { apiGet, apiPost, apiPut, apiDelete, ApiError } from "@/lib/api";
 import type { Agent } from "@shared/api";
 import { Card, CardContent } from "@/components/ui/card";
@@ -174,6 +175,9 @@ export default function Organisation() {
                                         {eq.teamType && <Badge variant="muted">{eq.teamType}</Badge>}
                                         <Badge variant="outline">{eq.effectif} membre(s)</Badge>
                                       </button>
+                                      <Link to={`/organisation/equipes/${eq.id}`} onClick={(e) => e.stopPropagation()}>
+                                        <Button size="sm" variant="ghost" type="button"><ArrowUpRight className="h-3.5 w-3.5" /> Fiche</Button>
+                                      </Link>
                                       <Button size="sm" variant="ghost" onClick={() => setAffecterEquipeId(eq.id)}><ClipboardPlus className="h-3.5 w-3.5" /> Affecter</Button>
                                       <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "create-agent", divisionId: division.id, serviceId: service.id, equipeId: eq.id })}><UserPlus className="h-3.5 w-3.5" /></Button>
                                       <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "edit-org", kind: "equipe", id: eq.id, nom: eq.nom, teamType: eq.teamType })}><Pencil className="h-3.5 w-3.5" /></Button>

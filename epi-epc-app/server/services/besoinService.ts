@@ -1,7 +1,7 @@
 import { and, eq, gte, lte } from "drizzle-orm";
 import { db } from "../db";
 import { agents, equipes, services, kitTemplates, kitTemplateLignes, articlesReference, articles, affectations } from "../db/schema";
-import { resolveDescendantIds } from "./hierarchieService";
+import { resolveDescendantIds, getCategorieAncestorMap, getFamilleAncestorMap } from "./hierarchieService";
 
 export interface BesoinFilters {
   divisionId?: number;
@@ -23,6 +23,10 @@ export interface BesoinLine {
   divisionId: number | null;
   articleReferenceId: number;
   referenceDesignation: string;
+  categorieId: number | null;
+  categorieNom: string | null;
+  familleId: number | null;
+  familleNom: string | null;
   quantiteBesoin: number;
   quantiteDotee: number;
   ecart: number;
@@ -36,16 +40,25 @@ export interface BesoinLine {
  * tableau de bord et tout futur rapport — jamais recalculé ad hoc par écran.
  */
 export async function computeBesoins(filters: BesoinFilters): Promise<BesoinLine[]> {
-  const [allAgents, allEquipes, allServices, allTemplates, allLignes, allReferences] = await Promise.all([
+  const [allAgents, allEquipes, allServices, allTemplates, allLignes, allReferences, categorieAncestorMap, familleAncestorMap] = await Promise.all([
     db.select().from(agents),
     db.select().from(equipes),
     db.select().from(services),
     db.select().from(kitTemplates),
     db.select().from(kitTemplateLignes),
     db.select({ id: articlesReference.id, designation: articlesReference.designation, hierarchieParentId: articlesReference.hierarchieParentId }).from(articlesReference),
+    getCategorieAncestorMap(),
+    getFamilleAncestorMap(),
   ]);
 
   const referenceById = new Map(allReferences.map((r) => [r.id, r]));
+  function hierarchieInfo(articleReferenceId: number) {
+    const parentId = referenceById.get(articleReferenceId)?.hierarchieParentId;
+    if (parentId == null) return { categorieId: null, categorieNom: null, familleId: null, familleNom: null };
+    const categorie = categorieAncestorMap.get(parentId);
+    const famille = familleAncestorMap.get(parentId);
+    return { categorieId: categorie?.id ?? null, categorieNom: categorie?.nom ?? null, familleId: famille?.id ?? null, familleNom: famille?.nom ?? null };
+  }
   const equipeById = new Map(allEquipes.map((e) => [e.id, e]));
   const serviceById = new Map(allServices.map((s) => [s.id, s]));
   const lignesByTemplate = new Map<number, typeof allLignes>();
@@ -118,6 +131,7 @@ export async function computeBesoins(filters: BesoinFilters): Promise<BesoinLine
         divisionId: agent.divisionId,
         articleReferenceId,
         referenceDesignation: referenceById.get(articleReferenceId)?.designation ?? "?",
+        ...hierarchieInfo(articleReferenceId),
         quantiteBesoin,
         quantiteDotee,
         ecart: quantiteBesoin - quantiteDotee,
@@ -151,6 +165,7 @@ export async function computeBesoins(filters: BesoinFilters): Promise<BesoinLine
         divisionId: service?.divisionId ?? null,
         articleReferenceId,
         referenceDesignation: referenceById.get(articleReferenceId)?.designation ?? "?",
+        ...hierarchieInfo(articleReferenceId),
         quantiteBesoin,
         quantiteDotee,
         ecart: quantiteBesoin - quantiteDotee,
@@ -196,4 +211,61 @@ export function groupBesoinsByAgent(lines: BesoinLine[]) {
     byAgent.set(l.agentId, entry);
   }
   return [...byAgent.values()];
+}
+
+export function groupBesoinsByCategorie(lines: BesoinLine[]) {
+  const byCategorie = new Map<string, { categorieId: number | null; categorieNom: string; besoin: number; dote: number }>();
+  for (const l of lines) {
+    const key = String(l.categorieId ?? "sans-categorie");
+    const entry = byCategorie.get(key) ?? { categorieId: l.categorieId, categorieNom: l.categorieNom ?? "Sans catégorie", besoin: 0, dote: 0 };
+    entry.besoin += l.quantiteBesoin;
+    entry.dote += l.quantiteDotee;
+    byCategorie.set(key, entry);
+  }
+  return [...byCategorie.values()];
+}
+
+export function groupBesoinsByFamille(lines: BesoinLine[]) {
+  const byFamille = new Map<string, { familleId: number | null; familleNom: string; besoin: number; dote: number }>();
+  for (const l of lines) {
+    const key = String(l.familleId ?? "sans-famille");
+    const entry = byFamille.get(key) ?? { familleId: l.familleId, familleNom: l.familleNom ?? "Sans famille", besoin: 0, dote: 0 };
+    entry.besoin += l.quantiteBesoin;
+    entry.dote += l.quantiteDotee;
+    byFamille.set(key, entry);
+  }
+  return [...byFamille.values()];
+}
+
+/**
+ * Un bénéficiaire est "conforme" si toutes ses lignes de besoin ont quantiteDotee >=
+ * quantiteBesoin. Un bénéficiaire absent de `lines` (aucun gabarit applicable — rien
+ * requis, rien manquant) compte aussi comme conforme : totalAgents/totalEquipes (le
+ * nombre total de bénéficiaires dans le périmètre filtré) sert à les comptabiliser.
+ */
+export function summarizeConformite(lines: BesoinLine[], totalAgents: number, totalEquipes: number) {
+  const agentConforme = new Map<number, boolean>();
+  const equipeConforme = new Map<number, boolean>();
+  for (const l of lines) {
+    const conforme = l.quantiteDotee >= l.quantiteBesoin;
+    if (l.agentId != null) {
+      agentConforme.set(l.agentId, (agentConforme.get(l.agentId) ?? true) && conforme);
+    } else if (l.equipeId != null) {
+      equipeConforme.set(l.equipeId, (equipeConforme.get(l.equipeId) ?? true) && conforme);
+    }
+  }
+  let agentsAvecBesoin = 0;
+  for (const conforme of agentConforme.values()) {
+    if (!conforme) agentsAvecBesoin++;
+  }
+  let equipesAvecBesoin = 0;
+  for (const conforme of equipeConforme.values()) {
+    if (!conforme) equipesAvecBesoin++;
+  }
+  return {
+    agentsConformes: totalAgents - agentsAvecBesoin,
+    agentsAvecBesoin,
+    equipesConformes: totalEquipes - equipesAvecBesoin,
+    equipesAvecBesoin,
+  };
 }

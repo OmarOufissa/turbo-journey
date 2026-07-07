@@ -38,7 +38,7 @@ interface ArticleReferenceDetailData {
   observations: string | null;
   actif: boolean;
   hierarchie: { id: number; nom: string }[];
-  articles: { id: number; codeArticle: string; designation: string; stockDisponible: number; actif: boolean }[];
+  articles: { id: number; codeArticle: string; designation: string; nbAffectationsActives: number; actif: boolean }[];
   kitLignes: { kitTemplateId: number; kitLabel: string; quantite: number }[];
   documents: { id: number; typeDocument: string; nomFichier: string; url: string }[];
 }
@@ -210,7 +210,7 @@ export default function ArticleReferenceDetail() {
           <Card className="overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow><TableHead>Code</TableHead><TableHead>Désignation</TableHead><TableHead className="text-right">Disponible</TableHead><TableHead>Statut</TableHead></TableRow>
+                <TableRow><TableHead>Code</TableHead><TableHead>Désignation</TableHead><TableHead>Bénéficiaire actuel</TableHead><TableHead>Statut</TableHead></TableRow>
               </TableHeader>
               <TableBody>
                 {data.articles.length === 0 && <TableRow><TableCell colSpan={4} className="py-6 text-center text-muted-foreground">Aucun article physique rattaché</TableCell></TableRow>}
@@ -218,7 +218,7 @@ export default function ArticleReferenceDetail() {
                   <TableRow key={a.id} className="cursor-pointer" onClick={() => navigate(`/articles/${a.id}`)}>
                     <TableCell className="font-mono text-xs text-muted-foreground">{a.codeArticle}</TableCell>
                     <TableCell>{a.designation}</TableCell>
-                    <TableCell className="text-right tabular-nums">{a.stockDisponible}</TableCell>
+                    <TableCell className="text-muted-foreground">{a.nbAffectationsActives > 0 ? `Affecté (${a.nbAffectationsActives})` : "Disponible"}</TableCell>
                     <TableCell><Badge variant={a.actif ? "success" : "muted"}>{a.actif ? "Actif" : "Inactif"}</Badge></TableCell>
                   </TableRow>
                 ))}

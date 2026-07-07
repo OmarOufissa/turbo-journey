@@ -18,7 +18,6 @@ const TABLES_IN_DEPENDENCY_ORDER = [
   "reformes",
   "controles_periodiques",
   "affectations",
-  "stock_mouvements",
   "kit_template_lignes",
   "kit_templates",
   "articles",

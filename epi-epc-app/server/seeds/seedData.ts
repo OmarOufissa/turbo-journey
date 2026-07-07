@@ -176,8 +176,8 @@ export async function seedDatabase() {
 
   // Champs volontairement absents (non fournis par les fichiers sources) :
   // prixUnitaire, marcheId, fournisseur, dateFabrication, dureeVieMois,
-  // dateLimiteUtilisation, garantieMois, stockMin/Max/Disponible/Reserve/Commande
-  // (tous restent à leurs valeurs par défaut — null ou 0 — jusqu'à saisie réelle).
+  // dateLimiteUtilisation, garantieMois (tous restent à leurs valeurs par
+  // défaut — null — jusqu'à saisie réelle).
   const articleCodeToId = new Map<string, number>();
   const articleRows = articlesFixture.map((a) => {
     const articleReferenceId = referenceIdByPath.get(a.hierarchie_path.join("||"));
@@ -392,7 +392,7 @@ export async function seedDatabase() {
   console.log(`  Divisions: ${divisionIdByName.size + 1} · Services: ${serviceIdByName.size + 3} · Équipes: ${equipeIdByName.size}`);
   console.log(`  Agents: ${insertedAgents.length} · Articles: ${insertedArticles.length} · Affectations: ${insertedAffectations.length}`);
   console.log(`  Gabarits: ${kitTemplateIdByKey.size}`);
-  console.log("\n⚠ Aucune donnée de stock, prix, marché ou contrôle périodique n'a été chargée :");
+  console.log("\n⚠ Aucune donnée de prix, marché ou contrôle périodique n'a été chargée :");
   console.log("  ces informations ne figuraient pas dans les fichiers sources. Saisissez les valeurs");
   console.log("  réelles dans l'application (fiches articles, marchés, contrôles) avant mise en service.");
 }

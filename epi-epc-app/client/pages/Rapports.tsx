@@ -10,7 +10,6 @@ interface AgentOpt { id: number; nom: string; matricule: string }
 interface EquipeOpt { id: number; nom: string }
 
 const EXCEL_REPORTS = [
-  { path: "/rapports/etat-stock.xlsx", label: "État des stocks", description: "Disponible, réservé, commandé, seuils par article" },
   { path: "/rapports/inventaire.xlsx", label: "Inventaire complet", description: "Fiche complète de chaque article du catalogue" },
   { path: "/rapports/marches.xlsx", label: "État des marchés", description: "Contrats, montants et statuts de livraison" },
   { path: "/rapports/consommation-annuelle.xlsx", label: "Consommation annuelle", description: "Quantités distribuées par article et par année" },

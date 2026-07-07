@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StockBadge } from "@/components/shared/Badges";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -25,9 +24,8 @@ interface ArticleRow {
   hierarchieNom: string | null;
   articleReferenceCode: string | null;
   articleReferenceDesignation: string | null;
-  stockDisponible: number;
-  stockMin: number;
-  stockMax: number | null;
+  beneficiaireActuel: string | null;
+  nbAffectationsActives: number;
   prixUnitaire: string | null;
   aTaille: boolean;
   aPointure: boolean;
@@ -42,7 +40,6 @@ export default function Articles() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [ancestorId, setAncestorId] = useState<number | null>(null);
-  const [stockStatut, setStockStatut] = useState<string>("all");
   const [fournisseur, setFournisseur] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [createReferenceId, setCreateReferenceId] = useState<number | null>(null);
@@ -51,10 +48,10 @@ export default function Articles() {
   const { data: fournisseurs } = useQuery<string[]>({ queryKey: ["articles-fournisseurs"], queryFn: () => apiGet("/articles/fournisseurs") });
 
   const { data, isLoading } = useQuery<{ rows: ArticleRow[]; total: number }>({
-    queryKey: ["articles", q, ancestorId, stockStatut, fournisseur],
+    queryKey: ["articles", q, ancestorId, fournisseur],
     queryFn: () =>
       apiGet(
-        `/articles?pageSize=200${q ? `&q=${encodeURIComponent(q)}` : ""}${ancestorId != null ? `&ancestorId=${ancestorId}` : ""}${stockStatut !== "all" ? `&stockStatut=${stockStatut}` : ""}${fournisseur !== "all" ? `&fournisseur=${encodeURIComponent(fournisseur)}` : ""}`,
+        `/articles?pageSize=200${q ? `&q=${encodeURIComponent(q)}` : ""}${ancestorId != null ? `&ancestorId=${ancestorId}` : ""}${fournisseur !== "all" ? `&fournisseur=${encodeURIComponent(fournisseur)}` : ""}`,
       ),
   });
 
@@ -88,8 +85,6 @@ export default function Articles() {
       dateAcquisition: fd.get("dateAcquisition") || null,
       numeroSerie: fd.get("numeroSerie") || null,
       prixUnitaire: fd.get("prixUnitaire") || null,
-      stockMin: Number(fd.get("stockMin") || 0),
-      stockMax: fd.get("stockMax") ? Number(fd.get("stockMax")) : null,
       aTaille: fd.get("aTaille") === "on",
       aPointure: fd.get("aPointure") === "on",
       unite: fd.get("unite") || "pièce",
@@ -115,14 +110,6 @@ export default function Articles() {
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un article, un code…" className="pl-8" />
           </div>
           <HierarchieCascade value={ancestorId} onChange={setAncestorId} allowAll labels={HIERARCHIE_LABELS} />
-          <Select value={stockStatut} onValueChange={setStockStatut}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="État du stock" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les états</SelectItem>
-              <SelectItem value="rupture">Rupture</SelectItem>
-              <SelectItem value="faible">Stock faible</SelectItem>
-            </SelectContent>
-          </Select>
           <Select value={fournisseur} onValueChange={setFournisseur}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Fournisseur" /></SelectTrigger>
             <SelectContent>
@@ -143,18 +130,17 @@ export default function Articles() {
               <TableHead>Désignation</TableHead>
               <TableHead>Article de référence</TableHead>
               <TableHead>Famille</TableHead>
-              <TableHead className="text-right">Disponible</TableHead>
-              <TableHead>État</TableHead>
+              <TableHead>Bénéficiaire actuel</TableHead>
               <TableHead className="text-right">Prix unitaire</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && (
-              <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>
             )}
             {!isLoading && data?.rows.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucun article ne correspond aux filtres</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Aucun article ne correspond aux filtres</TableCell></TableRow>
             )}
             {data?.rows.map((a) => (
               <TableRow key={a.id} className="cursor-pointer" onClick={() => navigate(`/articles/${a.id}`)}>
@@ -165,8 +151,16 @@ export default function Articles() {
                 </TableCell>
                 <TableCell className="text-muted-foreground">{a.articleReferenceDesignation ?? "—"}</TableCell>
                 <TableCell className="text-muted-foreground">{a.hierarchieNom}</TableCell>
-                <TableCell className="text-right tabular-nums">{a.stockDisponible}</TableCell>
-                <TableCell><StockBadge disponible={a.stockDisponible} min={a.stockMin} /></TableCell>
+                <TableCell className="text-muted-foreground">
+                  {a.beneficiaireActuel ? (
+                    <>
+                      {a.beneficiaireActuel}
+                      {a.nbAffectationsActives > 1 && <span className="text-xs"> (+{a.nbAffectationsActives - 1})</span>}
+                    </>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
                 <TableCell className="text-right tabular-nums">{formatMoney(a.prixUnitaire)}</TableCell>
                 <TableCell className="text-right">
                   <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setAffecterArticleId(a.id); }}>
@@ -232,14 +226,6 @@ export default function Articles() {
             <div className="space-y-1.5">
               <Label htmlFor="prixUnitaire">Prix unitaire (MAD)</Label>
               <Input id="prixUnitaire" name="prixUnitaire" type="number" step="0.01" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="stockMin">Stock minimum</Label>
-              <Input id="stockMin" name="stockMin" type="number" defaultValue={0} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="stockMax">Stock maximum</Label>
-              <Input id="stockMax" name="stockMax" type="number" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="unite">Unité</Label>

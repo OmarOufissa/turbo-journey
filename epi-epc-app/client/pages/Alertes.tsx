@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { CheckCheck, Bell, AlertTriangle, Ban, Info, Package, Wrench, CalendarClock, Truck } from "lucide-react";
+import { CheckCheck, Bell, Info, Package, Wrench, CalendarClock, Truck } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,6 @@ interface Alerte {
 }
 
 const TYPE_ICON: Record<string, typeof Bell> = {
-  stock_faible: AlertTriangle,
-  rupture: Ban,
   fin_de_vie: Package,
   controle_a_faire: Wrench,
   inspection: Wrench,
@@ -70,7 +68,7 @@ export default function Alertes() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Alertes</h1>
-          <p className="text-sm text-muted-foreground">Stock, contrôles, fins de vie et livraisons attendues</p>
+          <p className="text-sm text-muted-foreground">Contrôles, fins de vie et livraisons attendues</p>
         </div>
         <Button variant="outline" onClick={() => toutMarquer.mutate()}><CheckCheck className="h-4 w-4" /> Tout marquer comme lu</Button>
       </div>

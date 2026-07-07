@@ -66,6 +66,22 @@ export async function getFamilleAncestorMap(): Promise<Map<number, HierarchieNod
   return result;
 }
 
+// Même principe que getFamilleAncestorMap, mais remonte jusqu'à la catégorie générale
+// (niveau 1) — utilisé par le moteur de besoin pour le regroupement "par catégorie".
+export async function getCategorieAncestorMap(): Promise<Map<number, HierarchieNode>> {
+  const all = await loadAllNodes();
+  const byId = new Map(all.map((n) => [n.id, n]));
+  const result = new Map<number, HierarchieNode>();
+  for (const n of all) {
+    let current = n;
+    while (current.niveau > 1 && current.parentId != null) {
+      current = byId.get(current.parentId)!;
+    }
+    result.set(n.id, current);
+  }
+  return result;
+}
+
 /** Chaîne complète des ancêtres, de la catégorie générale (racine) jusqu'au nœud lui-même. */
 export async function getAncestorChain(nodeId: number): Promise<HierarchieNode[]> {
   const all = await loadAllNodes();

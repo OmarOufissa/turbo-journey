@@ -67,21 +67,32 @@ describe("articles", () => {
   });
 });
 
-describe("affectations — règles de stock", () => {
-  it("refuse une affectation dont la quantité dépasse le stock disponible", async () => {
-    const articles = await request(app).get("/api/articles?pageSize=1").set("Authorization", `Bearer ${adminToken}`);
-    const article = articles.body.rows[0];
+describe("affectations", () => {
+  // Régression : l'ancien modèle bloquait toute affectation sur un article fraîchement créé
+  // (stockDisponible démarrait à 0 et n'était jamais réellement alimenté par un flux d'achat
+  // réel), donc l'affectation renvoyait systématiquement 409. Le modèle affectation/besoin
+  // n'a plus de compteur à alimenter au préalable : la création doit réussir directement.
+  it("affecte avec succès un article tout juste créé, sans aucune alimentation préalable", async () => {
+    const references = await request(app).get("/api/articles-reference?pageSize=1&actif=true").set("Authorization", `Bearer ${adminToken}`);
+    const reference = references.body.rows[0];
+
+    const createArticle = await request(app)
+      .post("/api/articles")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ articleReferenceId: reference.id, designation: "Article de test — affectation immédiate" });
+    expect(createArticle.status).toBe(201);
+
     const res = await request(app)
       .post("/api/affectations")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({
-        articleId: article.id,
+        articleId: createArticle.body.id,
         beneficiaireType: "agent",
         agentId: 1,
-        quantite: article.stockDisponible + 1000,
+        quantite: 1,
         dateAffectation: "2026-07-02",
       });
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(201);
   });
 });
 

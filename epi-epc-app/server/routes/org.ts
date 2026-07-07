@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { db } from "../db";
-import { divisions, services, equipes, agents } from "../db/schema";
-import { eq, count } from "drizzle-orm";
+import { divisions, services, equipes, agents, affectations, articles } from "../db/schema";
+import { eq, count, desc } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
+import { computeBesoins } from "../services/besoinService";
 import type { AuthedRequest } from "../middleware/auth";
 
 export const orgRouter = Router();
@@ -44,6 +45,53 @@ orgRouter.get("/tree", async (_req, res) => {
 orgRouter.get("/divisions", async (_req, res) => res.json(await db.select().from(divisions)));
 orgRouter.get("/services", async (_req, res) => res.json(await db.select().from(services)));
 orgRouter.get("/equipes", async (_req, res) => res.json(await db.select().from(equipes)));
+
+// Fiche équipe : infos + service/division, agents membres, dotations collectives (EPC) et
+// besoin — pendant de GET /agents/:id pour les bénéficiaires collectifs.
+orgRouter.get("/equipes/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const [equipe] = await db
+    .select({
+      id: equipes.id,
+      code: equipes.code,
+      nom: equipes.nom,
+      teamType: equipes.teamType,
+      serviceId: equipes.serviceId,
+      serviceNom: services.nom,
+      divisionId: services.divisionId,
+      divisionNom: divisions.nom,
+    })
+    .from(equipes)
+    .leftJoin(services, eq(equipes.serviceId, services.id))
+    .leftJoin(divisions, eq(services.divisionId, divisions.id))
+    .where(eq(equipes.id, id));
+  if (!equipe) return res.status(404).json({ error: "Équipe introuvable" });
+
+  const [membres, dotations, besoinLines] = await Promise.all([
+    db
+      .select({ id: agents.id, matricule: agents.matricule, nom: agents.nom, prenom: agents.prenom, poste: agents.poste, statut: agents.statut })
+      .from(agents)
+      .where(eq(agents.equipeId, id))
+      .orderBy(agents.nom),
+    db
+      .select({
+        id: affectations.id,
+        articleId: affectations.articleId,
+        designation: articles.designation,
+        quantite: affectations.quantite,
+        dateAffectation: affectations.dateAffectation,
+        statut: affectations.statut,
+        motif: affectations.motif,
+      })
+      .from(affectations)
+      .innerJoin(articles, eq(affectations.articleId, articles.id))
+      .where(eq(affectations.equipeId, id))
+      .orderBy(desc(affectations.dateAffectation)),
+    computeBesoins({ equipeId: id }),
+  ]);
+
+  res.json({ ...equipe, membres, dotations, besoins: besoinLines });
+});
 
 orgRouter.post("/divisions", async (req: AuthedRequest, res) => {
   const { code, nom } = req.body;

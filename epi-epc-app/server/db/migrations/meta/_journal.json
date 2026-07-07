@@ -36,6 +36,13 @@
       "when": 1783277544034,
       "tag": "0004_drop_reparations",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1783438065449,
+      "tag": "0005_remove_stock",
+      "breakpoints": true
     }
   ]
 }

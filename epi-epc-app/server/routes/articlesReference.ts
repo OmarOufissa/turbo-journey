@@ -77,7 +77,13 @@ articlesReferenceRouter.get("/:id", async (req, res) => {
   const [hierarchie, liesArticles, liesLignes, docs] = await Promise.all([
     getAncestorChain(reference.hierarchieParentId),
     db
-      .select({ id: articles.id, codeArticle: articles.codeArticle, designation: articles.designation, stockDisponible: articles.stockDisponible, actif: articles.actif })
+      .select({
+        id: articles.id,
+        codeArticle: articles.codeArticle,
+        designation: articles.designation,
+        actif: articles.actif,
+        nbAffectationsActives: sql<number>`(select count(*) from affectations where affectations.article_id = articles.id and affectations.statut = 'actif')`,
+      })
       .from(articles)
       .where(eq(articles.articleReferenceId, id)),
     db

@@ -19,6 +19,7 @@ import Marches from "@/pages/Marches";
 import Agents from "@/pages/Agents";
 import AgentDetail from "@/pages/AgentDetail";
 import Organisation from "@/pages/Organisation";
+import EquipeDetail from "@/pages/EquipeDetail";
 import Affectations from "@/pages/Affectations";
 import Controles from "@/pages/Controles";
 import Alertes from "@/pages/Alertes";
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="/agents" element={<Agents />} />
                 <Route path="/agents/:id" element={<AgentDetail />} />
                 <Route path="/organisation" element={<Organisation />} />
+                <Route path="/organisation/equipes/:id" element={<EquipeDetail />} />
                 <Route path="/affectations" element={<Affectations />} />
                 <Route path="/controles" element={<Controles />} />
                 <Route path="/alertes" element={<Alertes />} />

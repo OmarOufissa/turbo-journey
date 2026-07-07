@@ -17,7 +17,7 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-import { Package, Boxes, Truck, AlertTriangle, Ban, CalendarClock, Users, Network, ShieldCheck, ArrowRight, ClipboardList, Filter, Trash2, ClipboardPlus } from "lucide-react";
+import { Package, AlertTriangle, Ban, CalendarClock, Users, Network, ShieldCheck, ArrowRight, ClipboardList, Filter, Trash2, ClipboardPlus } from "lucide-react";
 import { apiGet } from "@/lib/api";
 import type { DashboardKpis, DashboardCharts, DashboardReglementaire, Division, Service, Equipe, BesoinLine } from "@shared/api";
 import { StatCard } from "@/components/shared/StatCard";
@@ -81,13 +81,13 @@ interface ArticlesStatut {
   arrivantAEcheance: number;
   dureeVieAtteinte: number;
   reformes: number;
-  disponibles: number;
-  indisponibles: number;
 }
 interface BesoinsResponse {
   parDivision: { divisionId: number | null; besoin: number; dote: number }[];
   parEquipe: { equipeId: number; equipeNom: string; besoin: number; dote: number }[];
   parAgent: { agentId: number; agentNom: string; besoin: number; dote: number }[];
+  parCategorie: { categorieId: number | null; categorieNom: string; besoin: number; dote: number }[];
+  parFamille: { familleId: number | null; familleNom: string; besoin: number; dote: number }[];
 }
 
 export default function Dashboard() {
@@ -175,22 +175,82 @@ export default function Dashboard() {
 
       {loadingKpis || !kpis ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
+          {Array.from({ length: 9 }).map((_, i) => (
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <StatCard label="Références articles" value={kpis.totalReferences} icon={Package} hint={`${kpis.totalArticles.toLocaleString("fr-FR")} unités au total`} />
-          <StatCard label="Stock disponible" value={kpis.stockDisponible.toLocaleString("fr-FR")} icon={Boxes} hint={formatMoney(kpis.valeurStockDisponible)} />
-          <StatCard label="Distribué (en service)" value={kpis.stockDistribue.toLocaleString("fr-FR")} icon={Truck} />
           <StatCard label="Bénéficiaires actifs" value={kpis.totalBeneficiaires} icon={Users} />
           <StatCard label="Équipes" value={kpis.totalEquipes} icon={Network} />
-          <StatCard label="Ruptures de stock" value={kpis.articlesRupture} icon={Ban} tone={kpis.articlesRupture ? "critical" : "success"} />
-          <StatCard label="Stock faible" value={kpis.articlesStockFaible} icon={AlertTriangle} tone={kpis.articlesStockFaible ? "warning" : "success"} />
-          <StatCard label="Contrôles en retard" value={kpis.controlesEnRetard} icon={CalendarClock} tone={kpis.controlesEnRetard ? "critical" : "success"} />
+          <StatCard label="Agents conformes" value={kpis.agentsConformes} icon={ShieldCheck} tone="success" />
+          <StatCard label="Agents avec besoin" value={kpis.agentsAvecBesoin} icon={AlertTriangle} tone={kpis.agentsAvecBesoin ? "warning" : "success"} />
+          <StatCard label="Équipes conformes" value={kpis.equipesConformes} icon={ShieldCheck} tone="success" />
+          <StatCard label="Équipes avec besoin" value={kpis.equipesAvecBesoin} icon={AlertTriangle} tone={kpis.equipesAvecBesoin ? "warning" : "success"} />
+          <StatCard label="Contrôles réglementaires à réaliser" value={kpis.controlesReglementairesARealiser} icon={CalendarClock} tone={kpis.controlesReglementairesARealiser ? "critical" : "success"} />
+          <StatCard label="Contrôles périodiques à réaliser" value={kpis.controlesPeriodiquesARealiser} icon={CalendarClock} tone={kpis.controlesPeriodiquesARealiser ? "warning" : "success"} />
         </div>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><ClipboardList className="h-4 w-4" /> Besoins vs. dotation</CardTitle>
+          <p className="text-xs text-muted-foreground">Écart entre le gabarit de dotation applicable (besoin) et les affectations actives (doté), par division / équipe / agent / catégorie / famille</p>
+        </CardHeader>
+        <CardContent>
+          {loadingBesoins || !besoins ? (
+            <Skeleton className="h-48" />
+          ) : (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <BesoinTable
+                title="Par division"
+                rows={besoins.parDivision.map((r) => ({ label: r.divisionId != null ? (divisionNomById.get(r.divisionId) ?? "?") : "Sans division", besoin: r.besoin, dote: r.dote }))}
+                onAffecter={setAffecterBeneficiaire}
+              />
+              <BesoinTable
+                title="Par équipe"
+                rows={besoins.parEquipe.map((r) => ({ label: r.equipeNom, besoin: r.besoin, dote: r.dote, beneficiaire: { type: "equipe" as const, id: r.equipeId } }))}
+                onAffecter={setAffecterBeneficiaire}
+              />
+              <BesoinTable
+                title="Par agent"
+                rows={besoins.parAgent.map((r) => ({ label: r.agentNom, besoin: r.besoin, dote: r.dote, beneficiaire: { type: "agent" as const, id: r.agentId } }))}
+                onAffecter={setAffecterBeneficiaire}
+              />
+              <BesoinTable
+                title="Par catégorie"
+                rows={besoins.parCategorie.map((r) => ({ label: r.categorieNom, besoin: r.besoin, dote: r.dote }))}
+                onAffecter={setAffecterBeneficiaire}
+              />
+              <BesoinTable
+                title="Par famille"
+                rows={besoins.parFamille.map((r) => ({ label: r.familleNom, besoin: r.besoin, dote: r.dote }))}
+                onAffecter={setAffecterBeneficiaire}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Ban className="h-4 w-4" /> État des articles</CardTitle>
+          <p className="text-xs text-muted-foreground">Expirés, arrivant à échéance, durée de vie atteinte, réformés</p>
+        </CardHeader>
+        <CardContent>
+          {loadingArticlesStatut || !articlesStatut ? (
+            <Skeleton className="h-20" />
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatCard label="Expirés" value={articlesStatut.expires} icon={Ban} tone={articlesStatut.expires ? "critical" : "success"} />
+              <StatCard label="Arrivant à échéance" value={articlesStatut.arrivantAEcheance} icon={CalendarClock} tone={articlesStatut.arrivantAEcheance ? "warning" : "success"} />
+              <StatCard label="Durée de vie atteinte" value={articlesStatut.dureeVieAtteinte} icon={AlertTriangle} tone={articlesStatut.dureeVieAtteinte ? "warning" : "success"} />
+              <StatCard label="Réformés" value={articlesStatut.reformes} icon={Trash2} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
@@ -270,57 +330,6 @@ export default function Dashboard() {
                 </div>
               </div>
             </>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Ban className="h-4 w-4" /> État des articles</CardTitle>
-          <p className="text-xs text-muted-foreground">Expirés, arrivant à échéance, durée de vie atteinte, réformés, disponibles / indisponibles</p>
-        </CardHeader>
-        <CardContent>
-          {loadingArticlesStatut || !articlesStatut ? (
-            <Skeleton className="h-20" />
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              <StatCard label="Expirés" value={articlesStatut.expires} icon={Ban} tone={articlesStatut.expires ? "critical" : "success"} />
-              <StatCard label="Arrivant à échéance" value={articlesStatut.arrivantAEcheance} icon={CalendarClock} tone={articlesStatut.arrivantAEcheance ? "warning" : "success"} />
-              <StatCard label="Durée de vie atteinte" value={articlesStatut.dureeVieAtteinte} icon={AlertTriangle} tone={articlesStatut.dureeVieAtteinte ? "warning" : "success"} />
-              <StatCard label="Réformés" value={articlesStatut.reformes} icon={Trash2} />
-              <StatCard label="Disponibles" value={articlesStatut.disponibles} icon={Boxes} tone="success" />
-              <StatCard label="Indisponibles" value={articlesStatut.indisponibles} icon={Ban} tone={articlesStatut.indisponibles ? "warning" : "success"} />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><ClipboardList className="h-4 w-4" /> Besoins vs. dotation</CardTitle>
-          <p className="text-xs text-muted-foreground">Écart entre le gabarit de dotation applicable (besoin) et les affectations actives (doté), par division / équipe / agent</p>
-        </CardHeader>
-        <CardContent>
-          {loadingBesoins || !besoins ? (
-            <Skeleton className="h-48" />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <BesoinTable
-                title="Par division"
-                rows={besoins.parDivision.map((r) => ({ label: r.divisionId != null ? (divisionNomById.get(r.divisionId) ?? "?") : "Sans division", besoin: r.besoin, dote: r.dote }))}
-                onAffecter={setAffecterBeneficiaire}
-              />
-              <BesoinTable
-                title="Par équipe"
-                rows={besoins.parEquipe.map((r) => ({ label: r.equipeNom, besoin: r.besoin, dote: r.dote, beneficiaire: { type: "equipe" as const, id: r.equipeId } }))}
-                onAffecter={setAffecterBeneficiaire}
-              />
-              <BesoinTable
-                title="Par agent"
-                rows={besoins.parAgent.map((r) => ({ label: r.agentNom, besoin: r.besoin, dote: r.dote, beneficiaire: { type: "agent" as const, id: r.agentId } }))}
-                onAffecter={setAffecterBeneficiaire}
-              />
-            </div>
           )}
         </CardContent>
       </Card>

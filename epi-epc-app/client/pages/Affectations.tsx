@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Plus, Undo2, Trash2, ChevronRight, ChevronDown, LayoutList, Layers, ShieldCheck, AlertTriangle, History, Search } from "lucide-react";
-import { apiGet, apiPost } from "@/lib/api";
+import { Plus, Undo2, Trash2, ChevronRight, ChevronDown, LayoutList, Layers, ShieldCheck, AlertTriangle, History, Search, Pencil } from "lucide-react";
+import { apiGet, apiPost, apiPut } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ interface AffectationRow {
   numeroSerie: string | null;
   lieuEmplacement: string | null;
   marque: string | null;
+  observations: string | null;
   soumisControleReglementaire: boolean;
 }
 interface GroupRow {
@@ -46,7 +47,7 @@ interface GroupRow {
   nbPerdu: number;
   nbReforme: number;
 }
-interface ArticleOpt { id: number; designation: string; codeArticle: string; stockDisponible: number; soumisControleReglementaire: boolean }
+interface ArticleOpt { id: number; designation: string; codeArticle: string; beneficiaireActuel: string | null; soumisControleReglementaire: boolean }
 interface AgentOpt { id: number; nom: string; matricule: string }
 interface EquipeOpt { id: number; nom: string }
 
@@ -58,6 +59,7 @@ export default function Affectations() {
   const [q, setQ] = useState("");
   const [ancestorId, setAncestorId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
+  const [modifierTarget, setModifierTarget] = useState<AffectationRow | null>(null);
   const [retourTarget, setRetourTarget] = useState<AffectationRow | null>(null);
   const [perduTarget, setPerduTarget] = useState<AffectationRow | null>(null);
   const [reformeTarget, setReformeTarget] = useState<AffectationRow | null>(null);
@@ -100,6 +102,17 @@ export default function Affectations() {
       setOpen(false);
       setCreateReferenceId(null);
       setSelectedArticleId("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const modifierMutation = useMutation({
+    mutationFn: (body: { id: number; dateAffectation: string; motif: string; observations: string }) => apiPut(`/affectations/${body.id}`, body),
+    onSuccess: () => {
+      toast.success("Affectation modifiée");
+      qc.invalidateQueries({ queryKey: ["affectations"] });
+      qc.invalidateQueries({ queryKey: ["affectations-groupes"] });
+      setModifierTarget(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -176,6 +189,18 @@ export default function Affectations() {
       affectationId: controleTarget.id,
       type: fd.get("type"),
       datePlanifiee: fd.get("datePlanifiee"),
+    });
+  }
+
+  function onModifierSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!modifierTarget) return;
+    const fd = new FormData(e.currentTarget);
+    modifierMutation.mutate({
+      id: modifierTarget.id,
+      dateAffectation: String(fd.get("dateAffectation")),
+      motif: String(fd.get("motif") || ""),
+      observations: String(fd.get("observations") || ""),
     });
   }
 
@@ -318,6 +343,7 @@ export default function Affectations() {
                             articleId={g.articleId}
                             beneficiaireType={g.beneficiaireType}
                             statut={statut}
+                            onModifier={setModifierTarget}
                             onRetour={setRetourTarget}
                             onPerdu={setPerduTarget}
                             onReforme={setReformeTarget}
@@ -352,6 +378,7 @@ export default function Affectations() {
                 <AffectationDetailRow
                   key={a.id}
                   a={a}
+                  onModifier={setModifierTarget}
                   onRetour={setRetourTarget}
                   onPerdu={setPerduTarget}
                   onReforme={setReformeTarget}
@@ -394,7 +421,7 @@ export default function Affectations() {
                   className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
                 >
                   <option value="">Sélectionner l'unité…</option>
-                  {articlesAtReference?.rows.map((a) => <option key={a.id} value={a.id}>{a.codeArticle} — {a.designation} ({a.stockDisponible} dispo)</option>)}
+                  {articlesAtReference?.rows.map((a) => <option key={a.id} value={a.id}>{a.codeArticle} — {a.designation} ({a.beneficiaireActuel ? `affecté à ${a.beneficiaireActuel}` : "disponible"})</option>)}
                 </select>
               )}
             </div>
@@ -445,6 +472,35 @@ export default function Affectations() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!modifierTarget} onOpenChange={(o) => !o && setModifierTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Modifier l'affectation</DialogTitle></DialogHeader>
+          {modifierTarget && (
+            <p className="-mt-2 text-sm text-muted-foreground">
+              {modifierTarget.designation} — {modifierTarget.agentNom ?? modifierTarget.equipeNom}
+            </p>
+          )}
+          <form onSubmit={onModifierSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="dateAffectation">Date</Label>
+              <Input id="dateAffectation" name="dateAffectation" type="date" required defaultValue={modifierTarget?.dateAffectation ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="motif">Motif</Label>
+              <Input id="motif" name="motif" defaultValue={modifierTarget?.motif ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="observations">Observations</Label>
+              <Textarea id="observations" name="observations" rows={2} defaultValue={modifierTarget?.observations ?? ""} />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setModifierTarget(null)}>Annuler</Button>
+              <Button type="submit" disabled={modifierMutation.isPending}>Enregistrer</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!retourTarget} onOpenChange={(o) => !o && setRetourTarget(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Retirer l'affectation</DialogTitle></DialogHeader>
@@ -453,10 +509,10 @@ export default function Affectations() {
             <div className="space-y-1.5">
               <Label htmlFor="etatRetour">État à réception</Label>
               <select id="etatRetour" name="etatRetour" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm">
-                <option value="bon">Bon état — remis en stock</option>
-                <option value="usage_normal">Usure normale — remis en stock</option>
-                <option value="endommage">Endommagé — hors stock</option>
-                <option value="hors_service">Hors service — hors stock</option>
+                <option value="bon">Bon état — réutilisable</option>
+                <option value="usage_normal">Usure normale — réutilisable</option>
+                <option value="endommage">Endommagé — hors service</option>
+                <option value="hors_service">Hors service — hors rotation</option>
               </select>
             </div>
             <div className="space-y-1.5"><Label htmlFor="motif">Motif du retrait *</Label><Input id="motif" name="motif" required placeholder="Fin de mission, mutation, retour normal…" /></div>
@@ -550,6 +606,7 @@ function GroupDetail({
   articleId,
   beneficiaireType,
   statut,
+  onModifier,
   onRetour,
   onPerdu,
   onReforme,
@@ -559,6 +616,7 @@ function GroupDetail({
   articleId: number;
   beneficiaireType: string;
   statut: string;
+  onModifier: (a: AffectationRow) => void;
   onRetour: (a: AffectationRow) => void;
   onPerdu: (a: AffectationRow) => void;
   onReforme: (a: AffectationRow) => void;
@@ -577,7 +635,7 @@ function GroupDetail({
     <Table>
       <TableBody>
         {data?.rows.map((a) => (
-          <AffectationDetailRow key={a.id} a={a} onRetour={onRetour} onPerdu={onPerdu} onReforme={onReforme} onPlanifierControle={onPlanifierControle} onHistorique={onHistorique} indented />
+          <AffectationDetailRow key={a.id} a={a} onModifier={onModifier} onRetour={onRetour} onPerdu={onPerdu} onReforme={onReforme} onPlanifierControle={onPlanifierControle} onHistorique={onHistorique} indented />
         ))}
       </TableBody>
     </Table>
@@ -586,6 +644,7 @@ function GroupDetail({
 
 function AffectationDetailRow({
   a,
+  onModifier,
   onRetour,
   onPerdu,
   onReforme,
@@ -594,6 +653,7 @@ function AffectationDetailRow({
   indented,
 }: {
   a: AffectationRow;
+  onModifier: (a: AffectationRow) => void;
   onRetour: (a: AffectationRow) => void;
   onPerdu: (a: AffectationRow) => void;
   onReforme: (a: AffectationRow) => void;
@@ -626,6 +686,7 @@ function AffectationDetailRow({
       <TableCell><StatutAffectationBadge statut={a.statut} /></TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-1">
+          <Button size="sm" variant="ghost" onClick={() => onModifier(a)}><Pencil className="h-3.5 w-3.5" /> Modifier</Button>
           {a.statut === "actif" && a.soumisControleReglementaire && (
             <Button size="sm" variant="ghost" onClick={() => onPlanifierControle(a)}><ShieldCheck className="h-3.5 w-3.5" /> Contrôle</Button>
           )}

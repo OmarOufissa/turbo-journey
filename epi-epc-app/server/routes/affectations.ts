@@ -2,7 +2,6 @@ import { Router } from "express";
 import { db } from "../db";
 import { affectations, articles, articlesReference, agents, equipes, kitTemplateLignes, reformes, equipementHierarchie } from "../db/schema";
 import { and, desc, eq, inArray, like, or, sql } from "drizzle-orm";
-import { applyStockMouvement } from "../services/stockService";
 import { logHistorique } from "../services/historiqueService";
 import { resolveDescendantIds } from "../services/hierarchieService";
 import type { AuthedRequest } from "../middleware/auth";
@@ -147,20 +146,8 @@ affectationsRouter.post("/", async (req: AuthedRequest, res) => {
 
   const [article] = await db.select().from(articles).where(eq(articles.id, body.articleId));
   if (!article) return res.status(404).json({ error: "Article introuvable" });
-  if (article.stockDisponible < body.quantite) {
-    return res.status(409).json({ error: `Stock disponible insuffisant (${article.stockDisponible} disponible(s))` });
-  }
 
   const [row] = await db.insert(affectations).values({ ...body, statut: "actif" }).returning();
-  await applyStockMouvement({
-    articleId: body.articleId,
-    type: "sortie_affectation",
-    quantite: -body.quantite,
-    referenceType: "affectation",
-    referenceId: row.id,
-    motif: body.motif,
-    creeParUserId: req.user?.id,
-  });
   await logHistorique({
     typeEvenement: "dotation",
     entiteType: "affectation",
@@ -174,10 +161,43 @@ affectationsRouter.post("/", async (req: AuthedRequest, res) => {
   res.status(201).json(row);
 });
 
+// Modifier une affectation — corrige la date, le motif ou les observations d'une dotation
+// existante sans y toucher le statut, qui reste exclusivement géré par les transitions
+// dédiées (retour/perdu/réforme), chacune avec sa propre confirmation et son propre
+// historique. Toute modification est elle-même journalisée.
+affectationsRouter.put("/:id", async (req: AuthedRequest, res) => {
+  const id = Number(req.params.id);
+  const { dateAffectation, motif, observations } = req.body as {
+    dateAffectation?: string;
+    motif?: string;
+    observations?: string | null;
+  };
+  const [before] = await db.select().from(affectations).where(eq(affectations.id, id));
+  if (!before) return res.status(404).json({ error: "Affectation introuvable" });
+
+  const patch: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+  if (dateAffectation !== undefined) patch.dateAffectation = dateAffectation;
+  if (motif !== undefined) patch.motif = motif;
+  if (observations !== undefined) patch.observations = observations;
+
+  const [row] = await db.update(affectations).set(patch).where(eq(affectations.id, id)).returning();
+  await logHistorique({
+    typeEvenement: "modification_affectation",
+    entiteType: "affectation",
+    entiteId: id,
+    agentId: before.agentId,
+    equipeId: before.equipeId,
+    articleId: before.articleId,
+    utilisateurId: req.user?.id,
+    details: { avant: { dateAffectation: before.dateAffectation, motif: before.motif, observations: before.observations }, apres: { dateAffectation, motif, observations } },
+  });
+  res.json(row);
+});
+
 // Mise à jour des informations d'une unité physique (équipements soumis à contrôle
 // règlementaire : numéro de série, emplacement, marque, date de fabrication,
-// observations, caractéristiques propres à la famille). Sans effet sur le stock
-// ni le statut — distinct des transitions retour/réforme.
+// observations, caractéristiques propres à la famille) — distincte des transitions
+// retour/réforme et de la modification générale ci-dessus (motif/date/observations).
 affectationsRouter.put("/:id/unite", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
   const { numeroSerie, lieuEmplacement, marque, dateFabricationUnite, observations, caracteristiques } = req.body as {
@@ -223,15 +243,13 @@ affectationsRouter.post("/kit/appliquer", async (req: AuthedRequest, res) => {
     return res.status(400).json({ error: "Gabarit, date et bénéficiaire (agent ou équipe) requis" });
   }
   const lignes = await db
-    .select({ articleId: kitTemplateLignes.articleId, quantite: kitTemplateLignes.quantite, stockDisponible: articles.stockDisponible, designation: articles.designation })
+    .select({ articleId: kitTemplateLignes.articleId, quantite: kitTemplateLignes.quantite, designation: articles.designation })
     .from(kitTemplateLignes)
     .innerJoin(articles, eq(kitTemplateLignes.articleId, articles.id))
     .where(eq(kitTemplateLignes.kitTemplateId, kitTemplateId));
 
-  const insufficient = lignes.filter((l) => l.stockDisponible < l.quantite);
   const created = [];
   for (const ligne of lignes) {
-    if (ligne.stockDisponible < ligne.quantite) continue; // ignoré, signalé dans la réponse
     const [row] = await db
       .insert(affectations)
       .values({
@@ -247,14 +265,6 @@ affectationsRouter.post("/kit/appliquer", async (req: AuthedRequest, res) => {
         kitTemplateId,
       })
       .returning();
-    await applyStockMouvement({
-      articleId: ligne.articleId,
-      type: "sortie_affectation",
-      quantite: -ligne.quantite,
-      referenceType: "affectation",
-      referenceId: row.id,
-      creeParUserId: req.user?.id,
-    });
     created.push(row);
   }
   await logHistorique({
@@ -264,17 +274,17 @@ affectationsRouter.post("/kit/appliquer", async (req: AuthedRequest, res) => {
     agentId,
     equipeId,
     utilisateurId: req.user?.id,
-    details: { kitTemplateId, nbLignes: created.length, ignorees: insufficient.map((i) => i.designation) },
+    details: { kitTemplateId, nbLignes: created.length },
   });
-  res.status(201).json({ created: created.length, ignoredForStock: insufficient.map((i) => i.designation) });
+  res.status(201).json({ created: created.length });
 });
 
-// "Retirer l'affectation" — l'unité redevient disponible (état bon/usage normal) ou sort
-// définitivement du disponible (endommagé/hors service). Le motif du retrait et le
-// commentaire éventuel de l'utilisateur sont conservés dans l'historique (jamais perdus
-// ni écrasés) plutôt que dans affectations.motif, qui reste la raison de la dotation
-// d'origine (Dotation initiale, Renouvellement…) — écraser cette colonne au retrait
-// effacerait l'information "pourquoi cet équipement a été affecté" de l'historique actif.
+// "Retirer l'affectation" — l'unité redevient disponible pour une réaffectation (état bon/
+// usage normal) ou sort définitivement de la rotation (endommagé/hors service, cf. réforme).
+// Le motif du retrait et le commentaire éventuel de l'utilisateur sont conservés dans
+// l'historique (jamais perdus ni écrasés) plutôt que dans affectations.motif, qui reste la
+// raison de la dotation d'origine (Dotation initiale, Renouvellement…) — écraser cette
+// colonne au retrait effacerait l'information "pourquoi cet équipement a été affecté".
 affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
   const { dateRetour, etatRetour, motif, commentaire } = req.body as {
@@ -292,17 +302,6 @@ affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
     .where(eq(affectations.id, id))
     .returning();
 
-  if (etatRetour === "bon" || etatRetour === "usage_normal") {
-    await applyStockMouvement({
-      articleId: affectation.articleId,
-      type: "entree_retour",
-      quantite: affectation.quantite,
-      referenceType: "affectation",
-      referenceId: id,
-      motif: "Retour équipement",
-      creeParUserId: req.user?.id,
-    });
-  }
   await logHistorique({
     typeEvenement: "retour",
     entiteType: "affectation",
@@ -317,8 +316,7 @@ affectationsRouter.post("/:id/retour", async (req: AuthedRequest, res) => {
 });
 
 // Déclaration de perte — statut jusqu'ici inaccessible via l'API malgré son existence dans
-// le schéma. L'unité ne revient jamais en stock (contrairement à /retour) : aucun mouvement
-// de stock n'est appliqué, seul le statut et l'historique sont mis à jour.
+// le schéma.
 affectationsRouter.post("/:id/perdu", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
   const { datePerte, motif } = req.body as { datePerte: string; motif?: string };
@@ -362,15 +360,6 @@ affectationsRouter.post("/:id/reforme", async (req: AuthedRequest, res) => {
     .values({ articleId: affectation.articleId, affectationId: id, dateReforme, quantite: affectation.quantite, motif, decision })
     .returning();
 
-  await applyStockMouvement({
-    articleId: affectation.articleId,
-    type: "sortie_reforme",
-    quantite: 0, // l'unité était déjà sortie du disponible lors de la dotation ; la réforme documente sa fin de vie
-    referenceType: "reforme",
-    referenceId: reforme.id,
-    motif,
-    creeParUserId: req.user?.id,
-  });
   await logHistorique({
     typeEvenement: "reforme",
     entiteType: "affectation",

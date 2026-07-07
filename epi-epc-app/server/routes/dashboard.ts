@@ -16,7 +16,16 @@ import {
 } from "../db/schema";
 import { and, eq, gte, inArray, lte, or, sql } from "drizzle-orm";
 import { resolveDescendantIds, getFamilleAncestorMap } from "../services/hierarchieService";
-import { computeBesoins, groupBesoinsByDivision, groupBesoinsByEquipe, groupBesoinsByAgent, type BesoinFilters } from "../services/besoinService";
+import {
+  computeBesoins,
+  groupBesoinsByDivision,
+  groupBesoinsByEquipe,
+  groupBesoinsByAgent,
+  groupBesoinsByCategorie,
+  groupBesoinsByFamille,
+  summarizeConformite,
+  type BesoinFilters,
+} from "../services/besoinService";
 
 export const dashboardRouter = Router();
 
@@ -105,56 +114,70 @@ dashboardRouter.get("/kpis", async (req, res) => {
   }
   if (filters.fournisseur) articleConditions.push(eq(articles.fournisseur, filters.fournisseur));
 
-  const affectationConditions = [eq(affectations.statut, "actif")];
-  if (scopeCond) affectationConditions.push(scopeCond);
-  if (filters.dateDebut) affectationConditions.push(gte(affectations.dateAffectation, filters.dateDebut));
-  if (filters.dateFin) affectationConditions.push(lte(affectations.dateAffectation, filters.dateFin));
+  // Population de bénéficiaires dans le périmètre filtré — même logique de filtrage que
+  // computeBesoins (agent : agentId/equipeId/serviceId/divisionId ; équipe : equipeId/
+  // serviceId/divisionId via son service) — sert de dénominateur à summarizeConformite pour
+  // que les bénéficiaires sans gabarit applicable comptent comme conformes.
+  const agentScopeConditions = [];
+  if (filters.agentId) agentScopeConditions.push(eq(agents.id, filters.agentId));
+  if (filters.equipeId) agentScopeConditions.push(eq(agents.equipeId, filters.equipeId));
+  if (filters.serviceId) agentScopeConditions.push(eq(agents.serviceId, filters.serviceId));
+  if (filters.divisionId) agentScopeConditions.push(eq(agents.divisionId, filters.divisionId));
 
-  const [[articleAgg], [distribueAgg], [beneficiairesAgg], [equipesAgg], [alertesAgg], [controlesAgg], [renouvellerAgg]] = await Promise.all([
-    db
-      .select({
-        totalReferences: sql<number>`count(*)`,
-        stockDisponible: sql<number>`coalesce(sum(${articles.stockDisponible}), 0)`,
-        stockReserve: sql<number>`coalesce(sum(${articles.stockReserve}), 0)`,
-        stockCommande: sql<number>`coalesce(sum(${articles.stockCommande}), 0)`,
-        rupture: sql<number>`sum(case when ${articles.stockDisponible} = 0 then 1 else 0 end)`,
-        faible: sql<number>`sum(case when ${articles.stockDisponible} > 0 and ${articles.stockDisponible} <= ${articles.stockMin} then 1 else 0 end)`,
-        valeur: sql<number>`coalesce(sum(${articles.stockDisponible} * ${articles.prixUnitaire}), 0)`,
-      })
-      .from(articles)
-      .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
-      .where(and(...articleConditions)),
-    db
-      .select({ total: sql<number>`coalesce(sum(${affectations.quantite}), 0)` })
-      .from(affectations)
-      .where(and(...affectationConditions)),
-    db.select({ total: sql<number>`count(*)` }).from(agents).where(eq(agents.statut, "actif")),
-    db.select({ total: sql<number>`count(*)` }).from(equipes),
-    db.select({ total: sql<number>`count(*)` }).from(alertes).where(eq(alertes.lue, false)),
-    db
-      .select({ total: sql<number>`count(*)` })
-      .from(controlesPeriodiques)
-      .where(sql`${controlesPeriodiques.statut} = 'en_retard' or (${controlesPeriodiques.statut} = 'planifie' and ${controlesPeriodiques.datePlanifiee} < ${today})`),
-    db
-      .select({ total: sql<number>`count(*)` })
-      .from(controlesPeriodiques)
-      .where(and(eq(controlesPeriodiques.statut, "planifie"), gte(controlesPeriodiques.datePlanifiee, today), lte(controlesPeriodiques.datePlanifiee, inDays(60)))),
-  ]);
+  const equipeScopeConditions = [];
+  if (filters.equipeId) equipeScopeConditions.push(eq(equipes.id, filters.equipeId));
+  if (filters.serviceId) equipeScopeConditions.push(eq(equipes.serviceId, filters.serviceId));
+  if (filters.divisionId) equipeScopeConditions.push(eq(services.divisionId, filters.divisionId));
+
+  const reglementaireLateCond = sql`${controlesPeriodiques.statut} = 'en_retard' or (${controlesPeriodiques.statut} = 'planifie' and ${controlesPeriodiques.datePlanifiee} < ${today})`;
+
+  const [[articleAgg], [beneficiairesAgg], [equipesAgg], [alertesAgg], [controlesReglAgg], [controlesNonReglAgg], [renouvellerAgg], besoinLines, [totalAgentsAgg], [totalEquipesAgg]] =
+    await Promise.all([
+      db.select({ total: sql<number>`count(*)` }).from(articles).leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id)).where(and(...articleConditions)),
+      db.select({ total: sql<number>`count(*)` }).from(agents).where(eq(agents.statut, "actif")),
+      db.select({ total: sql<number>`count(*)` }).from(equipes),
+      db.select({ total: sql<number>`count(*)` }).from(alertes).where(eq(alertes.lue, false)),
+      db
+        .select({ total: sql<number>`count(*)` })
+        .from(controlesPeriodiques)
+        .innerJoin(affectations, eq(controlesPeriodiques.affectationId, affectations.id))
+        .innerJoin(articles, eq(affectations.articleId, articles.id))
+        .innerJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
+        .innerJoin(equipementHierarchie, eq(articlesReference.hierarchieParentId, equipementHierarchie.id))
+        .where(and(eq(equipementHierarchie.soumisControleReglementaire, true), reglementaireLateCond)),
+      db
+        .select({ total: sql<number>`count(*)` })
+        .from(controlesPeriodiques)
+        .innerJoin(affectations, eq(controlesPeriodiques.affectationId, affectations.id))
+        .leftJoin(articles, eq(affectations.articleId, articles.id))
+        .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
+        .leftJoin(equipementHierarchie, eq(articlesReference.hierarchieParentId, equipementHierarchie.id))
+        .where(and(sql`coalesce(${equipementHierarchie.soumisControleReglementaire}, 0) = 0`, reglementaireLateCond)),
+      db
+        .select({ total: sql<number>`count(*)` })
+        .from(controlesPeriodiques)
+        .where(and(eq(controlesPeriodiques.statut, "planifie"), gte(controlesPeriodiques.datePlanifiee, today), lte(controlesPeriodiques.datePlanifiee, inDays(60)))),
+      computeBesoins(filters as BesoinFilters),
+      db.select({ total: sql<number>`count(*)` }).from(agents).where(agentScopeConditions.length ? and(...agentScopeConditions) : undefined),
+      db
+        .select({ total: sql<number>`count(*)` })
+        .from(equipes)
+        .innerJoin(services, eq(equipes.serviceId, services.id))
+        .where(equipeScopeConditions.length ? and(...equipeScopeConditions) : undefined),
+    ]);
+
+  const conformite = summarizeConformite(besoinLines, totalAgentsAgg.total, totalEquipesAgg.total);
 
   res.json({
-    totalArticles: articleAgg.stockDisponible + distribueAgg.total,
-    totalReferences: articleAgg.totalReferences,
-    stockDisponible: articleAgg.stockDisponible,
-    stockReserve: articleAgg.stockReserve,
-    stockDistribue: distribueAgg.total,
-    articlesRupture: articleAgg.rupture,
-    articlesStockFaible: articleAgg.faible,
+    totalArticles: articleAgg.total,
+    totalReferences: articleAgg.total,
     articlesARenouveler: renouvellerAgg.total,
     totalBeneficiaires: beneficiairesAgg.total,
     totalEquipes: equipesAgg.total,
     alertesNonLues: alertesAgg.total,
-    controlesEnRetard: controlesAgg.total,
-    valeurStockDisponible: Number(articleAgg.valeur ?? 0),
+    controlesReglementairesARealiser: controlesReglAgg.total,
+    controlesPeriodiquesARealiser: controlesNonReglAgg.total,
+    ...conformite,
   });
 });
 
@@ -396,6 +419,8 @@ dashboardRouter.get("/besoins", async (req, res) => {
     parDivision: groupBesoinsByDivision(lines),
     parEquipe: groupBesoinsByEquipe(lines),
     parAgent: groupBesoinsByAgent(lines),
+    parCategorie: groupBesoinsByCategorie(lines),
+    parFamille: groupBesoinsByFamille(lines),
   });
 });
 
@@ -419,8 +444,6 @@ dashboardRouter.get("/articles-statut", async (req, res) => {
         expires: sql<number>`sum(case when ${articles.dateLimiteUtilisation} is not null and ${articles.dateLimiteUtilisation} < ${today} then 1 else 0 end)`,
         aEcheance: sql<number>`sum(case when ${articles.dateLimiteUtilisation} is not null and ${articles.dateLimiteUtilisation} >= ${today} and ${articles.dateLimiteUtilisation} <= ${in30} then 1 else 0 end)`,
         dureeVieAtteinte: sql<number>`sum(case when ${articles.dateFabrication} is not null and ${articles.dureeVieMois} is not null and date(${articles.dateFabrication}, '+' || ${articles.dureeVieMois} || ' months') < ${today} then 1 else 0 end)`,
-        disponibles: sql<number>`sum(case when ${articles.stockDisponible} > 0 then 1 else 0 end)`,
-        indisponibles: sql<number>`sum(case when ${articles.stockDisponible} = 0 then 1 else 0 end)`,
       })
       .from(articles)
       .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
@@ -433,7 +456,5 @@ dashboardRouter.get("/articles-statut", async (req, res) => {
     arrivantAEcheance: expireAgg.aEcheance ?? 0,
     dureeVieAtteinte: expireAgg.dureeVieAtteinte ?? 0,
     reformes: reformesAgg.n ?? 0,
-    disponibles: expireAgg.disponibles ?? 0,
-    indisponibles: expireAgg.indisponibles ?? 0,
   });
 });

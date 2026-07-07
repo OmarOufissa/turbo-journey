@@ -1,11 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 
-export function StockBadge({ disponible, min }: { disponible: number; min: number }) {
-  if (disponible === 0) return <Badge variant="destructive">Rupture</Badge>;
-  if (disponible <= min) return <Badge variant="warning">Stock faible</Badge>;
-  return <Badge variant="success">Normal</Badge>;
-}
-
 const STATUT_AFFECTATION: Record<string, { label: string; variant: "success" | "muted" | "destructive" | "warning" }> = {
   actif: { label: "Actif", variant: "success" },
   retourne: { label: "Retourné", variant: "muted" },

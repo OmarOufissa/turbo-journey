@@ -22,17 +22,16 @@ export interface LoginResponse {
 export interface DashboardKpis {
   totalArticles: number;
   totalReferences: number;
-  stockDisponible: number;
-  stockReserve: number;
-  stockDistribue: number;
-  articlesRupture: number;
-  articlesStockFaible: number;
   articlesARenouveler: number;
   totalBeneficiaires: number;
   totalEquipes: number;
   alertesNonLues: number;
-  controlesEnRetard: number;
-  valeurStockDisponible: number;
+  controlesReglementairesARealiser: number;
+  controlesPeriodiquesARealiser: number;
+  agentsConformes: number;
+  agentsAvecBesoin: number;
+  equipesConformes: number;
+  equipesAvecBesoin: number;
 }
 
 export interface ChartPoint {
@@ -234,6 +233,10 @@ export interface BesoinLine {
   divisionId: number | null;
   articleReferenceId: number;
   referenceDesignation: string;
+  categorieId: number | null;
+  categorieNom: string | null;
+  familleId: number | null;
+  familleNom: string | null;
   quantiteBesoin: number;
   quantiteDotee: number;
   ecart: number;

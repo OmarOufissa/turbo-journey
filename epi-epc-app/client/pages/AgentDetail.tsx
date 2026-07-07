@@ -68,7 +68,7 @@ export default function AgentDetail() {
   const applyKit = useMutation({
     mutationFn: (body: Record<string, unknown>) => apiPost("/affectations/kit/appliquer", body),
     onSuccess: (res: any) => {
-      toast.success(`${res.created} article(s) affecté(s)${res.ignoredForStock?.length ? ` — ${res.ignoredForStock.length} ignoré(s) (stock insuffisant)` : ""}`);
+      toast.success(`${res.created} article(s) affecté(s)`);
       qc.invalidateQueries({ queryKey: ["agent", id] });
       setKitOpen(false);
     },

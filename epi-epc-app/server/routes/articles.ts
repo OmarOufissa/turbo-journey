@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
-import { articles, articlesReference, equipementHierarchie, marches, stockMouvements, documents, affectations, controlesPeriodiques, reformes, kitTemplateLignes } from "../db/schema";
-import { and, desc, eq, inArray, like, or, sql } from "drizzle-orm";
+import { articles, articlesReference, equipementHierarchie, marches, documents, affectations, controlesPeriodiques, reformes, kitTemplateLignes } from "../db/schema";
+import { and, eq, inArray, like, or, sql } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
 import { listChildren, resolveDescendantIds, getAncestorChain, recomputeReglementaireCascade } from "../services/hierarchieService";
 import { generateCodeAbrege, generateArticleCode } from "../services/codificationService";
@@ -115,14 +115,12 @@ articlesRouter.get("/fournisseurs", async (_req, res) => {
 });
 
 articlesRouter.get("/", async (req, res) => {
-  const { q, hierarchieId, ancestorId, articleReferenceId, stockStatut, fournisseur, page = "1", pageSize = "50" } = req.query as Record<string, string>;
+  const { q, hierarchieId, ancestorId, articleReferenceId, fournisseur, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [eq(articles.actif, true)];
   if (q) conditions.push(or(like(articles.designation, `%${q}%`), like(articles.codeArticle, `%${q}%`), like(articles.codeInterne, `%${q}%`))!);
   if (hierarchieId) conditions.push(eq(articlesReference.hierarchieParentId, Number(hierarchieId)));
   if (ancestorId) conditions.push(inArray(articlesReference.hierarchieParentId, await resolveDescendantIds(Number(ancestorId))));
   if (articleReferenceId) conditions.push(eq(articles.articleReferenceId, Number(articleReferenceId)));
-  if (stockStatut === "rupture") conditions.push(sql`${articles.stockDisponible} = 0`);
-  if (stockStatut === "faible") conditions.push(sql`${articles.stockDisponible} > 0 AND ${articles.stockDisponible} <= ${articles.stockMin}`);
   if (fournisseur) conditions.push(eq(articles.fournisseur, fournisseur));
 
   const where = and(...conditions);
@@ -142,11 +140,13 @@ articlesRouter.get("/", async (req, res) => {
         hierarchieId: articlesReference.hierarchieParentId,
         hierarchieNom: equipementHierarchie.nom,
         soumisControleReglementaire: equipementHierarchie.soumisControleReglementaire,
-        stockDisponible: articles.stockDisponible,
-        stockReserve: articles.stockReserve,
-        stockCommande: articles.stockCommande,
-        stockMin: articles.stockMin,
-        stockMax: articles.stockMax,
+        // Bénéficiaire(s) actuel(s) : pas de compteur de stock, seulement la présence/absence
+        // d'une affectation en cours — nom du bénéficiaire le plus récent + nombre total
+        // d'affectations actives (plusieurs unités du même lot peuvent être affectées).
+        beneficiaireActuel: sql<
+          string | null
+        >`(select coalesce(agents.nom, equipes.nom) from affectations left join agents on agents.id = affectations.agent_id left join equipes on equipes.id = affectations.equipe_id where affectations.article_id = articles.id and affectations.statut = 'actif' order by affectations.date_affectation desc limit 1)`,
+        nbAffectationsActives: sql<number>`(select count(*) from affectations where affectations.article_id = articles.id and affectations.statut = 'actif')`,
         prixUnitaire: articles.prixUnitaire,
         aTaille: articles.aTaille,
         aPointure: articles.aPointure,
@@ -210,11 +210,6 @@ articlesRouter.get("/:id", async (req, res) => {
       marcheNumero: marches.numero,
       fournisseur: articles.fournisseur,
       garantieMois: articles.garantieMois,
-      stockMin: articles.stockMin,
-      stockMax: articles.stockMax,
-      stockDisponible: articles.stockDisponible,
-      stockReserve: articles.stockReserve,
-      stockCommande: articles.stockCommande,
       unite: articles.unite,
       actif: articles.actif,
     })
@@ -225,15 +220,14 @@ articlesRouter.get("/:id", async (req, res) => {
     .where(eq(articles.id, id));
   if (!article) return res.status(404).json({ error: "Article introuvable" });
 
-  const [mouvements, docs, hierarchie] = await Promise.all([
-    db.select().from(stockMouvements).where(eq(stockMouvements.articleId, id)).orderBy(desc(stockMouvements.dateMouvement)).limit(50),
+  const [docs, hierarchie] = await Promise.all([
     db.select().from(documents).where(and(eq(documents.entiteType, "article"), eq(documents.entiteId, id))),
     article.articleReferenceId
       ? db.select().from(articlesReference).where(eq(articlesReference.id, article.articleReferenceId)).then(async ([ref]) => (ref ? getAncestorChain(ref.hierarchieParentId) : []))
       : Promise.resolve([]),
   ]);
 
-  res.json({ ...article, mouvements, documents: docs, hierarchie });
+  res.json({ ...article, documents: docs, hierarchie });
 });
 
 articlesRouter.post("/", async (req: AuthedRequest, res) => {
@@ -273,23 +267,22 @@ articlesRouter.post("/:id/reactiver", async (req: AuthedRequest, res) => {
 });
 
 // Suppression physique — seulement possible pour un article qui n'a jamais été affecté,
-// contrôlé, mouvementé en stock ou réformé (créé par erreur, jamais utilisé sur le
-// terrain) : au premier événement réel, l'historique associé devient irremplaçable et
-// seule la désactivation reste possible, conformément au principe général "aucune donnée
-// ne doit être supprimée" une fois qu'un article a une vie opérationnelle.
+// contrôlé ou réformé (créé par erreur, jamais utilisé sur le terrain) : au premier
+// événement réel, l'historique associé devient irremplaçable et seule la désactivation
+// reste possible, conformément au principe général "aucune donnée ne doit être supprimée"
+// une fois qu'un article a une vie opérationnelle.
 articlesRouter.delete("/:id", async (req: AuthedRequest, res) => {
   const id = Number(req.params.id);
-  const [[{ n: nbAffectations }], [{ n: nbMouvements }], [{ n: nbControles }], [{ n: nbReformes }], [{ n: nbLignes }]] = await Promise.all([
+  const [[{ n: nbAffectations }], [{ n: nbControles }], [{ n: nbReformes }], [{ n: nbLignes }]] = await Promise.all([
     db.select({ n: sql<number>`count(*)` }).from(affectations).where(eq(affectations.articleId, id)),
-    db.select({ n: sql<number>`count(*)` }).from(stockMouvements).where(eq(stockMouvements.articleId, id)),
     db.select({ n: sql<number>`count(*)` }).from(controlesPeriodiques).where(eq(controlesPeriodiques.articleId, id)),
     db.select({ n: sql<number>`count(*)` }).from(reformes).where(eq(reformes.articleId, id)),
     db.select({ n: sql<number>`count(*)` }).from(kitTemplateLignes).where(eq(kitTemplateLignes.articleId, id)),
   ]);
-  if (nbAffectations > 0 || nbMouvements > 0 || nbControles > 0 || nbReformes > 0 || nbLignes > 0) {
+  if (nbAffectations > 0 || nbControles > 0 || nbReformes > 0 || nbLignes > 0) {
     return res.status(409).json({
-      error: "Impossible de supprimer : cet article a un historique (affectations, mouvements de stock, contrôles ou réformes) — désactivez-le plutôt",
-      dependents: { affectations: nbAffectations, mouvements: nbMouvements, controles: nbControles, reformes: nbReformes, lignesGabarit: nbLignes },
+      error: "Impossible de supprimer : cet article a un historique (affectations, contrôles ou réformes) — désactivez-le plutôt",
+      dependents: { affectations: nbAffectations, controles: nbControles, reformes: nbReformes, lignesGabarit: nbLignes },
     });
   }
   const [row] = await db.delete(articles).where(eq(articles.id, id)).returning();

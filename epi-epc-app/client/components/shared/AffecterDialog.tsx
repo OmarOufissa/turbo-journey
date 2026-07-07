@@ -17,7 +17,7 @@ import type { Division, Service, Equipe, Agent, ArticleReference } from "@shared
 
 const MOTIFS = ["Protection", "Dotation initiale", "Renouvellement", "Remplacement"] as const;
 
-interface ArticleOpt { id: number; codeArticle: string; designation: string; stockDisponible: number }
+interface ArticleOpt { id: number; codeArticle: string; designation: string; beneficiaireActuel: string | null }
 interface ArticleDetailInfo {
   id: number;
   codeArticle: string;
@@ -166,7 +166,7 @@ export function AffecterDialog({ open, onClose, initial, onSuccess }: { open: bo
                     <SelectContent>
                       {articlesAtReference?.rows.map((a) => (
                         <SelectItem key={a.id} value={String(a.id)}>
-                          {a.codeArticle} — {a.designation} ({a.stockDisponible} dispo)
+                          {a.codeArticle} — {a.designation} ({a.beneficiaireActuel ? `affecté à ${a.beneficiaireActuel}` : "disponible"})
                         </SelectItem>
                       ))}
                       {articlesAtReference?.rows.length === 0 && <div className="px-2 py-1.5 text-sm text-muted-foreground">Aucun article disponible pour cette référence</div>}

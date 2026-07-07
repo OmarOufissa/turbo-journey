@@ -7,12 +7,12 @@ function today() {
 }
 
 /**
- * Recalcule les alertes actives à partir de l'état courant (stock, contrôles, marchés).
- * Idempotent : supprime les alertes non traitées de type "dérivé" puis les régénère,
- * en conservant celles déjà marquées comme traitées (historique préservé).
+ * Recalcule les alertes actives à partir de l'état courant (fin de vie des matériels,
+ * contrôles, marchés). Idempotent : supprime les alertes non traitées de type "dérivé"
+ * puis les régénère, en conservant celles déjà marquées comme traitées (historique préservé).
  */
 export async function regenerateAlertes() {
-  const derivedTypes = ["stock_faible", "rupture", "controle_a_faire", "fin_de_vie", "livraison_attendue"];
+  const derivedTypes = ["controle_a_faire", "fin_de_vie", "livraison_attendue"];
   await db.delete(alertes).where(and(inArray(alertes.type, derivedTypes), eq(alertes.traitee, false)));
 
   const todayStr = today();
@@ -20,23 +20,6 @@ export async function regenerateAlertes() {
 
   const allArticles = await db.select().from(articles).where(eq(articles.actif, true));
   for (const a of allArticles) {
-    if (a.stockDisponible <= 0) {
-      newAlerts.push({
-        type: "rupture",
-        entiteType: "article",
-        entiteId: a.id,
-        niveau: "critical",
-        message: `Rupture de stock : ${a.designation}`,
-      });
-    } else if (a.stockDisponible <= a.stockMin) {
-      newAlerts.push({
-        type: "stock_faible",
-        entiteType: "article",
-        entiteId: a.id,
-        niveau: "warning",
-        message: `Stock faible : ${a.designation} (${a.stockDisponible} dispo / seuil ${a.stockMin})`,
-      });
-    }
     if (a.dateLimiteUtilisation && a.dateLimiteUtilisation < todayStr) {
       newAlerts.push({
         type: "fin_de_vie",

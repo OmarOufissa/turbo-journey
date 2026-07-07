@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { StockBadge } from "@/components/shared/Badges";
 import { StatutAffectationBadge } from "@/components/shared/Badges";
 import { AffecterDialog } from "@/components/shared/AffecterDialog";
 import { formatDate, formatMoney } from "@/lib/utils";
@@ -51,25 +50,10 @@ interface ArticleDetailData {
   marcheNumero: string | null;
   fournisseur: string | null;
   garantieMois: number | null;
-  stockMin: number;
-  stockMax: number | null;
-  stockDisponible: number;
-  stockReserve: number;
-  stockCommande: number;
   unite: string;
   actif: boolean;
-  mouvements: { id: number; type: string; quantite: number; dateMouvement: string; motif: string | null }[];
   documents: { id: number; typeDocument: string; nomFichier: string; url: string }[];
 }
-
-const MOUVEMENT_LABELS: Record<string, string> = {
-  entree_achat: "Entrée — achat",
-  entree_retour: "Entrée — retour",
-  sortie_affectation: "Sortie — dotation",
-  sortie_reforme: "Sortie — réforme",
-  sortie_perte: "Sortie — perte",
-  ajustement: "Ajustement",
-};
 
 export default function ArticleDetail() {
   const { id } = useParams();
@@ -79,6 +63,7 @@ export default function ArticleDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [affecterOpen, setAffecterOpen] = useState(false);
+  const [modifierTarget, setModifierTarget] = useState<Affectation | null>(null);
   const [retourTarget, setRetourTarget] = useState<Affectation | null>(null);
   const [perduTarget, setPerduTarget] = useState<Affectation | null>(null);
   const [reformeTarget, setReformeTarget] = useState<Affectation | null>(null);
@@ -87,6 +72,16 @@ export default function ArticleDetail() {
   const { data: affectationsData } = useQuery<{ rows: Affectation[] }>({
     queryKey: ["article-affectations", id],
     queryFn: () => apiGet(`/affectations?articleId=${id}&pageSize=200`),
+  });
+
+  const modifierMutation = useMutation({
+    mutationFn: (body: { id: number; dateAffectation: string; motif: string; observations: string }) => apiPut(`/affectations/${body.id}`, body),
+    onSuccess: () => {
+      toast.success("Affectation modifiée");
+      qc.invalidateQueries({ queryKey: ["article-affectations", id] });
+      setModifierTarget(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const retourMutation = useMutation({
@@ -195,6 +190,18 @@ export default function ArticleDetail() {
     });
   }
 
+  function onModifierSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!modifierTarget) return;
+    const fd = new FormData(e.currentTarget);
+    modifierMutation.mutate({
+      id: modifierTarget.id,
+      dateAffectation: String(fd.get("dateAffectation")),
+      motif: String(fd.get("motif") || ""),
+      observations: String(fd.get("observations") || ""),
+    });
+  }
+
   if (isLoading || !data) return <p className="text-sm text-muted-foreground">Chargement…</p>;
 
   return (
@@ -214,7 +221,6 @@ export default function ArticleDetail() {
         </div>
         <div className="flex items-center gap-2">
           {!data.actif && <Badge variant="muted">Inactif</Badge>}
-          <StockBadge disponible={data.stockDisponible} min={data.stockMin} />
           <Button size="sm" onClick={() => setAffecterOpen(true)}><ClipboardPlus className="h-3.5 w-3.5" /> Affecter</Button>
           <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}><Pencil className="h-3.5 w-3.5" /> Modifier</Button>
           <Button size="sm" variant="outline" onClick={() => toggleActifMutation.mutate()}>
@@ -226,20 +232,60 @@ export default function ArticleDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Card className="p-4"><p className="text-xs text-muted-foreground">Disponible</p><p className="text-xl font-semibold tabular-nums">{data.stockDisponible}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted-foreground">Réservé</p><p className="text-xl font-semibold tabular-nums">{data.stockReserve}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted-foreground">Commandé</p><p className="text-xl font-semibold tabular-nums">{data.stockCommande}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted-foreground">Seuil mini / maxi</p><p className="text-xl font-semibold tabular-nums">{data.stockMin} / {data.stockMax ?? "—"}</p></Card>
-      </div>
-
-      <Tabs defaultValue="info">
+      <Tabs defaultValue="affectations">
         <TabsList>
-          <TabsTrigger value="info">Fiche technique</TabsTrigger>
           <TabsTrigger value="affectations">Affectations</TabsTrigger>
-          <TabsTrigger value="stock">Mouvements de stock</TabsTrigger>
+          <TabsTrigger value="info">Fiche technique</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="affectations">
+          <Card className="overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Bénéficiaire</TableHead>
+                  <TableHead>Motif</TableHead>
+                  <TableHead>Date d'affectation</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Date de clôture</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(!affectationsData || affectationsData.rows.length === 0) && (
+                  <TableRow><TableCell colSpan={6} className="py-6 text-center text-muted-foreground">Cet article n'a jamais été affecté</TableCell></TableRow>
+                )}
+                {affectationsData?.rows.map((a) => (
+                  <TableRow key={a.id}>
+                    <TableCell className="font-medium">
+                      {a.agentNom ?? a.equipeNom}
+                      <span className="ml-1.5 text-xs font-normal text-muted-foreground">{a.beneficiaireType === "agent" ? "(EPI)" : "(EPC)"}</span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{a.motif ?? "—"}</TableCell>
+                    <TableCell>{formatDate(a.dateAffectation)}</TableCell>
+                    <TableCell><StatutAffectationBadge statut={a.statut} /></TableCell>
+                    <TableCell className="text-muted-foreground">{a.dateClotureStatut ? formatDate(a.dateClotureStatut) : "—"}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => setModifierTarget(a)}><Pencil className="h-3.5 w-3.5" /> Modifier</Button>
+                        {a.statut === "actif" ? (
+                          <>
+                            <Button size="sm" variant="ghost" onClick={() => setRetourTarget(a)}><Undo2 className="h-3.5 w-3.5" /> Retirer</Button>
+                            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setPerduTarget(a)}><AlertTriangle className="h-3.5 w-3.5" /> Perdu</Button>
+                            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setReformeTarget(a)}><Trash2 className="h-3.5 w-3.5" /> Réformer</Button>
+                          </>
+                        ) : (
+                          <Button size="sm" variant="ghost" onClick={() => setAffecterOpen(true)}><RotateCcw className="h-3.5 w-3.5" /> Réaffecter</Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="info">
           <Card>
@@ -273,79 +319,6 @@ export default function ArticleDetail() {
                 </div>
               )}
             </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="affectations">
-          <Card className="overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Bénéficiaire</TableHead>
-                  <TableHead>Motif</TableHead>
-                  <TableHead>Date d'affectation</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Date de clôture</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(!affectationsData || affectationsData.rows.length === 0) && (
-                  <TableRow><TableCell colSpan={6} className="py-6 text-center text-muted-foreground">Cet article n'a jamais été affecté</TableCell></TableRow>
-                )}
-                {affectationsData?.rows.map((a) => (
-                  <TableRow key={a.id}>
-                    <TableCell className="font-medium">
-                      {a.agentNom ?? a.equipeNom}
-                      <span className="ml-1.5 text-xs font-normal text-muted-foreground">{a.beneficiaireType === "agent" ? "(EPI)" : "(EPC)"}</span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{a.motif ?? "—"}</TableCell>
-                    <TableCell>{formatDate(a.dateAffectation)}</TableCell>
-                    <TableCell><StatutAffectationBadge statut={a.statut} /></TableCell>
-                    <TableCell className="text-muted-foreground">{a.dateClotureStatut ? formatDate(a.dateClotureStatut) : "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        {a.statut === "actif" ? (
-                          <>
-                            <Button size="sm" variant="ghost" onClick={() => setRetourTarget(a)}><Undo2 className="h-3.5 w-3.5" /> Retirer</Button>
-                            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setPerduTarget(a)}><AlertTriangle className="h-3.5 w-3.5" /> Perdu</Button>
-                            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setReformeTarget(a)}><Trash2 className="h-3.5 w-3.5" /> Réformer</Button>
-                          </>
-                        ) : (
-                          <Button size="sm" variant="ghost" onClick={() => setAffecterOpen(true)}><RotateCcw className="h-3.5 w-3.5" /> Réaffecter</Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="stock">
-          <Card className="overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Quantité</TableHead>
-                  <TableHead>Motif</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.mouvements.length === 0 && <TableRow><TableCell colSpan={4} className="py-6 text-center text-muted-foreground">Aucun mouvement</TableCell></TableRow>}
-                {data.mouvements.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell>{formatDate(m.dateMouvement)}</TableCell>
-                    <TableCell>{MOUVEMENT_LABELS[m.type] ?? m.type}</TableCell>
-                    <TableCell className={`text-right tabular-nums font-medium ${m.quantite < 0 ? "text-destructive" : "text-success"}`}>{m.quantite > 0 ? `+${m.quantite}` : m.quantite}</TableCell>
-                    <TableCell className="text-muted-foreground">{m.motif ?? "—"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
           </Card>
         </TabsContent>
 
@@ -441,7 +414,7 @@ export default function ArticleDetail() {
         <DialogContent>
           <DialogHeader><DialogTitle>Confirmer la suppression</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Supprimer « {data.designation} » ? Cette action est irréversible et échouera si l'article a déjà un historique (affectations, contrôles, mouvements de stock, réforme) — désactivez-le dans ce cas plutôt que de le supprimer.
+            Supprimer « {data.designation} » ? Cette action est irréversible et échouera si l'article a déjà un historique (affectations, contrôles, réforme) — désactivez-le dans ce cas plutôt que de le supprimer.
           </p>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setDeleteConfirmOpen(false)}>Annuler</Button>
@@ -449,6 +422,33 @@ export default function ArticleDetail() {
               Supprimer
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!modifierTarget} onOpenChange={(o) => !o && setModifierTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Modifier l'affectation</DialogTitle></DialogHeader>
+          {modifierTarget && (
+            <p className="-mt-2 text-sm text-muted-foreground">{modifierTarget.agentNom ?? modifierTarget.equipeNom}</p>
+          )}
+          <form onSubmit={onModifierSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="dateAffectation">Date</Label>
+              <Input id="dateAffectation" name="dateAffectation" type="date" required defaultValue={modifierTarget?.dateAffectation ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="motif">Motif</Label>
+              <Input id="motif" name="motif" defaultValue={modifierTarget?.motif ?? ""} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="observations">Observations</Label>
+              <Textarea id="observations" name="observations" rows={2} defaultValue={modifierTarget?.observations ?? ""} />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setModifierTarget(null)}>Annuler</Button>
+              <Button type="submit" disabled={modifierMutation.isPending}>Enregistrer</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -474,10 +474,10 @@ export default function ArticleDetail() {
             <div className="space-y-1.5">
               <Label htmlFor="etatRetour">État à réception</Label>
               <select id="etatRetour" name="etatRetour" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm">
-                <option value="bon">Bon état — remis en stock</option>
-                <option value="usage_normal">Usure normale — remis en stock</option>
-                <option value="endommage">Endommagé — hors stock</option>
-                <option value="hors_service">Hors service — hors stock</option>
+                <option value="bon">Bon état — réutilisable</option>
+                <option value="usage_normal">Usure normale — réutilisable</option>
+                <option value="endommage">Endommagé — hors service</option>
+                <option value="hors_service">Hors service — hors rotation</option>
               </select>
             </div>
             <div className="space-y-1.5"><Label htmlFor="motif">Motif du retrait *</Label><Input id="motif" name="motif" required placeholder="Fin de mission, mutation, retour normal…" /></div>
