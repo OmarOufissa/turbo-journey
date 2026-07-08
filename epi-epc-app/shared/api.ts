@@ -119,6 +119,15 @@ export interface Equipe {
   chefAgentId: number | null;
 }
 
+// Poste = établissement technique (site) pouvant recevoir des dotations directement —
+// sans rapport avec Agent.poste (le rang/fonction organisationnelle d'un agent).
+export interface Poste {
+  id: number;
+  code: string;
+  nom: string;
+  serviceId: number;
+}
+
 export interface AgentMensuration {
   cle: string;
   valeur: string;
@@ -156,11 +165,13 @@ export interface Affectation {
   articleId: number;
   designation: string;
   codeArticle: string;
-  beneficiaireType: "agent" | "equipe";
+  beneficiaireType: "agent" | "equipe" | "poste";
   agentId: number | null;
   agentNom: string | null;
   equipeId: number | null;
   equipeNom: string | null;
+  posteId: number | null;
+  posteNom: string | null;
   quantite: number;
   taille: string | null;
   pointure: string | null;

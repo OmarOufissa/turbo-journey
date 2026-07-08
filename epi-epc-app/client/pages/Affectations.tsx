@@ -13,9 +13,11 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { StatutAffectationBadge } from "@/components/shared/Badges";
 import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
-import { ArticleReferencePicker } from "@/components/shared/ArticleReferencePicker";
+import { AffecterDialog } from "@/components/shared/AffecterDialog";
 import { toast } from "@/components/ui/toaster";
 import { formatDate, cn } from "@/lib/utils";
+
+const BENEFICIAIRE_LABELS: Record<string, string> = { agent: "EPI · agents", equipe: "EPC · équipes", poste: "Postes" };
 
 interface AffectationRow {
   id: number;
@@ -25,6 +27,7 @@ interface AffectationRow {
   beneficiaireType: string;
   agentNom: string | null;
   equipeNom: string | null;
+  posteNom: string | null;
   quantite: number;
   dateAffectation: string | null;
   statut: string;
@@ -47,9 +50,6 @@ interface GroupRow {
   nbPerdu: number;
   nbReforme: number;
 }
-interface ArticleOpt { id: number; designation: string; codeArticle: string; beneficiaireActuel: string | null; soumisControleReglementaire: boolean }
-interface AgentOpt { id: number; nom: string; matricule: string }
-interface EquipeOpt { id: number; nom: string }
 
 export default function Affectations() {
   const qc = useQueryClient();
@@ -64,10 +64,7 @@ export default function Affectations() {
   const [perduTarget, setPerduTarget] = useState<AffectationRow | null>(null);
   const [reformeTarget, setReformeTarget] = useState<AffectationRow | null>(null);
   const [historiqueTarget, setHistoriqueTarget] = useState<AffectationRow | null>(null);
-  const [beneficiaireKind, setBeneficiaireKind] = useState<"agent" | "equipe">("agent");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [createReferenceId, setCreateReferenceId] = useState<number | null>(null);
-  const [selectedArticleId, setSelectedArticleId] = useState("");
   const [controleTarget, setControleTarget] = useState<AffectationRow | null>(null);
 
   const filterQs = `${statut !== "all" ? `&statut=${statut}` : ""}${beneficiaireType !== "all" ? `&beneficiaireType=${beneficiaireType}` : ""}${q ? `&q=${encodeURIComponent(q)}` : ""}${ancestorId != null ? `&ancestorId=${ancestorId}` : ""}`;
@@ -82,28 +79,6 @@ export default function Affectations() {
     queryKey: ["affectations", statut, beneficiaireType, q, ancestorId],
     queryFn: () => apiGet(`/affectations?pageSize=300${filterQs}`),
     enabled: vue === "detaillee",
-  });
-
-  const { data: articlesAtReference } = useQuery<{ rows: ArticleOpt[] }>({
-    queryKey: ["articles-at-reference", createReferenceId],
-    queryFn: () => apiGet(`/articles?articleReferenceId=${createReferenceId}&pageSize=200`),
-    enabled: open && createReferenceId != null,
-  });
-  const { data: agents } = useQuery<{ rows: AgentOpt[] }>({ queryKey: ["agents-all"], queryFn: () => apiGet("/agents?pageSize=500"), enabled: open && beneficiaireKind === "agent" });
-  const { data: equipes } = useQuery<EquipeOpt[]>({ queryKey: ["equipes-all"], queryFn: () => apiGet("/org/equipes"), enabled: open && beneficiaireKind === "equipe" });
-
-  const createMutation = useMutation({
-    mutationFn: (body: Record<string, unknown>) => apiPost("/affectations", body),
-    onSuccess: () => {
-      toast.success("Affectation créée");
-      qc.invalidateQueries({ queryKey: ["affectations"] });
-      qc.invalidateQueries({ queryKey: ["affectations-groupes"] });
-      qc.invalidateQueries({ queryKey: ["articles-at-reference"] });
-      setOpen(false);
-      setCreateReferenceId(null);
-      setSelectedArticleId("");
-    },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   const modifierMutation = useMutation({
@@ -159,26 +134,6 @@ export default function Affectations() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    createMutation.mutate({
-      articleId: Number(fd.get("articleId")),
-      beneficiaireType: beneficiaireKind,
-      agentId: beneficiaireKind === "agent" ? Number(fd.get("agentId")) : undefined,
-      equipeId: beneficiaireKind === "equipe" ? Number(fd.get("equipeId")) : undefined,
-      quantite: Number(fd.get("quantite") || 1),
-      taille: fd.get("taille") || undefined,
-      pointure: fd.get("pointure") || undefined,
-      dateAffectation: fd.get("dateAffectation"),
-      motif: fd.get("motif") || undefined,
-      numeroSerie: fd.get("numeroSerie") || undefined,
-      lieuEmplacement: fd.get("lieuEmplacement") || undefined,
-      marque: fd.get("marque") || undefined,
-      dateFabricationUnite: fd.get("dateFabricationUnite") || undefined,
-    });
-  }
 
   function onControleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -250,7 +205,7 @@ export default function Affectations() {
               : `${data?.total ?? "…"} dotation(s) individuelle(s) et collective(s)`}
           </p>
         </div>
-        <Button onClick={() => { setSelectedArticleId(""); setOpen(true); }}><Plus className="h-4 w-4" /> Nouvelle affectation</Button>
+        <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Nouvelle affectation</Button>
       </div>
 
       <Card className="p-3">
@@ -264,9 +219,10 @@ export default function Affectations() {
             <Select value={beneficiaireType} onValueChange={setBeneficiaireType}>
               <SelectTrigger className="w-52"><SelectValue placeholder="Bénéficiaire" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Agents et équipes</SelectItem>
+                <SelectItem value="all">Agents, équipes et postes</SelectItem>
                 <SelectItem value="agent">Agents (EPI)</SelectItem>
                 <SelectItem value="equipe">Équipes (EPC)</SelectItem>
+                <SelectItem value="poste">Postes</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statut} onValueChange={setStatut}>
@@ -323,7 +279,7 @@ export default function Affectations() {
                         <span className="ml-2 font-mono text-xs text-muted-foreground">{g.codeArticle}</span>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{g.beneficiaireType === "agent" ? "EPI · agents" : "EPC · équipes"}</Badge>
+                        <Badge variant="outline">{BENEFICIAIRE_LABELS[g.beneficiaireType] ?? g.beneficiaireType}</Badge>
                       </TableCell>
                       <TableCell className="text-right tabular-nums font-medium">{g.nbBeneficiaires}</TableCell>
                       <TableCell className="text-right tabular-nums">{g.totalQuantite}</TableCell>
@@ -391,93 +347,14 @@ export default function Affectations() {
         </Card>
       )}
 
-      <Dialog
-        open={open}
-        onOpenChange={(o) => {
-          setOpen(o);
-          if (!o) {
-            setCreateReferenceId(null);
-            setSelectedArticleId("");
-          }
-        }}
-      >
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Nouvelle affectation</DialogTitle></DialogHeader>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="flex gap-2">
-              <Button type="button" size="sm" variant={beneficiaireKind === "agent" ? "default" : "outline"} onClick={() => setBeneficiaireKind("agent")}>À un agent (EPI)</Button>
-              <Button type="button" size="sm" variant={beneficiaireKind === "equipe" ? "default" : "outline"} onClick={() => setBeneficiaireKind("equipe")}>À une équipe (EPC)</Button>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Article * (Catégorie / Famille / Sous-famille / Article de référence / Article)</Label>
-              <ArticleReferencePicker value={createReferenceId} onChange={(id) => { setCreateReferenceId(id); setSelectedArticleId(""); }} />
-              {createReferenceId != null && (
-                <select
-                  id="articleId"
-                  name="articleId"
-                  required
-                  value={selectedArticleId}
-                  onChange={(e) => setSelectedArticleId(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
-                >
-                  <option value="">Sélectionner l'unité…</option>
-                  {articlesAtReference?.rows.map((a) => <option key={a.id} value={a.id}>{a.codeArticle} — {a.designation} ({a.beneficiaireActuel ? `affecté à ${a.beneficiaireActuel}` : "disponible"})</option>)}
-                </select>
-              )}
-            </div>
-            {articlesAtReference?.rows.find((a) => String(a.id) === selectedArticleId)?.soumisControleReglementaire && (
-              <div className="space-y-3 rounded-md border border-dashed p-3">
-                <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <ShieldCheck className="h-3.5 w-3.5" /> Équipement soumis à contrôle règlementaire — identifiez l'unité physique
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5"><Label htmlFor="numeroSerie">N° de série</Label><Input id="numeroSerie" name="numeroSerie" /></div>
-                  <div className="space-y-1.5"><Label htmlFor="marque">Marque</Label><Input id="marque" name="marque" /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5"><Label htmlFor="lieuEmplacement">Lieu / emplacement</Label><Input id="lieuEmplacement" name="lieuEmplacement" /></div>
-                  <div className="space-y-1.5"><Label htmlFor="dateFabricationUnite">Date de fabrication</Label><Input id="dateFabricationUnite" name="dateFabricationUnite" type="date" /></div>
-                </div>
-              </div>
-            )}
-            {beneficiaireKind === "agent" ? (
-              <div className="space-y-1.5">
-                <Label htmlFor="agentId">Agent *</Label>
-                <select id="agentId" name="agentId" required className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm">
-                  <option value="">Sélectionner…</option>
-                  {agents?.rows.map((a) => <option key={a.id} value={a.id}>{a.nom} ({a.matricule})</option>)}
-                </select>
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                <Label htmlFor="equipeId">Équipe *</Label>
-                <select id="equipeId" name="equipeId" required className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm">
-                  <option value="">Sélectionner…</option>
-                  {equipes?.map((e) => <option key={e.id} value={e.id}>{e.nom}</option>)}
-                </select>
-              </div>
-            )}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1.5"><Label htmlFor="quantite">Quantité</Label><Input id="quantite" name="quantite" type="number" defaultValue={1} min={1} /></div>
-              <div className="space-y-1.5"><Label htmlFor="taille">Taille</Label><Input id="taille" name="taille" placeholder="M, L, XL…" /></div>
-              <div className="space-y-1.5"><Label htmlFor="pointure">Pointure</Label><Input id="pointure" name="pointure" placeholder="42" /></div>
-            </div>
-            <div className="space-y-1.5"><Label htmlFor="dateAffectation">Date</Label><Input id="dateAffectation" name="dateAffectation" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></div>
-            <div className="space-y-1.5"><Label htmlFor="motif">Motif</Label><Input id="motif" name="motif" placeholder="Dotation initiale, renouvellement, remplacement…" /></div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => { setOpen(false); setCreateReferenceId(null); setSelectedArticleId(""); }}>Annuler</Button>
-              <Button type="submit" disabled={createMutation.isPending}>Affecter</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <AffecterDialog open={open} onClose={() => setOpen(false)} />
 
       <Dialog open={!!modifierTarget} onOpenChange={(o) => !o && setModifierTarget(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Modifier l'affectation</DialogTitle></DialogHeader>
           {modifierTarget && (
             <p className="-mt-2 text-sm text-muted-foreground">
-              {modifierTarget.designation} — {modifierTarget.agentNom ?? modifierTarget.equipeNom}
+              {modifierTarget.designation} — {modifierTarget.agentNom ?? modifierTarget.equipeNom ?? modifierTarget.posteNom}
             </p>
           )}
           <form onSubmit={onModifierSubmit} className="space-y-4">
@@ -530,7 +407,7 @@ export default function Affectations() {
           <DialogHeader><DialogTitle>Déclarer la perte de l'équipement</DialogTitle></DialogHeader>
           {perduTarget && (
             <p className="-mt-2 text-sm text-muted-foreground">
-              {perduTarget.designation} — {perduTarget.agentNom ?? perduTarget.equipeNom}
+              {perduTarget.designation} — {perduTarget.agentNom ?? perduTarget.equipeNom ?? perduTarget.posteNom}
             </p>
           )}
           <form onSubmit={onPerduSubmit} className="space-y-4">
@@ -549,7 +426,7 @@ export default function Affectations() {
           <DialogHeader><DialogTitle>Réformer l'équipement</DialogTitle></DialogHeader>
           {reformeTarget && (
             <p className="-mt-2 text-sm text-muted-foreground">
-              {reformeTarget.designation} — {reformeTarget.agentNom ?? reformeTarget.equipeNom}
+              {reformeTarget.designation} — {reformeTarget.agentNom ?? reformeTarget.equipeNom ?? reformeTarget.posteNom}
             </p>
           )}
           <form onSubmit={onReformeSubmit} className="space-y-4">
@@ -664,7 +541,7 @@ function AffectationDetailRow({
   return (
     <TableRow>
       <TableCell className={cn("font-medium", indented && "pl-10")}>
-        {indented ? (a.agentNom ?? a.equipeNom) : a.designation}
+        {indented ? (a.agentNom ?? a.equipeNom ?? a.posteNom) : a.designation}
         {(a.lieuEmplacement || a.numeroSerie) && (
           <div className="text-xs font-normal text-muted-foreground">
             {[a.lieuEmplacement, a.numeroSerie].filter(Boolean).join(" · ")}
@@ -676,8 +553,8 @@ function AffectationDetailRow({
           a.motif ?? "—"
         ) : (
           <>
-            {a.agentNom ?? a.equipeNom}
-            <span className="ml-1.5 text-xs text-muted-foreground">{a.beneficiaireType === "agent" ? "(EPI)" : "(EPC)"}</span>
+            {a.agentNom ?? a.equipeNom ?? a.posteNom}
+            <span className="ml-1.5 text-xs text-muted-foreground">({BENEFICIAIRE_LABELS[a.beneficiaireType] ?? a.beneficiaireType})</span>
           </>
         )}
       </TableCell>

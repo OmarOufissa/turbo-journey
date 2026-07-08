@@ -3,7 +3,15 @@ import { db } from "../db";
 import { articles, articlesReference, equipementHierarchie, marches, documents, affectations, controlesPeriodiques, reformes, kitTemplateLignes } from "../db/schema";
 import { and, eq, inArray, like, or, sql } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
-import { listChildren, resolveDescendantIds, getAncestorChain, recomputeReglementaireCascade } from "../services/hierarchieService";
+import {
+  listChildren,
+  resolveDescendantIds,
+  getAncestorChain,
+  recomputeReglementaireCascade,
+  getCategorieAncestorMap,
+  getFamilleAncestorMap,
+  getSousFamilleAncestorMap,
+} from "../services/hierarchieService";
 import { generateCodeAbrege, generateArticleCode } from "../services/codificationService";
 import type { AuthedRequest } from "../middleware/auth";
 
@@ -114,20 +122,31 @@ articlesRouter.get("/fournisseurs", async (_req, res) => {
   res.json(rows.map((r) => r.fournisseur));
 });
 
+// Même principe que /fournisseurs, pour le filtre marque.
+articlesRouter.get("/marques", async (_req, res) => {
+  const rows = await db
+    .selectDistinct({ marque: articles.marque })
+    .from(articles)
+    .where(sql`${articles.marque} is not null and ${articles.marque} != ''`)
+    .orderBy(articles.marque);
+  res.json(rows.map((r) => r.marque));
+});
+
 articlesRouter.get("/", async (req, res) => {
-  const { q, hierarchieId, ancestorId, articleReferenceId, fournisseur, page = "1", pageSize = "50" } = req.query as Record<string, string>;
+  const { q, hierarchieId, ancestorId, articleReferenceId, fournisseur, marque, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [eq(articles.actif, true)];
   if (q) conditions.push(or(like(articles.designation, `%${q}%`), like(articles.codeArticle, `%${q}%`), like(articles.codeInterne, `%${q}%`))!);
   if (hierarchieId) conditions.push(eq(articlesReference.hierarchieParentId, Number(hierarchieId)));
   if (ancestorId) conditions.push(inArray(articlesReference.hierarchieParentId, await resolveDescendantIds(Number(ancestorId))));
   if (articleReferenceId) conditions.push(eq(articles.articleReferenceId, Number(articleReferenceId)));
   if (fournisseur) conditions.push(eq(articles.fournisseur, fournisseur));
+  if (marque) conditions.push(eq(articles.marque, marque));
 
   const where = and(...conditions);
   const p = Math.max(1, Number(page));
   const ps = Math.min(500, Math.max(1, Number(pageSize)));
 
-  const [rows, [{ total }]] = await Promise.all([
+  const [rows, [{ total }], categorieMap, familleMap, sousFamilleMap] = await Promise.all([
     db
       .select({
         id: articles.id,
@@ -138,16 +157,20 @@ articlesRouter.get("/", async (req, res) => {
         articleReferenceCode: articlesReference.code,
         articleReferenceDesignation: articlesReference.designation,
         hierarchieId: articlesReference.hierarchieParentId,
-        hierarchieNom: equipementHierarchie.nom,
         soumisControleReglementaire: equipementHierarchie.soumisControleReglementaire,
         // Bénéficiaire(s) actuel(s) : pas de compteur de stock, seulement la présence/absence
         // d'une affectation en cours — nom du bénéficiaire le plus récent + nombre total
         // d'affectations actives (plusieurs unités du même lot peuvent être affectées).
         beneficiaireActuel: sql<
           string | null
-        >`(select coalesce(agents.nom, equipes.nom) from affectations left join agents on agents.id = affectations.agent_id left join equipes on equipes.id = affectations.equipe_id where affectations.article_id = articles.id and affectations.statut = 'actif' order by affectations.date_affectation desc limit 1)`,
+        >`(select coalesce(agents.nom, equipes.nom, postes.nom) from affectations left join agents on agents.id = affectations.agent_id left join equipes on equipes.id = affectations.equipe_id left join postes on postes.id = affectations.poste_id where affectations.article_id = articles.id and affectations.statut = 'actif' order by affectations.date_affectation desc limit 1)`,
         nbAffectationsActives: sql<number>`(select count(*) from affectations where affectations.article_id = articles.id and affectations.statut = 'actif')`,
+        // "Total des articles" : nombre total d'unités physiques rattachées à la même
+        // référence (même valeur répétée sur chaque ligne de cette référence).
+        nbArticlesMemeReference: sql<number>`(select count(*) from articles a2 where a2.article_reference_id = articles.article_reference_id)`,
         prixUnitaire: articles.prixUnitaire,
+        marque: articles.marque,
+        modele: articles.modele,
         aTaille: articles.aTaille,
         aPointure: articles.aPointure,
         unite: articles.unite,
@@ -157,7 +180,7 @@ articlesRouter.get("/", async (req, res) => {
       .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
       .leftJoin(equipementHierarchie, eq(articlesReference.hierarchieParentId, equipementHierarchie.id))
       .where(where)
-      .orderBy(articles.designation)
+      .orderBy(articles.codeArticle)
       .limit(ps)
       .offset((p - 1) * ps),
     db
@@ -165,9 +188,24 @@ articlesRouter.get("/", async (req, res) => {
       .from(articles)
       .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
       .where(where),
+    getCategorieAncestorMap(),
+    getFamilleAncestorMap(),
+    getSousFamilleAncestorMap(),
   ]);
 
-  res.json({ rows, total, page: p, pageSize: ps });
+  const enriched = rows.map((r) => {
+    const categorie = r.hierarchieId != null ? categorieMap.get(r.hierarchieId) : undefined;
+    const famille = r.hierarchieId != null ? familleMap.get(r.hierarchieId) : undefined;
+    const sousFamille = r.hierarchieId != null ? sousFamilleMap.get(r.hierarchieId) : undefined;
+    return {
+      ...r,
+      categorieNom: categorie?.nom ?? null,
+      familleNom: famille && famille.id !== categorie?.id ? famille.nom : null,
+      sousFamilleNom: sousFamille && sousFamille.id !== famille?.id ? sousFamille.nom : null,
+    };
+  });
+
+  res.json({ rows: enriched, total, page: p, pageSize: ps });
 });
 
 articlesRouter.get("/:id", async (req, res) => {
@@ -177,7 +215,6 @@ articlesRouter.get("/:id", async (req, res) => {
       id: articles.id,
       codeArticle: articles.codeArticle,
       codeInterne: articles.codeInterne,
-      codeFournisseur: articles.codeFournisseur,
       articleReferenceId: articles.articleReferenceId,
       articleReferenceCode: articlesReference.code,
       articleReferenceDesignation: articlesReference.designation,
@@ -185,7 +222,6 @@ articlesRouter.get("/:id", async (req, res) => {
       description: articles.description,
       photoUrl: articles.photoUrl,
       soumisControleReglementaire: equipementHierarchie.soumisControleReglementaire,
-      referenceFabricant: articles.referenceFabricant,
       constructeur: articles.constructeur,
       marque: articles.marque,
       modele: articles.modele,
@@ -193,7 +229,6 @@ articlesRouter.get("/:id", async (req, res) => {
       certification: articles.certification,
       dateFabrication: articles.dateFabrication,
       dateAcquisition: articles.dateAcquisition,
-      numeroSerie: articles.numeroSerie,
       dureeVieMois: articles.dureeVieMois,
       dateLimiteUtilisation: articles.dateLimiteUtilisation,
       noticePdfUrl: articles.noticePdfUrl,
@@ -227,7 +262,10 @@ articlesRouter.get("/:id", async (req, res) => {
       : Promise.resolve([]),
   ]);
 
-  res.json({ ...article, documents: docs, hierarchie });
+  // categorieNom (niveau 1 de la classification, ex. "EPI") pilote les règles de bénéficiaire
+  // de l'affectation (agent/poste pour l'EPI, équipe/poste pour les autres catégories) — voir
+  // client/components/shared/AffecterDialog.tsx.
+  res.json({ ...article, documents: docs, hierarchie, categorieNom: hierarchie[0]?.nom ?? null });
 });
 
 articlesRouter.post("/", async (req: AuthedRequest, res) => {

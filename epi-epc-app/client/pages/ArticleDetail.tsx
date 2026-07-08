@@ -22,14 +22,12 @@ interface ArticleDetailData {
   id: number;
   codeArticle: string;
   codeInterne: string | null;
-  codeFournisseur: string | null;
   articleReferenceId: number | null;
   articleReferenceCode: string | null;
   articleReferenceDesignation: string | null;
   designation: string;
   description: string | null;
   hierarchie: { id: number; nom: string }[];
-  referenceFabricant: string | null;
   constructeur: string | null;
   marque: string | null;
   modele: string | null;
@@ -37,7 +35,6 @@ interface ArticleDetailData {
   certification: string | null;
   dateFabrication: string | null;
   dateAcquisition: string | null;
-  numeroSerie: string | null;
   dureeVieMois: number | null;
   dateLimiteUtilisation: string | null;
   poidsKg: string | null;
@@ -183,7 +180,6 @@ export default function ArticleDetail() {
       normes: String(fd.get("normes") || "") || null,
       certification: String(fd.get("certification") || "") || null,
       dateAcquisition: String(fd.get("dateAcquisition") || "") || null,
-      numeroSerie: String(fd.get("numeroSerie") || "") || null,
       garantieMois: fd.get("garantieMois") ? Number(fd.get("garantieMois")) : null,
       prixUnitaire: String(fd.get("prixUnitaire") || "") || null,
       observations: String(fd.get("observations") || "") || null,
@@ -291,8 +287,6 @@ export default function ArticleDetail() {
           <Card>
             <CardContent className="grid grid-cols-2 gap-x-8 gap-y-3 p-5 text-sm sm:grid-cols-3">
               <Field label="Code interne" value={data.codeInterne} />
-              <Field label="Code fournisseur" value={data.codeFournisseur} />
-              <Field label="Référence fabricant" value={data.referenceFabricant} />
               <Field label="Constructeur" value={data.constructeur} />
               <Field label="Marque" value={data.marque} />
               <Field label="Modèle" value={data.modele} />
@@ -302,7 +296,6 @@ export default function ArticleDetail() {
               <Field label="Certification" value={data.certification} />
               <Field label="Date de fabrication" value={formatDate(data.dateFabrication)} />
               <Field label="Date d'acquisition" value={formatDate(data.dateAcquisition)} />
-              <Field label="Numéro de série (lot)" value={data.numeroSerie} />
               <Field label="Durée de vie" value={data.dureeVieMois ? `${data.dureeVieMois} mois` : null} />
               <Field label="Date limite d'utilisation" value={formatDate(data.dateLimiteUtilisation)} />
               <Field label="Garantie" value={data.garantieMois ? `${data.garantieMois} mois` : null} />
@@ -383,10 +376,6 @@ export default function ArticleDetail() {
             <div className="space-y-1.5">
               <Label htmlFor="dateAcquisition">Date d'acquisition</Label>
               <Input id="dateAcquisition" name="dateAcquisition" type="date" defaultValue={data.dateAcquisition ?? ""} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="numeroSerie">Numéro de série (lot)</Label>
-              <Input id="numeroSerie" name="numeroSerie" defaultValue={data.numeroSerie ?? ""} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="garantieMois">Garantie (mois)</Label>

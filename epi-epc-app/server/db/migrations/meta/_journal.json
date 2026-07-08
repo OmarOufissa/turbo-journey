@@ -43,6 +43,13 @@
       "when": 1783438065449,
       "tag": "0005_remove_stock",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1783545510643,
+      "tag": "0006_postes_beneficiaire_numeroserie",
+      "breakpoints": true
     }
   ]
 }

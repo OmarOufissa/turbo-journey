@@ -1,6 +1,6 @@
 import { eq, and, isNull, like } from "drizzle-orm";
 import { db } from "../db";
-import { equipementHierarchie, articlesReference, articles } from "../db/schema";
+import { equipementHierarchie, articlesReference, articles, affectations } from "../db/schema";
 import { getAncestorChain } from "./hierarchieService";
 
 const STOPWORDS = new Set(["de", "des", "du", "la", "le", "les", "et", "à", "d", "l"]);
@@ -102,5 +102,38 @@ export async function generateArticleCode(articleReferenceId: number): Promise<s
       return match ? Math.max(max, Number(match[1])) : max;
     }, 0);
     return `${reference.code}-${pad(nextSeq, 3)}`;
+  });
+}
+
+/**
+ * Numéro de série généré automatiquement pour une unité affectée : préfixe = codeAbrege du
+ * nœud de classification le plus précis de l'article (même convention que
+ * generateReferenceCode/generateArticleCode), suffixe séquentiel sur 6 chiffres, unique dans
+ * toute la table affectations (contrainte garantie en base par l'index unique sur
+ * affectations.numeroSerie — voir server/db/schema.ts).
+ */
+export async function generateNumeroSerie(articleId: number): Promise<string> {
+  return insertWithUniqueRetry(async () => {
+    const [article] = await db.select().from(articles).where(eq(articles.id, articleId));
+    if (!article) throw new Error(`Article introuvable (id=${articleId})`);
+
+    let prefix = "MAT";
+    if (article.articleReferenceId) {
+      const [reference] = await db.select().from(articlesReference).where(eq(articlesReference.id, article.articleReferenceId));
+      if (reference) {
+        const [leaf] = await db.select().from(equipementHierarchie).where(eq(equipementHierarchie.id, reference.hierarchieParentId));
+        if (leaf?.codeAbrege) prefix = leaf.codeAbrege;
+      }
+    }
+
+    const existing = await db
+      .select({ numeroSerie: affectations.numeroSerie })
+      .from(affectations)
+      .where(like(affectations.numeroSerie, `${prefix}-%`));
+    const nextSeq = 1 + existing.reduce((max, a) => {
+      const match = a.numeroSerie?.match(/-(\d{6})$/);
+      return match ? Math.max(max, Number(match[1])) : max;
+    }, 0);
+    return `${prefix}-${pad(nextSeq, 6)}`;
   });
 }

@@ -66,6 +66,28 @@ export const equipes = sqliteTable(
   }),
 );
 
+// Poste = établissement technique (site) pouvant recevoir des dotations directement (EPI, EPC,
+// LCI, appareils de levage/sous pression, vêtements), sibling de equipes sous un même service.
+// Sans rapport avec agents.poste (le rang/fonction organisationnelle d'un agent, ex. "Chef de
+// Service") ni avec kit_templates.appliesToType === "poste" (qui matche justement contre
+// agents.poste) — collision de vocabulaire propre au métier ONEE, pas une erreur de modélisation.
+export const postes = sqliteTable(
+  "postes",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    code: text("code").notNull().unique(),
+    nom: text("nom").notNull(),
+    serviceId: integer("service_id")
+      .notNull()
+      .references(() => services.id, { onDelete: "cascade" }),
+    createdAt: text("created_at").default(now).notNull(),
+  },
+  (t) => ({
+    serviceIdx: index("postes_service_idx").on(t.serviceId),
+    uniqueNamePerService: uniqueIndex("postes_nom_service_idx").on(t.nom, t.serviceId),
+  }),
+);
+
 export const agents = sqliteTable(
   "agents",
   {
@@ -288,7 +310,6 @@ export const articles = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     codeArticle: text("code_article").notNull().unique(),
     codeInterne: text("code_interne"),
-    codeFournisseur: text("code_fournisseur"),
     // Article de référence auquel ce lot/article physique est obligatoirement rattaché —
     // porte les caractéristiques techniques inhérentes à ce type d'équipement (héritées,
     // non dupliquées ici).
@@ -306,7 +327,6 @@ export const articles = sqliteTable(
     designation: text("designation").notNull(),
     description: text("description"),
     photoUrl: text("photo_url"),
-    referenceFabricant: text("reference_fabricant"),
     constructeur: text("constructeur"),
     marque: text("marque"),
     modele: text("modele"),
@@ -315,10 +335,6 @@ export const articles = sqliteTable(
     dateFabrication: text("date_fabrication"),
     // Date d'acquisition du lot — distincte de dateFabrication (fabrication du matériel).
     dateAcquisition: text("date_acquisition"),
-    // Numéro de série du lot lorsque celui-ci constitue lui-même une unité physique
-    // sérialisée (ex. un pont roulant de rechange en stock avant affectation) — distinct de
-    // affectations.numeroSerie, qui suit une unité individuelle une fois affectée.
-    numeroSerie: text("numero_serie"),
     dureeVieMois: integer("duree_vie_mois"),
     dateLimiteUtilisation: text("date_limite_utilisation"),
     noticePdfUrl: text("notice_pdf_url"),
@@ -420,7 +436,7 @@ export const kitTemplateLignesRelations = relations(kitTemplateLignes, ({ one })
 // AFFECTATIONS — dotation nominative ou collective
 // ============================================================================
 
-// beneficiaireType: agent | equipe · statut: actif | retourne | perdu | reforme
+// beneficiaireType: agent | equipe | poste · statut: actif | retourne | perdu | reforme
 export const affectations = sqliteTable(
   "affectations",
   {
@@ -431,6 +447,7 @@ export const affectations = sqliteTable(
     beneficiaireType: text("beneficiaire_type").notNull(),
     agentId: integer("agent_id").references(() => agents.id),
     equipeId: integer("equipe_id").references(() => equipes.id),
+    posteId: integer("poste_id").references(() => postes.id),
     quantite: integer("quantite").notNull().default(1),
     taille: text("taille"),
     pointure: text("pointure"),
@@ -449,10 +466,15 @@ export const affectations = sqliteTable(
     // retour), couvre uniformément toutes les transitions de statut.
     dateClotureStatut: text("date_cloture_statut"),
     kitTemplateId: integer("kit_template_id").references(() => kitTemplates.id),
-    // Champs de suivi par unité physique — utilisés pour les équipements soumis à
-    // contrôle règlementaire (appareils de levage, extincteurs/LCI, appareils sous
-    // pression, perches isolantes) où chaque affectation représente un appareil
-    // individuel plutôt qu'un lot ; sans objet pour les EPI/EPC classiques (restent
+    // numeroSerie identifie l'unité physique réellement affectée (ex. un lot de 10 casques
+    // achetés donne 10 affectations, chacune avec son propre numéro de série) — optionnel
+    // (les matériels ne nécessitant pas de traçabilité individuelle restent null), mais
+    // garanti unique dans toute la base (uniqueIndex ci-dessous) dès qu'il est renseigné,
+    // qu'il soit généré automatiquement (codificationService.generateNumeroSerie) ou saisi
+    // manuellement. lieuEmplacement/marque/dateFabricationUnite restent réservés aux
+    // équipements soumis à contrôle règlementaire (appareils de levage, extincteurs/LCI,
+    // appareils sous pression, perches isolantes), où chaque affectation représente un
+    // appareil individuel plutôt qu'un lot ; sans objet pour les EPI/EPC classiques (restent
     // null). dateAffectation fait déjà office de « date de mise en service », et
     // controles_periodiques (dateRealisee / prochaineEcheance) fait office de
     // « date de vérification / prochaine échéance » pour ces mêmes unités.
@@ -473,9 +495,10 @@ export const affectations = sqliteTable(
     articleIdx: index("affectations_article_idx").on(t.articleId),
     agentIdx: index("affectations_agent_idx").on(t.agentId),
     equipeIdx: index("affectations_equipe_idx").on(t.equipeId),
+    posteIdx: index("affectations_poste_idx").on(t.posteId),
     statutIdx: index("affectations_statut_idx").on(t.statut),
     dateIdx: index("affectations_date_idx").on(t.dateAffectation),
-    numeroSerieIdx: index("affectations_numero_serie_idx").on(t.numeroSerie),
+    numeroSerieIdx: uniqueIndex("affectations_numero_serie_idx").on(t.numeroSerie),
   }),
 );
 
@@ -483,6 +506,7 @@ export const affectationsRelations = relations(affectations, ({ one }) => ({
   article: one(articles, { fields: [affectations.articleId], references: [articles.id] }),
   agent: one(agents, { fields: [affectations.agentId], references: [agents.id] }),
   equipe: one(equipes, { fields: [affectations.equipeId], references: [equipes.id] }),
+  poste: one(postes, { fields: [affectations.posteId], references: [postes.id] }),
   kitTemplate: one(kitTemplates, { fields: [affectations.kitTemplateId], references: [kitTemplates.id] }),
 }));
 

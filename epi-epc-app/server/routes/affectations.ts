@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { db } from "../db";
-import { affectations, articles, articlesReference, agents, equipes, kitTemplateLignes, reformes, equipementHierarchie } from "../db/schema";
+import { affectations, articles, articlesReference, agents, equipes, postes, kitTemplateLignes, reformes, equipementHierarchie } from "../db/schema";
 import { and, desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
-import { resolveDescendantIds } from "../services/hierarchieService";
+import { resolveDescendantIds, getCategorieAncestorMap } from "../services/hierarchieService";
+import { generateNumeroSerie } from "../services/codificationService";
 import type { AuthedRequest } from "../middleware/auth";
 
 export const affectationsRouter = Router();
@@ -45,10 +46,11 @@ affectationsRouter.get("/groupes", async (req, res) => {
 });
 
 affectationsRouter.get("/", async (req, res) => {
-  const { agentId, equipeId, articleId, statut, beneficiaireType, q, ancestorId, page = "1", pageSize = "50" } = req.query as Record<string, string>;
+  const { agentId, equipeId, posteId, articleId, statut, beneficiaireType, q, ancestorId, page = "1", pageSize = "50" } = req.query as Record<string, string>;
   const conditions = [];
   if (agentId) conditions.push(eq(affectations.agentId, Number(agentId)));
   if (equipeId) conditions.push(eq(affectations.equipeId, Number(equipeId)));
+  if (posteId) conditions.push(eq(affectations.posteId, Number(posteId)));
   if (articleId) conditions.push(eq(affectations.articleId, Number(articleId)));
   if (statut) conditions.push(eq(affectations.statut, statut));
   if (beneficiaireType) conditions.push(eq(affectations.beneficiaireType, beneficiaireType));
@@ -60,6 +62,7 @@ affectationsRouter.get("/", async (req, res) => {
         like(articles.codeArticle, `%${q}%`),
         like(agents.nom, `%${q}%`),
         like(equipes.nom, `%${q}%`),
+        like(postes.nom, `%${q}%`),
         like(affectations.numeroSerie, `%${q}%`),
       )!,
     );
@@ -80,6 +83,8 @@ affectationsRouter.get("/", async (req, res) => {
         agentNom: agents.nom,
         equipeId: affectations.equipeId,
         equipeNom: equipes.nom,
+        posteId: affectations.posteId,
+        posteNom: postes.nom,
         quantite: affectations.quantite,
         taille: affectations.taille,
         pointure: affectations.pointure,
@@ -99,6 +104,7 @@ affectationsRouter.get("/", async (req, res) => {
       .innerJoin(articles, eq(affectations.articleId, articles.id))
       .leftJoin(agents, eq(affectations.agentId, agents.id))
       .leftJoin(equipes, eq(affectations.equipeId, equipes.id))
+      .leftJoin(postes, eq(affectations.posteId, postes.id))
       .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
       .leftJoin(equipementHierarchie, eq(articlesReference.hierarchieParentId, equipementHierarchie.id))
       .where(where)
@@ -111,6 +117,7 @@ affectationsRouter.get("/", async (req, res) => {
       .innerJoin(articles, eq(affectations.articleId, articles.id))
       .leftJoin(agents, eq(affectations.agentId, agents.id))
       .leftJoin(equipes, eq(affectations.equipeId, equipes.id))
+      .leftJoin(postes, eq(affectations.posteId, postes.id))
       .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
       .where(where),
   ]);
@@ -119,19 +126,23 @@ affectationsRouter.get("/", async (req, res) => {
 });
 
 affectationsRouter.post("/", async (req: AuthedRequest, res) => {
-  const body = req.body as {
+  const { numeroSerieAuto, ...body } = req.body as {
     articleId: number;
-    beneficiaireType: "agent" | "equipe";
+    beneficiaireType: "agent" | "equipe" | "poste";
     agentId?: number;
     equipeId?: number;
+    posteId?: number;
     quantite: number;
     taille?: string;
     pointure?: string;
     dateAffectation: string;
     motif?: string;
     validateurAgentId?: number;
-    // Suivi par unité physique (équipements soumis à contrôle règlementaire)
+    // Numéro de série de l'unité réellement affectée — optionnel, mais garanti unique dans
+    // toute la base dès qu'il est renseigné (voir affectations.numeroSerie en schéma).
     numeroSerie?: string;
+    numeroSerieAuto?: boolean;
+    // Suivi par unité physique (équipements soumis à contrôle règlementaire)
     lieuEmplacement?: string;
     marque?: string;
     dateFabricationUnite?: string;
@@ -143,11 +154,38 @@ affectationsRouter.post("/", async (req: AuthedRequest, res) => {
   }
   if (body.beneficiaireType === "agent" && !body.agentId) return res.status(400).json({ error: "Agent requis" });
   if (body.beneficiaireType === "equipe" && !body.equipeId) return res.status(400).json({ error: "Équipe requise" });
+  if (body.beneficiaireType === "poste" && !body.posteId) return res.status(400).json({ error: "Poste requis" });
 
   const [article] = await db.select().from(articles).where(eq(articles.id, body.articleId));
   if (!article) return res.status(404).json({ error: "Article introuvable" });
 
-  const [row] = await db.insert(affectations).values({ ...body, statut: "actif" }).returning();
+  // Règle métier : le bénéficiaire autorisé dépend de la catégorie générale (niveau 1) de
+  // l'article — EPI -> agent ou poste ; toute autre catégorie (EPC, LCI, appareils de
+  // levage/sous pression, vêtements) -> équipe ou poste. Revalidé côté serveur (jamais fiable
+  // uniquement côté client) — voir client/components/shared/AffecterDialog.tsx.
+  if (article.articleReferenceId) {
+    const [reference] = await db.select().from(articlesReference).where(eq(articlesReference.id, article.articleReferenceId));
+    if (reference) {
+      const categorieMap = await getCategorieAncestorMap();
+      const isEpi = categorieMap.get(reference.hierarchieParentId)?.nom === "EPI";
+      if (isEpi && body.beneficiaireType === "equipe") {
+        return res.status(400).json({ error: "Un article EPI ne peut être affecté qu'à un agent ou un poste" });
+      }
+      if (!isEpi && body.beneficiaireType === "agent") {
+        return res.status(400).json({ error: "Cet article ne peut être affecté qu'à une équipe ou un poste (agent réservé aux EPI)" });
+      }
+    }
+  }
+
+  let numeroSerie = body.numeroSerie?.trim() || null;
+  if (!numeroSerie && numeroSerieAuto) {
+    numeroSerie = await generateNumeroSerie(body.articleId);
+  } else if (numeroSerie) {
+    const [existing] = await db.select({ id: affectations.id }).from(affectations).where(eq(affectations.numeroSerie, numeroSerie));
+    if (existing) return res.status(409).json({ error: `Le numéro de série « ${numeroSerie} » est déjà utilisé par une autre affectation` });
+  }
+
+  const [row] = await db.insert(affectations).values({ ...body, numeroSerie, statut: "actif" }).returning();
   await logHistorique({
     typeEvenement: "dotation",
     entiteType: "affectation",

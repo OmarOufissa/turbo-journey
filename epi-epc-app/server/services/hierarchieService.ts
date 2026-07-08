@@ -82,6 +82,22 @@ export async function getCategorieAncestorMap(): Promise<Map<number, HierarchieN
   return result;
 }
 
+// Même principe que getFamilleAncestorMap/getCategorieAncestorMap, mais remonte jusqu'à la
+// sous-famille (niveau 3) — utilisé pour la colonne "Sous-famille" du tableau des articles.
+export async function getSousFamilleAncestorMap(): Promise<Map<number, HierarchieNode>> {
+  const all = await loadAllNodes();
+  const byId = new Map(all.map((n) => [n.id, n]));
+  const result = new Map<number, HierarchieNode>();
+  for (const n of all) {
+    let current = n;
+    while (current.niveau > 3 && current.parentId != null) {
+      current = byId.get(current.parentId)!;
+    }
+    result.set(n.id, current);
+  }
+  return result;
+}
+
 /** Chaîne complète des ancêtres, de la catégorie générale (racine) jusqu'au nœud lui-même. */
 export async function getAncestorChain(nodeId: number): Promise<HierarchieNode[]> {
   const all = await loadAllNodes();

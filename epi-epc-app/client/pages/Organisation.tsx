@@ -15,16 +15,25 @@ import { cn } from "@/lib/utils";
 import { AffecterDialog } from "@/components/shared/AffecterDialog";
 
 interface EquipeNode { id: number; nom: string; teamType: string | null; effectif: number }
-interface ServiceNode { id: number; nom: string; effectifDirect: number; equipes: EquipeNode[] }
+interface PosteNode { id: number; nom: string }
+interface ServiceNode { id: number; nom: string; effectifDirect: number; equipes: EquipeNode[]; postes: PosteNode[] }
 interface DivisionNode { id: number; nom: string; services: ServiceNode[] }
 
-type NewEntityKind = "division" | "service" | "equipe";
+type NewEntityKind = "division" | "service" | "equipe" | "poste";
 type OrgDialog =
   | { mode: "create-org"; kind: NewEntityKind; parentId?: number }
   | { mode: "edit-org"; kind: NewEntityKind; id: number; nom: string; teamType?: string | null }
   | { mode: "create-agent"; divisionId: number | null; serviceId: number | null; equipeId: number | null }
   | { mode: "edit-agent"; agent: Agent };
 type DeleteOrgTarget = { kind: NewEntityKind; id: number; nom: string };
+
+const ORG_PATHS: Record<NewEntityKind, string> = {
+  division: "/org/divisions",
+  service: "/org/services",
+  equipe: "/org/equipes",
+  poste: "/org/postes",
+};
+const ORG_LABELS: Record<NewEntityKind, string> = { division: "la division", service: "le service", equipe: "l'équipe", poste: "le poste" };
 
 export default function Organisation() {
   const qc = useQueryClient();
@@ -43,10 +52,7 @@ export default function Organisation() {
   }
 
   const createOrgMutation = useMutation({
-    mutationFn: (body: { kind: NewEntityKind; payload: Record<string, unknown> }) => {
-      const path = body.kind === "division" ? "/org/divisions" : body.kind === "service" ? "/org/services" : "/org/equipes";
-      return apiPost(path, body.payload);
-    },
+    mutationFn: (body: { kind: NewEntityKind; payload: Record<string, unknown> }) => apiPost(ORG_PATHS[body.kind], body.payload),
     onSuccess: () => {
       toast.success("Créé avec succès");
       qc.invalidateQueries({ queryKey: ["org-tree"] });
@@ -56,10 +62,7 @@ export default function Organisation() {
   });
 
   const updateOrgMutation = useMutation({
-    mutationFn: ({ kind, id, payload }: { kind: NewEntityKind; id: number; payload: Record<string, unknown> }) => {
-      const path = kind === "division" ? `/org/divisions/${id}` : kind === "service" ? `/org/services/${id}` : `/org/equipes/${id}`;
-      return apiPut(path, payload);
-    },
+    mutationFn: ({ kind, id, payload }: { kind: NewEntityKind; id: number; payload: Record<string, unknown> }) => apiPut(`${ORG_PATHS[kind]}/${id}`, payload),
     onSuccess: () => {
       toast.success("Modifié avec succès");
       qc.invalidateQueries({ queryKey: ["org-tree"] });
@@ -69,10 +72,7 @@ export default function Organisation() {
   });
 
   const deleteOrgMutation = useMutation({
-    mutationFn: ({ kind, id }: { kind: NewEntityKind; id: number }) => {
-      const path = kind === "division" ? `/org/divisions/${id}` : kind === "service" ? `/org/services/${id}` : `/org/equipes/${id}`;
-      return apiDelete(path);
-    },
+    mutationFn: ({ kind, id }: { kind: NewEntityKind; id: number }) => apiDelete(`${ORG_PATHS[kind]}/${id}`),
     onSuccess: () => {
       toast.success("Supprimé avec succès");
       qc.invalidateQueries({ queryKey: ["org-tree"] });
@@ -98,6 +98,7 @@ export default function Organisation() {
         payload.serviceId = dialog.parentId;
         payload.teamType = fd.get("teamType") || null;
       }
+      if (dialog.kind === "poste") payload.serviceId = dialog.parentId;
       createOrgMutation.mutate({ kind: dialog.kind, payload });
     } else if (dialog.mode === "edit-org") {
       const payload: Record<string, unknown> = { nom };
@@ -113,7 +114,7 @@ export default function Organisation() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Organisation</h1>
-          <p className="text-sm text-muted-foreground">Direction → Division → Service → Équipe → Agent</p>
+          <p className="text-sm text-muted-foreground">Direction → Division → Service → Équipe / Poste → Agent</p>
         </div>
         <Button onClick={() => setDialog({ mode: "create-org", kind: "division" })}><Plus className="h-4 w-4" /> Nouvelle division</Button>
       </div>
@@ -153,6 +154,7 @@ export default function Organisation() {
                               <Badge variant="outline">{svcEffectif} agent(s)</Badge>
                             </button>
                             <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "create-org", kind: "equipe", parentId: service.id })}><Plus className="h-3.5 w-3.5" /> Équipe</Button>
+                            <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "create-org", kind: "poste", parentId: service.id })}><Plus className="h-3.5 w-3.5" /> Poste</Button>
                             <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "create-agent", divisionId: division.id, serviceId: service.id, equipeId: null })}><UserPlus className="h-3.5 w-3.5" /> Agent</Button>
                             <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "edit-org", kind: "service", id: service.id, nom: service.nom })}><Pencil className="h-3.5 w-3.5" /></Button>
                             <Button size="sm" variant="ghost" onClick={() => setDeleteOrgTarget({ kind: "service", id: service.id, nom: service.nom })}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
@@ -191,6 +193,16 @@ export default function Organisation() {
                                   </div>
                                 );
                               })}
+                              {service.postes.map((p) => (
+                                <div key={p.id} className="flex items-center gap-2 py-1.5 text-sm">
+                                  <span className="flex flex-1 items-center gap-2">
+                                    <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {p.nom}
+                                  </span>
+                                  <Button size="sm" variant="ghost" onClick={() => setDialog({ mode: "edit-org", kind: "poste", id: p.id, nom: p.nom })}><Pencil className="h-3.5 w-3.5" /></Button>
+                                  <Button size="sm" variant="ghost" onClick={() => setDeleteOrgTarget({ kind: "poste", id: p.id, nom: p.nom })}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -208,10 +220,11 @@ export default function Organisation() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {dialog?.mode === "edit-org" && `Modifier ${dialog.kind === "division" ? "la division" : dialog.kind === "service" ? "le service" : "l'équipe"}`}
+              {dialog?.mode === "edit-org" && `Modifier ${ORG_LABELS[dialog.kind]}`}
               {dialog?.mode === "create-org" && dialog.kind === "division" && "Nouvelle division"}
               {dialog?.mode === "create-org" && dialog.kind === "service" && "Nouveau service"}
               {dialog?.mode === "create-org" && dialog.kind === "equipe" && "Nouvelle équipe"}
+              {dialog?.mode === "create-org" && dialog.kind === "poste" && "Nouveau poste"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={onSubmitOrg} className="space-y-4">

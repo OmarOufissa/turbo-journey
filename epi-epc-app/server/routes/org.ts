@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { divisions, services, equipes, agents, affectations, articles } from "../db/schema";
+import { divisions, services, equipes, postes, agents, affectations, articles } from "../db/schema";
 import { eq, count, desc } from "drizzle-orm";
 import { logHistorique } from "../services/historiqueService";
 import { computeBesoins } from "../services/besoinService";
@@ -8,12 +8,13 @@ import type { AuthedRequest } from "../middleware/auth";
 
 export const orgRouter = Router();
 
-// Arbre complet Direction > Division > Service > Équipe avec effectifs
+// Arbre complet Direction > Division > Service > Équipe/Poste avec effectifs
 orgRouter.get("/tree", async (_req, res) => {
-  const [divs, svcs, eqs, agentCounts] = await Promise.all([
+  const [divs, svcs, eqs, posts, agentCounts] = await Promise.all([
     db.select().from(divisions),
     db.select().from(services),
     db.select().from(equipes),
+    db.select().from(postes),
     db
       .select({ equipeId: agents.equipeId, serviceId: agents.serviceId, divisionId: agents.divisionId, n: count() })
       .from(agents)
@@ -37,6 +38,7 @@ orgRouter.get("/tree", async (_req, res) => {
         equipes: eqs
           .filter((e) => e.serviceId === s.id)
           .map((e) => ({ ...e, effectif: equipeCounts.get(e.id) ?? 0 })),
+        postes: posts.filter((p) => p.serviceId === s.id),
       })),
   }));
   res.json(tree);
@@ -45,6 +47,7 @@ orgRouter.get("/tree", async (_req, res) => {
 orgRouter.get("/divisions", async (_req, res) => res.json(await db.select().from(divisions)));
 orgRouter.get("/services", async (_req, res) => res.json(await db.select().from(services)));
 orgRouter.get("/equipes", async (_req, res) => res.json(await db.select().from(equipes)));
+orgRouter.get("/postes", async (_req, res) => res.json(await db.select().from(postes)));
 
 // Fiche équipe : infos + service/division, agents membres, dotations collectives (EPC) et
 // besoin — pendant de GET /agents/:id pour les bénéficiaires collectifs.
@@ -117,6 +120,14 @@ orgRouter.post("/equipes", async (req: AuthedRequest, res) => {
   res.status(201).json(row);
 });
 
+orgRouter.post("/postes", async (req: AuthedRequest, res) => {
+  const { code, nom, serviceId } = req.body;
+  if (!code || !nom || !serviceId) return res.status(400).json({ error: "Code, nom et service requis" });
+  const [row] = await db.insert(postes).values({ code, nom, serviceId }).returning();
+  await logHistorique({ typeEvenement: "creation_poste", entiteType: "poste", entiteId: row.id, utilisateurId: req.user?.id, details: { nom } });
+  res.status(201).json(row);
+});
+
 orgRouter.put("/divisions/:id", async (req, res) => {
   const [row] = await db.update(divisions).set(req.body).where(eq(divisions.id, Number(req.params.id))).returning();
   if (!row) return res.status(404).json({ error: "Division introuvable" });
@@ -130,6 +141,11 @@ orgRouter.put("/services/:id", async (req, res) => {
 orgRouter.put("/equipes/:id", async (req, res) => {
   const [row] = await db.update(equipes).set(req.body).where(eq(equipes.id, Number(req.params.id))).returning();
   if (!row) return res.status(404).json({ error: "Équipe introuvable" });
+  res.json(row);
+});
+orgRouter.put("/postes/:id", async (req, res) => {
+  const [row] = await db.update(postes).set(req.body).where(eq(postes.id, Number(req.params.id))).returning();
+  if (!row) return res.status(404).json({ error: "Poste introuvable" });
   res.json(row);
 });
 
@@ -172,5 +188,17 @@ orgRouter.delete("/equipes/:id", async (req: AuthedRequest, res) => {
   const [row] = await db.delete(equipes).where(eq(equipes.id, id)).returning();
   if (!row) return res.status(404).json({ error: "Équipe introuvable" });
   await logHistorique({ typeEvenement: "suppression_equipe", entiteType: "equipe", entiteId: id, utilisateurId: req.user?.id, details: { nom: row.nom } });
+  res.status(204).end();
+});
+
+orgRouter.delete("/postes/:id", async (req: AuthedRequest, res) => {
+  const id = Number(req.params.id);
+  const [{ n: nbAffectations }] = await db.select({ n: count() }).from(affectations).where(eq(affectations.posteId, id));
+  if (nbAffectations > 0) {
+    return res.status(409).json({ error: "Impossible de supprimer : des affectations y sont rattachées", dependents: { affectations: nbAffectations } });
+  }
+  const [row] = await db.delete(postes).where(eq(postes.id, id)).returning();
+  if (!row) return res.status(404).json({ error: "Poste introuvable" });
+  await logHistorique({ typeEvenement: "suppression_poste", entiteType: "poste", entiteId: id, utilisateurId: req.user?.id, details: { nom: row.nom } });
   res.status(204).end();
 });

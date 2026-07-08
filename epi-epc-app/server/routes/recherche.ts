@@ -1,16 +1,16 @@
 import { Router } from "express";
 import { db } from "../db";
-import { agents, articles, equipes, marches } from "../db/schema";
+import { agents, articles, equipes, postes, marches } from "../db/schema";
 import { like, or } from "drizzle-orm";
 
 export const rechercheRouter = Router();
 
 rechercheRouter.get("/", async (req, res) => {
   const q = (req.query.q as string)?.trim();
-  if (!q || q.length < 2) return res.json({ agents: [], articles: [], equipes: [], marches: [] });
+  if (!q || q.length < 2) return res.json({ agents: [], articles: [], equipes: [], postes: [], marches: [] });
   const pattern = `%${q}%`;
 
-  const [agentRows, articleRows, equipeRows, marcheRows] = await Promise.all([
+  const [agentRows, articleRows, equipeRows, posteRows, marcheRows] = await Promise.all([
     db
       .select({ id: agents.id, matricule: agents.matricule, nom: agents.nom, fonction: agents.fonction })
       .from(agents)
@@ -27,11 +27,16 @@ rechercheRouter.get("/", async (req, res) => {
       .where(like(equipes.nom, pattern))
       .limit(10),
     db
+      .select({ id: postes.id, nom: postes.nom })
+      .from(postes)
+      .where(like(postes.nom, pattern))
+      .limit(10),
+    db
       .select({ id: marches.id, numero: marches.numero, objet: marches.objet })
       .from(marches)
       .where(or(like(marches.numero, pattern), like(marches.objet, pattern), like(marches.fournisseur, pattern)))
       .limit(10),
   ]);
 
-  res.json({ agents: agentRows, articles: articleRows, equipes: equipeRows, marches: marcheRows });
+  res.json({ agents: agentRows, articles: articleRows, equipes: equipeRows, postes: posteRows, marches: marcheRows });
 });

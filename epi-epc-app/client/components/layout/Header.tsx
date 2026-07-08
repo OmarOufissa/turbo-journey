@@ -22,6 +22,7 @@ interface SearchResults {
   agents: { id: number; nom: string; matricule: string }[];
   articles: { id: number; designation: string; codeArticle: string }[];
   equipes: { id: number; nom: string }[];
+  postes: { id: number; nom: string }[];
   marches: { id: number; numero: string; objet: string }[];
 }
 
@@ -53,7 +54,7 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const hasResults = results && (results.agents.length || results.articles.length || results.equipes.length || results.marches.length);
+  const hasResults = results && (results.agents.length || results.articles.length || results.equipes.length || results.postes.length || results.marches.length);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur">
@@ -92,6 +93,12 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
               <button key={`eq-${e.id}`} onClick={() => { navigate(`/organisation`); setOpen(false); setQ(""); }} className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent">
                 <span>{e.nom}</span>
                 <span className="text-xs text-muted-foreground">Équipe</span>
+              </button>
+            ))}
+            {results?.postes.map((p) => (
+              <button key={`p-${p.id}`} onClick={() => { navigate(`/organisation`); setOpen(false); setQ(""); }} className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent">
+                <span>{p.nom}</span>
+                <span className="text-xs text-muted-foreground">Poste</span>
               </button>
             ))}
             {results?.marches.map((m) => (
