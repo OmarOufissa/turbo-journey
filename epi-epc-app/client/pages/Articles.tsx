@@ -12,28 +12,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
-import { HierarchieCascade } from "@/components/shared/HierarchieCascade";
 import { ArticleReferencePicker } from "@/components/shared/ArticleReferencePicker";
 import { AffecterDialog } from "@/components/shared/AffecterDialog";
+import type { HierarchieNode } from "@shared/api";
 
 interface ArticleRow {
   id: number;
   codeArticle: string;
   designation: string;
-  categorieNom: string | null;
   familleNom: string | null;
-  sousFamilleNom: string | null;
-  articleReferenceCode: string | null;
-  articleReferenceDesignation: string | null;
-  beneficiaireActuel: string | null;
-  nbAffectationsActives: number;
   nbArticlesMemeReference: number;
   marque: string | null;
-  modele: string | null;
+  fournisseur: string | null;
   aTaille: boolean;
   aPointure: boolean;
-  unite: string;
-  fournisseur: string | null;
 }
 
 interface ArticleReferenceOpt { id: number; code: string; designation: string }
@@ -44,21 +36,41 @@ export default function Articles() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
-  const [ancestorId, setAncestorId] = useState<number | null>(null);
+  // Barre de filtres : Catégorie → Famille → Article de référence → Marque → Fournisseur →
+  // Rechercher, dans cet ordre exact. Famille dépend de la catégorie choisie, article de
+  // référence dépend de la famille choisie ; marque dépend uniquement de la catégorie
+  // (pas de la famille ni de la référence), fournisseur dépend uniquement de l'article de
+  // référence (pas de la catégorie ni de la famille) — dépendances volontairement distinctes.
+  const [categorieId, setCategorieId] = useState<number | null>(null);
+  const [familleId, setFamilleId] = useState<number | null>(null);
   const [articleReferenceFilter, setArticleReferenceFilter] = useState<number | null>(null);
-  const [fournisseur, setFournisseur] = useState<string>("all");
   const [marqueFilter, setMarqueFilter] = useState<string>("all");
+  const [fournisseur, setFournisseur] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [createReferenceId, setCreateReferenceId] = useState<number | null>(null);
   const [affecterArticleId, setAffecterArticleId] = useState<number | null>(null);
 
-  const { data: fournisseurs } = useQuery<string[]>({ queryKey: ["articles-fournisseurs"], queryFn: () => apiGet("/articles/fournisseurs") });
-  const { data: marques } = useQuery<string[]>({ queryKey: ["articles-marques"], queryFn: () => apiGet("/articles/marques") });
+  const { data: categories } = useQuery<HierarchieNode[]>({ queryKey: ["articles-hierarchie", null], queryFn: () => apiGet("/articles/hierarchie") });
+  const { data: familles } = useQuery<HierarchieNode[]>({
+    queryKey: ["articles-hierarchie", categorieId],
+    queryFn: () => apiGet(`/articles/hierarchie?parentId=${categorieId}`),
+    enabled: categorieId != null,
+  });
   const { data: referencesForFilter } = useQuery<{ rows: ArticleReferenceOpt[] }>({
-    queryKey: ["articles-reference-options", ancestorId],
-    queryFn: () => apiGet(`/articles-reference?pageSize=500${ancestorId != null ? `&ancestorId=${ancestorId}` : ""}`),
+    queryKey: ["articles-reference-options", familleId],
+    queryFn: () => apiGet(`/articles-reference?pageSize=500&ancestorId=${familleId}`),
+    enabled: familleId != null,
+  });
+  const { data: marques } = useQuery<string[]>({
+    queryKey: ["articles-marques", categorieId],
+    queryFn: () => apiGet(`/articles/marques${categorieId != null ? `?ancestorId=${categorieId}` : ""}`),
+  });
+  const { data: fournisseurs } = useQuery<string[]>({
+    queryKey: ["articles-fournisseurs", articleReferenceFilter],
+    queryFn: () => apiGet(`/articles/fournisseurs${articleReferenceFilter != null ? `?articleReferenceId=${articleReferenceFilter}` : ""}`),
   });
 
+  const ancestorId = familleId ?? categorieId;
   const { data, isLoading } = useQuery<{ rows: ArticleRow[]; total: number }>({
     queryKey: ["articles", q, ancestorId, articleReferenceFilter, fournisseur, marqueFilter],
     queryFn: () =>
@@ -66,6 +78,26 @@ export default function Articles() {
         `/articles?pageSize=200${q ? `&q=${encodeURIComponent(q)}` : ""}${ancestorId != null ? `&ancestorId=${ancestorId}` : ""}${articleReferenceFilter != null ? `&articleReferenceId=${articleReferenceFilter}` : ""}${fournisseur !== "all" ? `&fournisseur=${encodeURIComponent(fournisseur)}` : ""}${marqueFilter !== "all" ? `&marque=${encodeURIComponent(marqueFilter)}` : ""}`,
       ),
   });
+
+  function onCategorieChange(v: string) {
+    const id = v === "all" ? null : Number(v);
+    setCategorieId(id);
+    setFamilleId(null);
+    setArticleReferenceFilter(null);
+    setMarqueFilter("all");
+    setFournisseur("all");
+  }
+  function onFamilleChange(v: string) {
+    const id = v === "all" ? null : Number(v);
+    setFamilleId(id);
+    setArticleReferenceFilter(null);
+    setFournisseur("all");
+  }
+  function onArticleReferenceChange(v: string) {
+    const id = v === "all" ? null : Number(v);
+    setArticleReferenceFilter(id);
+    setFournisseur("all");
+  }
 
   const { data: referenceDetail } = useQuery<{ id: number; designation: string }>({
     queryKey: ["create-article-reference-detail", createReferenceId],
@@ -130,17 +162,21 @@ export default function Articles() {
 
       <Card className="p-3">
         <div className="flex flex-wrap gap-2">
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un article, un code…" className="pl-8" />
-          </div>
-          <HierarchieCascade
-            value={ancestorId}
-            onChange={(id) => { setAncestorId(id); setArticleReferenceFilter(null); }}
-            allowAll
-            labels={HIERARCHIE_LABELS}
-          />
-          <Select value={articleReferenceFilter != null ? String(articleReferenceFilter) : "all"} onValueChange={(v) => setArticleReferenceFilter(v === "all" ? null : Number(v))}>
+          <Select value={categorieId != null ? String(categorieId) : "all"} onValueChange={onCategorieChange}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Catégorie" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes catégories</SelectItem>
+              {categories?.map((c) => <SelectItem key={c.id} value={String(c.id)}>{c.nom}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={familleId != null ? String(familleId) : "all"} onValueChange={onFamilleChange} disabled={categorieId == null}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Famille" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes familles</SelectItem>
+              {familles?.map((f) => <SelectItem key={f.id} value={String(f.id)}>{f.nom}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={articleReferenceFilter != null ? String(articleReferenceFilter) : "all"} onValueChange={onArticleReferenceChange} disabled={familleId == null}>
             <SelectTrigger className="w-52"><SelectValue placeholder="Article de référence" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toutes références</SelectItem>
@@ -163,57 +199,44 @@ export default function Articles() {
               ))}
             </SelectContent>
           </Select>
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un article, un code…" className="pl-8" />
+          </div>
         </div>
       </Card>
 
       <Card className="overflow-hidden">
-        <Table>
-          <TableHeader>
+        <Table containerClassName="max-h-[70vh] overflow-auto">
+          <TableHeader className="sticky top-0 z-10 bg-card">
             <TableRow>
-              <TableHead>Catégorie</TableHead>
-              <TableHead>Famille</TableHead>
-              <TableHead>Sous-famille</TableHead>
-              <TableHead>Article de référence</TableHead>
-              <TableHead>Désignation</TableHead>
-              <TableHead>Bénéficiaire</TableHead>
-              <TableHead>Marque</TableHead>
-              <TableHead>Modèle</TableHead>
-              <TableHead className="text-right">Total des articles</TableHead>
-              <TableHead>Code article</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-40">Code article</TableHead>
+              <TableHead className="w-40">Famille</TableHead>
+              <TableHead className="min-w-[220px]">Désignation</TableHead>
+              <TableHead className="w-32 text-right">Nombre d'articles</TableHead>
+              <TableHead className="w-32">Marque</TableHead>
+              <TableHead className="w-36">Fournisseur</TableHead>
+              <TableHead className="w-28 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading && (
-              <TableRow><TableCell colSpan={11} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Chargement…</TableCell></TableRow>
             )}
             {!isLoading && data?.rows.length === 0 && (
-              <TableRow><TableCell colSpan={11} className="py-8 text-center text-muted-foreground">Aucun article ne correspond aux filtres</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Aucun article ne correspond aux filtres</TableCell></TableRow>
             )}
             {data?.rows.map((a) => (
               <TableRow key={a.id} className="cursor-pointer" onClick={() => navigate(`/articles/${a.id}`)}>
-                <TableCell className="text-muted-foreground">{a.categorieNom ?? "—"}</TableCell>
+                <TableCell className="font-mono text-xs whitespace-nowrap">{a.codeArticle}</TableCell>
                 <TableCell className="text-muted-foreground">{a.familleNom ?? "—"}</TableCell>
-                <TableCell className="text-muted-foreground">{a.sousFamilleNom ?? "—"}</TableCell>
-                <TableCell className="text-muted-foreground">{a.articleReferenceDesignation ?? "—"}</TableCell>
                 <TableCell className="font-medium">
                   {a.designation}
                   {(a.aTaille || a.aPointure) && <span className="ml-2 text-xs text-muted-foreground">({a.aTaille ? "taille" : "pointure"})</span>}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {a.beneficiaireActuel ? (
-                    <>
-                      {a.beneficiaireActuel}
-                      {a.nbAffectationsActives > 1 && <span className="text-xs"> (+{a.nbAffectationsActives - 1})</span>}
-                    </>
-                  ) : (
-                    "—"
-                  )}
-                </TableCell>
-                <TableCell className="text-muted-foreground">{a.marque ?? "—"}</TableCell>
-                <TableCell className="text-muted-foreground">{a.modele ?? "—"}</TableCell>
                 <TableCell className="text-right tabular-nums">{a.nbArticlesMemeReference}</TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">{a.codeArticle}</TableCell>
+                <TableCell className="text-muted-foreground">{a.marque ?? "—"}</TableCell>
+                <TableCell className="text-muted-foreground">{a.fournisseur ?? "—"}</TableCell>
                 <TableCell className="text-right">
                   <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setAffecterArticleId(a.id); }}>
                     <ClipboardPlus className="h-3.5 w-3.5" /> Affecter

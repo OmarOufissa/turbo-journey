@@ -12,6 +12,7 @@ import { runMigrations } from "./migrate";
 import { seedDatabase } from "../seeds/seedData";
 import { migrateHierarchieIfNeeded } from "./migrateHierarchie";
 import { migrateArticlesReferenceIfNeeded } from "./migrateArticlesReference";
+import { regenerateArticleCodesIfNeeded } from "./regenerateArticleCodes";
 
 let ready: Promise<void> | null = null;
 
@@ -34,6 +35,9 @@ export function ensureDatabaseReady(): Promise<void> {
         await migrateHierarchieIfNeeded();
         await migrateArticlesReferenceIfNeeded();
       }
+      // Même le seed neuf assigne aux articles leurs codes d'origine (fichiers sources), pas
+      // encore au format "<référence>-NNN" — toujours appelé, no-op si déjà à jour.
+      await regenerateArticleCodesIfNeeded();
     })();
   }
   return ready;

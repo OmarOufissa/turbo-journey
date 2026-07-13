@@ -112,22 +112,31 @@ articlesRouter.delete("/hierarchie/:id", async (req: AuthedRequest, res) => {
 });
 
 // Liste des fournisseurs distincts déjà utilisés au catalogue — alimente le filtre
-// fournisseur d'Articles.tsx sans dupliquer une table de référence à part.
-articlesRouter.get("/fournisseurs", async (_req, res) => {
+// fournisseur d'Articles.tsx sans dupliquer une table de référence à part. Fournisseur
+// dépend de l'article de référence choisi (articleReferenceId) — non filtré si omis.
+articlesRouter.get("/fournisseurs", async (req, res) => {
+  const { articleReferenceId } = req.query as Record<string, string>;
+  const conditions = [sql`${articles.fournisseur} is not null and ${articles.fournisseur} != ''`];
+  if (articleReferenceId) conditions.push(eq(articles.articleReferenceId, Number(articleReferenceId)));
   const rows = await db
     .selectDistinct({ fournisseur: articles.fournisseur })
     .from(articles)
-    .where(sql`${articles.fournisseur} is not null and ${articles.fournisseur} != ''`)
+    .where(and(...conditions))
     .orderBy(articles.fournisseur);
   res.json(rows.map((r) => r.fournisseur));
 });
 
-// Même principe que /fournisseurs, pour le filtre marque.
-articlesRouter.get("/marques", async (_req, res) => {
+// Même principe que /fournisseurs, pour le filtre marque. Marque dépend de la catégorie
+// choisie (ancestorId, tout nœud de classification) — non filtré si omis.
+articlesRouter.get("/marques", async (req, res) => {
+  const { ancestorId } = req.query as Record<string, string>;
+  const conditions = [sql`${articles.marque} is not null and ${articles.marque} != ''`];
+  if (ancestorId) conditions.push(inArray(articlesReference.hierarchieParentId, await resolveDescendantIds(Number(ancestorId))));
   const rows = await db
     .selectDistinct({ marque: articles.marque })
     .from(articles)
-    .where(sql`${articles.marque} is not null and ${articles.marque} != ''`)
+    .leftJoin(articlesReference, eq(articles.articleReferenceId, articlesReference.id))
+    .where(and(...conditions))
     .orderBy(articles.marque);
   res.json(rows.map((r) => r.marque));
 });
