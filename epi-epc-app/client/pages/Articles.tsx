@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Plus, Search, ClipboardPlus } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
@@ -35,20 +35,46 @@ const HIERARCHIE_LABELS = ["Catégorie générale", "Famille", "Sous-famille"];
 export default function Articles() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [q, setQ] = useState("");
+  // Filtres synchronisés dans l'URL (searchParams) plutôt qu'un simple useState local : un
+  // retour arrière (bouton « Précédent » de la fiche article, qui fait un navigate(-1))
+  // remonte ce composant à neuf, donc seule l'URL restaurée par l'historique du navigateur
+  // permet de retrouver exactement les mêmes critères de recherche/filtres qu'avant d'ouvrir
+  // la fiche — un useState pur serait réinitialisé à chaque remontée.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [q, setQ] = useState(() => searchParams.get("q") ?? "");
   // Barre de filtres : Catégorie → Famille → Article de référence → Marque → Fournisseur →
   // Rechercher, dans cet ordre exact. Famille dépend de la catégorie choisie, article de
   // référence dépend de la famille choisie ; marque dépend uniquement de la catégorie
   // (pas de la famille ni de la référence), fournisseur dépend uniquement de l'article de
   // référence (pas de la catégorie ni de la famille) — dépendances volontairement distinctes.
-  const [categorieId, setCategorieId] = useState<number | null>(null);
-  const [familleId, setFamilleId] = useState<number | null>(null);
-  const [articleReferenceFilter, setArticleReferenceFilter] = useState<number | null>(null);
-  const [marqueFilter, setMarqueFilter] = useState<string>("all");
-  const [fournisseur, setFournisseur] = useState<string>("all");
+  const [categorieId, setCategorieId] = useState<number | null>(() => (searchParams.get("categorieId") ? Number(searchParams.get("categorieId")) : null));
+  const [familleId, setFamilleId] = useState<number | null>(() => (searchParams.get("familleId") ? Number(searchParams.get("familleId")) : null));
+  const [articleReferenceFilter, setArticleReferenceFilter] = useState<number | null>(() =>
+    searchParams.get("articleReferenceId") ? Number(searchParams.get("articleReferenceId")) : null,
+  );
+  const [marqueFilter, setMarqueFilter] = useState<string>(() => searchParams.get("marque") ?? "all");
+  const [fournisseur, setFournisseur] = useState<string>(() => searchParams.get("fournisseur") ?? "all");
   const [createOpen, setCreateOpen] = useState(false);
   const [createReferenceId, setCreateReferenceId] = useState<number | null>(null);
   const [affecterArticleId, setAffecterArticleId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (categorieId != null) params.set("categorieId", String(categorieId));
+    if (familleId != null) params.set("familleId", String(familleId));
+    if (articleReferenceFilter != null) params.set("articleReferenceId", String(articleReferenceFilter));
+    if (marqueFilter !== "all") params.set("marque", marqueFilter);
+    if (fournisseur !== "all") params.set("fournisseur", fournisseur);
+    setSearchParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, categorieId, familleId, articleReferenceFilter, marqueFilter, fournisseur]);
+
+  // Position de défilement dans le tableau : mémorisée par combinaison de filtres, pour que
+  // le retour depuis la fiche article (bouton Précédent) restaure la même portion visible de
+  // la liste, pas seulement les filtres.
+  const scrollKey = `articles-list-scroll:${searchParams.toString()}`;
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: categories } = useQuery<HierarchieNode[]>({ queryKey: ["articles-hierarchie", null], queryFn: () => apiGet("/articles/hierarchie") });
   const { data: familles } = useQuery<HierarchieNode[]>({
@@ -78,6 +104,21 @@ export default function Articles() {
         `/articles?pageSize=200${q ? `&q=${encodeURIComponent(q)}` : ""}${ancestorId != null ? `&ancestorId=${ancestorId}` : ""}${articleReferenceFilter != null ? `&articleReferenceId=${articleReferenceFilter}` : ""}${fournisseur !== "all" ? `&fournisseur=${encodeURIComponent(fournisseur)}` : ""}${marqueFilter !== "all" ? `&marque=${encodeURIComponent(marqueFilter)}` : ""}`,
       ),
   });
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => sessionStorage.setItem(scrollKey, String(el.scrollTop));
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [scrollKey]);
+
+  useEffect(() => {
+    if (!data || !scrollRef.current) return;
+    const saved = sessionStorage.getItem(scrollKey);
+    if (saved) scrollRef.current.scrollTop = Number(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, scrollKey]);
 
   function onCategorieChange(v: string) {
     const id = v === "all" ? null : Number(v);
@@ -207,7 +248,7 @@ export default function Articles() {
       </Card>
 
       <Card className="overflow-hidden">
-        <Table containerClassName="max-h-[70vh] overflow-auto">
+        <Table containerRef={scrollRef} containerClassName="max-h-[70vh] overflow-auto">
           <TableHeader className="sticky top-0 z-10 bg-card">
             <TableRow>
               <TableHead className="w-40">Code article</TableHead>
