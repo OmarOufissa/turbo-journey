@@ -97,10 +97,9 @@ async function startServer() {
   });
 
   await new Promise<void>((resolve, reject) => {
-    expressApp.listen(PORT, "127.0.0.1", (err?: Error) => {
-      if (err) reject(err);
-      else resolve();
-    });
+    const server = expressApp.listen(PORT, "127.0.0.1", () => resolve());
+    // EADDRINUSE is delivered via the 'error' event, not the listen callback.
+    server.on("error", (err: Error) => reject(err));
   });
 
   console.log(`Server started on port ${PORT}`);
@@ -206,22 +205,42 @@ if (!isDev) {
   app.commandLine.appendSwitch("disable-gpu");
 }
 
-app.whenReady().then(async () => {
-  try {
-    applySecurityHeaders();
-    await startServer();
-    createWindow();
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    dialog.showErrorBox("Startup Failed", message);
-    app.quit();
-  }
-});
+// Only allow one running copy of the app. Without this, launching a second
+// time tries to bind the internal server port (4399) again and fails with
+// "EADDRINUSE: address already in use". If a copy is already running, we just
+// focus its window instead of starting a broken second instance.
+const gotSingleInstanceLock = isDev || app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+  });
 
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
-});
+  app.whenReady().then(async () => {
+    try {
+      applySecurityHeaders();
+      await startServer();
+      createWindow();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const friendly = /EADDRINUSE/i.test(message)
+        ? "L'application semble déjà en cours d'exécution. Fermez l'autre fenêtre (ou redémarrez l'ordinateur si le problème persiste), puis relancez."
+        : message;
+      dialog.showErrorBox("Démarrage impossible", friendly);
+      app.quit();
+    }
+  });
 
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
-});
+  app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") app.quit();
+  });
+
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+}
