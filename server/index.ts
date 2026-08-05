@@ -433,6 +433,11 @@ export function createServer() {
     authMiddleware(req, res, () => updateAgentInfo(req, res, () => {}));
   });
 
+  app.get("/api/employees/:id/next-ht-title", async (req, res) => {
+    const { authMiddleware, getNextHtTitle } = await import("./routes/employees-audit");
+    authMiddleware(req, res, () => getNextHtTitle(req, res, () => {}));
+  });
+
   app.get("/api/employees/:id", async (req, res) => {
     const { authMiddleware, getEmployee } = await import("./routes/employees-audit");
     authMiddleware(req, res, () => getEmployee(req, res, () => {}));

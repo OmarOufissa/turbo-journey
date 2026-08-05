@@ -603,6 +603,37 @@ export const updateAgentInfo: RequestHandler = async (req, res) => {
   }
 };
 
+// Generate the next HT habilitation title number for an agent.
+// Format: HE + matricule + HT + YY (2-digit year). If already used the same
+// year, append Bis1, Bis2, ... The system checks existing numbers to avoid
+// any duplicate.
+export const getNextHtTitle: RequestHandler = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
+    if (!emp) return res.status(404).json({ success: false, data: null, error: "Agent non trouvé" });
+
+    const yy = String(new Date().getFullYear()).slice(-2);
+    const base = `HE${emp.matricule}HT${yy}`;
+
+    const rows = await db
+      .select({ nDeTitre: schema.employeeVersions.nDeTitre })
+      .from(schema.employeeVersions)
+      .where(like(schema.employeeVersions.nDeTitre, `${base}%`));
+    const existing = new Set(rows.map(r => (r.nDeTitre || "").trim()));
+
+    let candidate = base;
+    let n = 0;
+    while (existing.has(candidate)) { n++; candidate = `${base}Bis${n}`; }
+
+    res.json({ success: true, data: { nDeTitre: candidate }, error: null });
+  } catch (err) {
+    console.error("getNextHtTitle error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
+
 // ============================================================================
 // DELETE EMPLOYEE (soft)
 // ============================================================================

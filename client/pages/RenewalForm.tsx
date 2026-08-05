@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,8 @@ function getActiveRows(stCodes: string[], htCodes: string[]) {
 
 export default function RenewalForm() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const isHT = searchParams.get("type") === "ht";
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -95,6 +97,16 @@ export default function RenewalForm() {
       .catch(() => toast({ title: "Erreur", description: "Impossible de charger l'employé", variant: "destructive" }))
       .finally(() => setLoadingEmployee(false));
   }, [id]);
+
+  // HT renewal: the title number is generated automatically (HE + matricule + HT + YY,
+  // with Bis1/Bis2… if several the same year). The user does not type it.
+  useEffect(() => {
+    if (!isHT || !id) return;
+    fetch(`/api/employees/${id}/next-ht-title`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => { if (d.success) setForm(f => ({ ...f, nDeTitre: d.data.nDeTitre })); })
+      .catch(() => {});
+  }, [isHT, id]);
 
   useEffect(() => {
     fetch("/api/divisions").then(r => r.json()).then(d => setDivisions(d.data ?? d)).catch(console.error);
@@ -241,18 +253,20 @@ export default function RenewalForm() {
               <CardDescription>Modifiez les données pour le renouvellement de l'habilitation</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label>Fonction *</Label>
-                <Select value={form.fonction} onValueChange={v => setForm(f => ({ ...f, fonction: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
-                  <SelectContent>
-                    {fonctionsList.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+              {!isHT && (
+                <div className="space-y-1">
+                  <Label>Fonction *</Label>
+                  <Select value={form.fonction} onValueChange={v => setForm(f => ({ ...f, fonction: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                    <SelectContent>
+                      {fonctionsList.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-1">
                 <Label>N° de titre *</Label>
-                <Input value={form.nDeTitre} onChange={e => setForm(f => ({ ...f, nDeTitre: e.target.value }))} required />
+                <Input value={form.nDeTitre} onChange={e => setForm(f => ({ ...f, nDeTitre: e.target.value }))} required readOnly={isHT} className={isHT ? "bg-muted font-mono" : ""} title={isHT ? "Généré automatiquement" : undefined} />
               </div>
               <div className="space-y-1">
                 <Label>Date de validation *</Label>
@@ -265,6 +279,7 @@ export default function RenewalForm() {
             </CardContent>
           </Card>
 
+          {!isHT && (
           <Card>
             <CardHeader><CardTitle>Organisation</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-3 gap-4">
@@ -297,6 +312,7 @@ export default function RenewalForm() {
               </div>
             </CardContent>
           </Card>
+          )}
 
           <Card>
             <CardHeader>

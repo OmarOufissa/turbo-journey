@@ -1,15 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Trash2, Save, BookmarkCheck, X, Download, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, X, Download, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, AlertTriangle } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Employee } from "@/types/employee";
@@ -44,6 +46,7 @@ interface EmployeeListProps {
 }
 
 export default function EmployeeList({ habType }: EmployeeListProps) {
+  const isHT = habType === "HT";
   const navigate = useNavigate();
   const { toast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -55,6 +58,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
   const [codeFilter, setCodeFilter] = useState("all");
   const [divisionFilter, setDivisionFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
+  const [equipeFilter, setEquipeFilter] = useState("all");
   const [colorCodingEnabled, setColorCodingEnabled] = useState(() => {
     return localStorage.getItem(COLOR_TOGGLE_KEY) !== "false";
   });
@@ -63,19 +67,22 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
 
   const [divisions, setDivisions] = useState<OrgItem[]>([]);
   const [services, setServices] = useState<OrgItem[]>([]);
+  const [equipes, setEquipes] = useState<OrgItem[]>([]);
 
   const token = localStorage.getItem("token");
   const bulk = useBulkOperations(employees);
 
-  const codeOptions = habType === "HT" ? HT_CODE_OPTIONS : ST_CODE_OPTIONS;
-  const title = habType === "HT" ? "Employés HT (Hors Tension)" : "Employés ST (Sous Tension)";
-  const codesLabel = habType === "HT" ? "HT" : "ST";
+  const codeOptions = isHT ? HT_CODE_OPTIONS : ST_CODE_OPTIONS;
+  const title = isHT ? "Habilitation HT" : "Habilitation ST";
+  const codesLabel = isHT ? "HT" : "ST";
 
   useEffect(() => {
     fetch("/api/divisions", { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(d => { if (d.success) setDivisions(d.data); }).catch(() => {});
     fetch("/api/services", { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(d => { if (d.success) setServices(d.data); }).catch(() => {});
+    fetch("/api/services/all/equipes", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(d => { if (d.success) setEquipes(d.data); }).catch(() => {});
   }, [token]);
 
   const handleSort = (col: string) => {
@@ -100,18 +107,19 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
       if (range.expirationFrom) params.expirationFrom = range.expirationFrom;
       if (range.expirationTo) params.expirationTo = range.expirationTo;
       if (codeFilter !== "all") {
-        if (habType === "HT") params.htCode = codeFilter;
+        if (isHT) params.htCode = codeFilter;
         else params.stCode = codeFilter;
       }
       if (divisionFilter !== "all") params.divisionId = divisionFilter;
       if (serviceFilter !== "all") params.serviceId = serviceFilter;
+      if (equipeFilter !== "all") params.equipeId = equipeFilter;
 
       const res = await getEmployees(params);
       if (res.success) {
         const filtered = res.data.employees.filter(emp => {
           const ver = emp.currentVersion;
           if (!ver) return false;
-          if (habType === "HT") return ver.htCodes && ver.htCodes.length > 0;
+          if (isHT) return ver.htCodes && ver.htCodes.length > 0;
           return ver.stCodes && ver.stCodes.length > 0;
         });
         setEmployees(filtered);
@@ -122,7 +130,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, expirationFilter, hasPdfFilter, codeFilter, divisionFilter, serviceFilter, sort, sortDir, habType, toast]);
+  }, [searchTerm, expirationFilter, hasPdfFilter, codeFilter, divisionFilter, serviceFilter, equipeFilter, sort, sortDir, isHT, toast]);
 
   useEffect(() => { fetchEmployees(); }, [fetchEmployees]);
 
@@ -132,9 +140,11 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; matricule: string } | null>(null);
 
-  const handleDelete = (id: number, matricule: string) => {
-    setDeleteTarget({ id, matricule });
-  };
+  // HT: secure delete — requires the login password as a "code de sécurité".
+  const [secureTarget, setSecureTarget] = useState<{ id: number; matricule: string } | null>(null);
+  const [securityCode, setSecurityCode] = useState("");
+  const [secureLoading, setSecureLoading] = useState(false);
+  const [secureError, setSecureError] = useState("");
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -148,9 +158,33 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
     }
   };
 
+  const confirmSecureDelete = async () => {
+    if (!secureTarget) return;
+    setSecureError("");
+    setSecureLoading(true);
+    try {
+      // Verify the security code (login password) via the auth endpoint.
+      const auth = await fetch("/api/auth/login", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: securityCode }),
+      });
+      if (!auth.ok) { setSecureError("Code de sécurité incorrect"); return; }
+
+      await deleteEmployee(secureTarget.id);
+      toast({ title: "Succès", description: `Habilitation ${secureTarget.matricule} supprimée` });
+      setSecureTarget(null);
+      setSecurityCode("");
+      fetchEmployees();
+    } catch {
+      setSecureError("Suppression impossible");
+    } finally {
+      setSecureLoading(false);
+    }
+  };
+
   const handleRenew = (emp: Employee) => {
     if (!emp.currentVersion) return;
-    navigate(`/employees/${emp.id}/renew`);
+    navigate(`/employees/${emp.id}/renew?type=${habType.toLowerCase()}`);
   };
 
   const buildExportUrl = () => {
@@ -161,11 +195,12 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
     if (range.expirationFrom) params.set("expirationFrom", range.expirationFrom);
     if (range.expirationTo) params.set("expirationTo", range.expirationTo);
     if (codeFilter !== "all") {
-      if (habType === "HT") params.set("htCode", codeFilter);
+      if (isHT) params.set("htCode", codeFilter);
       else params.set("stCode", codeFilter);
     }
     if (divisionFilter !== "all") params.set("divisionId", divisionFilter);
     if (serviceFilter !== "all") params.set("serviceId", serviceFilter);
+    if (equipeFilter !== "all") params.set("equipeId", equipeFilter);
     const qs = params.toString();
     return `/api/employees/export${qs ? `?${qs}` : ""}`;
   };
@@ -177,9 +212,10 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
     setCodeFilter("all");
     setDivisionFilter("all");
     setServiceFilter("all");
+    setEquipeFilter("all");
   };
 
-  const hasActiveFilters = searchTerm || expirationFilter !== "all" || hasPdfFilter !== "all" || codeFilter !== "all" || divisionFilter !== "all" || serviceFilter !== "all";
+  const hasActiveFilters = searchTerm || expirationFilter !== "all" || hasPdfFilter !== "all" || codeFilter !== "all" || divisionFilter !== "all" || serviceFilter !== "all" || equipeFilter !== "all";
 
   return (
     <Layout>
@@ -192,9 +228,11 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
                 <Download className="w-4 h-4 mr-1" />Exporter ({total})
               </a>
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setColorCodingEnabled(v => !v)}>
-              {colorCodingEnabled ? "Désactiver couleurs" : "Activer couleurs"}
-            </Button>
+            {!isHT && (
+              <Button variant="outline" size="sm" onClick={() => setColorCodingEnabled(v => !v)}>
+                {colorCodingEnabled ? "Désactiver couleurs" : "Activer couleurs"}
+              </Button>
+            )}
             <Button asChild size="sm">
               <Link to="/employees/add"><Plus className="w-4 h-4 mr-1" />Ajouter</Link>
             </Button>
@@ -216,27 +254,31 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
             onChange={e => setSearchTerm(e.target.value)}
             className="max-w-xs"
           />
-          <Select value={expirationFilter} onValueChange={setExpirationFilter}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Expiration" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes expirations</SelectItem>
-              <SelectItem value="expired">Expirés</SelectItem>
-              <SelectItem value="3m">&lt; 3 mois</SelectItem>
-              <SelectItem value="6m">&lt; 6 mois</SelectItem>
-              <SelectItem value="9m">&lt; 9 mois</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={codeFilter} onValueChange={setCodeFilter}>
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder={`Code ${codesLabel}`} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les codes</SelectItem>
-              {codeOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {!isHT && (
+            <>
+              <Select value={expirationFilter} onValueChange={setExpirationFilter}>
+                <SelectTrigger className="w-44">
+                  <SelectValue placeholder="Expiration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes expirations</SelectItem>
+                  <SelectItem value="expired">Expirés</SelectItem>
+                  <SelectItem value="3m">&lt; 3 mois</SelectItem>
+                  <SelectItem value="6m">&lt; 6 mois</SelectItem>
+                  <SelectItem value="9m">&lt; 9 mois</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={codeFilter} onValueChange={setCodeFilter}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder={`Code ${codesLabel}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les codes</SelectItem>
+                  {codeOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </>
+          )}
           <Select value={divisionFilter} onValueChange={v => { setDivisionFilter(v); setServiceFilter("all"); }}>
             <SelectTrigger className="w-44">
               <SelectValue placeholder="Division" />
@@ -255,16 +297,29 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
               {services.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={hasPdfFilter} onValueChange={setHasPdfFilter}>
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="PDF" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous (PDF)</SelectItem>
-              <SelectItem value="true">Avec PDF</SelectItem>
-              <SelectItem value="false">Sans PDF</SelectItem>
-            </SelectContent>
-          </Select>
+          {isHT && (
+            <Select value={equipeFilter} onValueChange={setEquipeFilter}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Équipe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes équipes</SelectItem>
+                {equipes.map(eq => <SelectItem key={eq.id} value={String(eq.id)}>{eq.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          {!isHT && (
+            <Select value={hasPdfFilter} onValueChange={setHasPdfFilter}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="PDF" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous (PDF)</SelectItem>
+                <SelectItem value="true">Avec PDF</SelectItem>
+                <SelectItem value="false">Sans PDF</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={resetFilters}>
               <X className="w-3 h-3 mr-1" />Réinitialiser
@@ -280,7 +335,58 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
             description={hasActiveFilters ? "Aucun résultat avec ces filtres" : "Ajoutez votre premier employé"}
             action={hasActiveFilters ? { label: "Réinitialiser filtres", onClick: resetFilters } : { label: "Ajouter un employé", onClick: () => navigate("/employees/add") }}
           />
+        ) : isHT ? (
+          /* ── Habilitation HT: streamlined table ── */
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("matricule")}>
+                    Matricule<SortIcon col="matricule" />
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("nom")}>
+                    Nom et prénom<SortIcon col="nom" />
+                  </TableHead>
+                  <TableHead>Équipe</TableHead>
+                  <TableHead>Symbole</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {employees.map(emp => {
+                  const ver = emp.currentVersion;
+                  const codes = ver?.htCodes ?? [];
+                  return (
+                    <TableRow key={emp.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell className="font-mono font-medium whitespace-nowrap">{emp.matricule}</TableCell>
+                      <TableCell className="whitespace-nowrap uppercase">{emp.nom} {emp.prenom}</TableCell>
+                      <TableCell className="whitespace-nowrap">{ver?.equipe || "—"}</TableCell>
+                      <TableCell>
+                        {codes.length > 0
+                          ? <span className="flex gap-1 whitespace-nowrap">{codes.map(c => <Badge key={c} variant="secondary" className="text-xs font-mono">{c}</Badge>)}</span>
+                          : <span className="text-muted-foreground text-sm">—</span>}
+                      </TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button variant="outline" size="sm" onClick={() => handleRenew(emp)}>
+                          <RefreshCw className="w-4 h-4 mr-1" />Renouveler
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => { setSecureTarget({ id: emp.id, matricule: emp.matricule }); setSecurityCode(""); setSecureError(""); }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />Supprimer
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
+          /* ── Habilitation ST: existing table ── */
           <>
             <BulkActionBar
               selectedCount={bulk.selectedIds.size}
@@ -322,9 +428,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
                   const ver = emp.currentVersion;
                   const status = ver ? getExpirationStatus(ver.dateExpiration) : "valid";
                   const config = EXPIRATION_COLOR_CONFIG[status];
-                  const codes = habType === "HT"
-                    ? (ver?.htCodes ?? []).join(", ")
-                    : (ver?.stCodes ?? []).join(", ");
+                  const codes = (ver?.stCodes ?? []).join(", ");
 
                   return (
                     <TableRow
@@ -371,7 +475,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDelete(emp.id, emp.matricule)}
+                          onClick={() => setDeleteTarget({ id: emp.id, matricule: emp.matricule })}
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -390,18 +494,51 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
               onConfirm={bulk.confirmBulkRenewal}
               isRenewing={bulk.isRunning}
             />
-
-            <ConfirmDialog
-              open={deleteTarget !== null}
-              onOpenChange={(open) => !open && setDeleteTarget(null)}
-              title="Supprimer l'employé"
-              description={deleteTarget ? `Supprimer l'employé ${deleteTarget.matricule} ?` : ""}
-              confirmText="Supprimer"
-              variant="danger"
-              onConfirm={confirmDelete}
-            />
           </>
         )}
+
+        {/* ST delete (simple) */}
+        <ConfirmDialog
+          open={deleteTarget !== null}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+          title="Supprimer l'employé"
+          description={deleteTarget ? `Supprimer l'employé ${deleteTarget.matricule} ?` : ""}
+          confirmText="Supprimer"
+          variant="danger"
+          onConfirm={confirmDelete}
+        />
+
+        {/* HT delete (requires security code) */}
+        <Dialog open={secureTarget !== null} onOpenChange={(open) => { if (!open) { setSecureTarget(null); setSecurityCode(""); setSecureError(""); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Supprimer l'habilitation</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Confirmez la suppression de l'habilitation de <strong>{secureTarget?.matricule}</strong> en saisissant le code de sécurité.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="seccode">Code de sécurité</Label>
+                <Input
+                  id="seccode"
+                  type="password"
+                  value={securityCode}
+                  autoFocus
+                  onChange={e => setSecurityCode(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && securityCode && confirmSecureDelete()}
+                />
+                {secureError && <p className="text-sm text-destructive">{secureError}</p>}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => { setSecureTarget(null); setSecurityCode(""); setSecureError(""); }}>Annuler</Button>
+              <Button variant="destructive" disabled={!securityCode || secureLoading} onClick={confirmSecureDelete}>
+                {secureLoading ? "Vérification..." : "Supprimer"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
