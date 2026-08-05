@@ -16,6 +16,13 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface OrgItem { id: number; name: string; }
 
+// Shorten org names to keep the table compact: Division -> Div., Exploitation -> Exp.
+function abbrev(s?: string | null): string {
+  return (s || "")
+    .replace(/\bDivision\b/gi, "Div.")
+    .replace(/\bExploitation\b/gi, "Exp.");
+}
+
 export default function Employees() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -194,6 +201,7 @@ export default function Employees() {
             action={hasActiveFilters ? { label: "Réinitialiser filtres", onClick: resetFilters } : { label: "Ajouter un agent", onClick: () => navigate("/agents/add") }}
           />
         ) : (
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -201,14 +209,12 @@ export default function Employees() {
                   Matricule<SortIcon col="matricule" />
                 </TableHead>
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("nom")}>
-                  Nom<SortIcon col="nom" />
+                  Nom et prénom<SortIcon col="nom" />
                 </TableHead>
-                <TableHead>Prénom</TableHead>
-                <TableHead>Division</TableHead>
-                <TableHead>Service</TableHead>
+                <TableHead>Div.</TableHead>
                 <TableHead>Équipe</TableHead>
-                <TableHead>Aptitude médicale</TableHead>
-                <TableHead>Habilitation</TableHead>
+                <TableHead>Aptitude</TableHead>
+                <TableHead>Symbole</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -223,15 +229,13 @@ export default function Employees() {
                     onClick={() => navigate(`/agents/${emp.id}/edit`)}
                   >
                     <TableCell className="font-mono font-medium whitespace-nowrap">{emp.matricule}</TableCell>
-                    <TableCell className="whitespace-nowrap uppercase">{emp.nom}</TableCell>
-                    <TableCell className="whitespace-nowrap uppercase">{emp.prenom}</TableCell>
-                    <TableCell className="max-w-[180px] truncate" title={ver?.division ?? ""}>{ver?.division || "—"}</TableCell>
-                    <TableCell className="max-w-[180px] truncate" title={ver?.service ?? ""}>{ver?.service || "—"}</TableCell>
+                    <TableCell className="whitespace-nowrap uppercase">{emp.nom} {emp.prenom}</TableCell>
+                    <TableCell className="max-w-[160px] truncate" title={ver?.division ?? ""}>{abbrev(ver?.division) || "—"}</TableCell>
                     <TableCell className="whitespace-nowrap">{ver?.equipe || "—"}</TableCell>
-                    <TableCell className="max-w-[160px] truncate" title={emp.aptitudeMedicale ?? ""}>{emp.aptitudeMedicale || "—"}</TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    <TableCell className="max-w-[140px] truncate" title={emp.aptitudeMedicale ?? ""}>{emp.aptitudeMedicale || "—"}</TableCell>
+                    <TableCell>
                       {codes.length > 0
-                        ? <span className="flex flex-wrap gap-1">{codes.map(c => <Badge key={c} variant="secondary" className="text-xs font-mono">{c}</Badge>)}</span>
+                        ? <span className="flex gap-1 whitespace-nowrap">{codes.map(c => <Badge key={c} variant="secondary" className="text-xs font-mono">{c}</Badge>)}</span>
                         : <span className="text-muted-foreground text-sm">Aucune</span>}
                     </TableCell>
                     <TableCell onClick={e => e.stopPropagation()} className="flex gap-1">
@@ -252,6 +256,7 @@ export default function Employees() {
               })}
             </TableBody>
           </Table>
+          </div>
         )}
 
         <ConfirmDialog

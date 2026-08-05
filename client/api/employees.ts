@@ -52,6 +52,7 @@ export interface AgentInfo {
   matricule: string;
   nom: string;
   prenom: string;
+  fonction?: string | null;
   aptitudeMedicale?: string | null;
   divisionId: number;
   serviceId: number;

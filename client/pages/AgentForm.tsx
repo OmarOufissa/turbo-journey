@@ -26,6 +26,7 @@ export default function AgentForm() {
   const [matricule, setMatricule] = useState("");
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
+  const [fonction, setFonction] = useState("");
   const [aptitudeMedicale, setAptitudeMedicale] = useState("");
   const [divisionId, setDivisionId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
@@ -66,6 +67,7 @@ export default function AgentForm() {
         setAptitudeMedicale(e.aptitudeMedicale ?? "");
         const v = e.currentVersion;
         if (v) {
+          setFonction(v.fonction ?? "");
           setDivisionId(v.divisionId ? String(v.divisionId) : "");
           setServiceId(v.serviceId ? String(v.serviceId) : "");
           setEquipeId(v.equipeId ? String(v.equipeId) : "");
@@ -87,6 +89,7 @@ export default function AgentForm() {
       matricule: matricule.trim(),
       nom: nom.trim().toUpperCase(),
       prenom: prenom.trim().toUpperCase(),
+      fonction: fonction.trim() || null,
       aptitudeMedicale: aptitudeMedicale.trim() || null,
       divisionId: Number(divisionId),
       serviceId: Number(serviceId),
@@ -133,6 +136,11 @@ export default function AgentForm() {
                   <Label htmlFor="prenom">Prénom</Label>
                   <Input id="prenom" value={prenom} onChange={e => setPrenom(e.target.value.toUpperCase())} required className="uppercase" />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="fonction">Fonction</Label>
+                <Input id="fonction" value={fonction} onChange={e => setFonction(e.target.value)} placeholder="Ex. Cadre Technique, Agent d'exploitation..." />
               </div>
 
               <div className="space-y-2">

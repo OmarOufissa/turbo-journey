@@ -495,7 +495,7 @@ export const updateEmployee: RequestHandler = async (req, res) => {
 // does not appear in the HT/ST habilitation lists until a habilitation is added.
 export const createAgent: RequestHandler = async (req, res) => {
   try {
-    const { matricule, nom, prenom, aptitudeMedicale, divisionId, serviceId, equipeId } = req.body ?? {};
+    const { matricule, nom, prenom, fonction, aptitudeMedicale, divisionId, serviceId, equipeId } = req.body ?? {};
     if (!matricule || !nom || !prenom || !divisionId || !serviceId) {
       return res.status(400).json({ success: false, data: null, error: "Matricule, nom, prénom, division et service sont requis" });
     }
@@ -518,7 +518,7 @@ export const createAgent: RequestHandler = async (req, res) => {
         stCodes: [],
         htCodes: [],
         nDeTitre: "",
-        fonction: "",
+        fonction: fonction ? String(fonction).trim() : "",
         divisionId: Number(divisionId),
         serviceId: Number(serviceId),
         equipeId: equipeId ? Number(equipeId) : null,
@@ -556,7 +556,7 @@ export const updateAgentInfo: RequestHandler = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
-    const { matricule, nom, prenom, aptitudeMedicale, divisionId, serviceId, equipeId } = req.body ?? {};
+    const { matricule, nom, prenom, fonction, aptitudeMedicale, divisionId, serviceId, equipeId } = req.body ?? {};
 
     const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Agent non trouvé" });
@@ -580,6 +580,7 @@ export const updateAgentInfo: RequestHandler = async (req, res) => {
         if (divisionId) verUpdate.divisionId = Number(divisionId);
         if (serviceId) verUpdate.serviceId = Number(serviceId);
         if (equipeId !== undefined) verUpdate.equipeId = equipeId ? Number(equipeId) : null;
+        if (fonction !== undefined) verUpdate.fonction = fonction ? String(fonction).trim() : "";
         if (Object.keys(verUpdate).length) {
           await tx.update(schema.employeeVersions).set(verUpdate as any).where(eq(schema.employeeVersions.id, emp.currentVersionId));
         }
