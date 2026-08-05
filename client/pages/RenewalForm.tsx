@@ -31,8 +31,11 @@ const HAB_ROWS_META = [
 ];
 
 function getActiveRows(stCodes: string[], htCodes: string[]) {
+  // A symbol may live in either list (e.g. HT groups both H0V and B0V), so a
+  // row is active as soon as either of its keys is selected in either list.
+  const selected = new Set([...stCodes, ...htCodes]);
   return HAB_ROWS_META.filter(r =>
-    (r.stKey && stCodes.includes(r.stKey)) || (r.htKey && htCodes.includes(r.htKey))
+    (r.stKey && selected.has(r.stKey)) || (r.htKey && selected.has(r.htKey))
   );
 }
 
@@ -222,7 +225,8 @@ export default function RenewalForm() {
     );
   }
 
-  const activeRows = getActiveRows(form.stCodes, form.htCodes);
+  // HT renewal only deals with Hors Tension symbols (rows carrying an htKey).
+  const activeRows = getActiveRows(form.stCodes, form.htCodes).filter(r => (isHT ? r.htKey !== null : true));
 
   return (
     <Layout>
@@ -317,10 +321,11 @@ export default function RenewalForm() {
           <Card>
             <CardHeader>
               <CardTitle>Habilitation</CardTitle>
-              <CardDescription>Au moins un code ST ou HT requis</CardDescription>
+              <CardDescription>{isHT ? "Au moins un code HT requis" : "Au moins un code ST ou HT requis"}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-6">
+              <div className={isHT ? "grid grid-cols-1 gap-6" : "grid grid-cols-2 gap-6"}>
+                {!isHT && (
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold">Codes ST</Label>
                   <div className="grid grid-cols-2 gap-1">
@@ -332,6 +337,7 @@ export default function RenewalForm() {
                     ))}
                   </div>
                 </div>
+                )}
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold">Codes HT</Label>
                   <div className="grid grid-cols-2 gap-1">

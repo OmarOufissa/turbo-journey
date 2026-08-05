@@ -1,17 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Trash2, X, Download, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, X, Download, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, AlertTriangle, Eye } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Employee } from "@/types/employee";
@@ -140,12 +138,6 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; matricule: string } | null>(null);
 
-  // HT: secure delete — requires the login password as a "code de sécurité".
-  const [secureTarget, setSecureTarget] = useState<{ id: number; matricule: string } | null>(null);
-  const [securityCode, setSecurityCode] = useState("");
-  const [secureLoading, setSecureLoading] = useState(false);
-  const [secureError, setSecureError] = useState("");
-
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     const { id, matricule } = deleteTarget;
@@ -155,30 +147,6 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
       fetchEmployees();
     } catch {
       toast({ title: "Erreur", description: "Impossible de supprimer l'employé", variant: "destructive" });
-    }
-  };
-
-  const confirmSecureDelete = async () => {
-    if (!secureTarget) return;
-    setSecureError("");
-    setSecureLoading(true);
-    try {
-      // Verify the security code (login password) via the auth endpoint.
-      const auth = await fetch("/api/auth/login", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: securityCode }),
-      });
-      if (!auth.ok) { setSecureError("Code de sécurité incorrect"); return; }
-
-      await deleteEmployee(secureTarget.id);
-      toast({ title: "Succès", description: `Habilitation ${secureTarget.matricule} supprimée` });
-      setSecureTarget(null);
-      setSecurityCode("");
-      fetchEmployees();
-    } catch {
-      setSecureError("Suppression impossible");
-    } finally {
-      setSecureLoading(false);
     }
   };
 
@@ -349,6 +317,9 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
                   </TableHead>
                   <TableHead>Équipe</TableHead>
                   <TableHead>Symbole</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("expiration")}>
+                    Expiration<SortIcon col="expiration" />
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -366,17 +337,15 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
                           ? <span className="flex gap-1 whitespace-nowrap">{codes.map(c => <Badge key={c} variant="secondary" className="text-xs font-mono">{c}</Badge>)}</span>
                           : <span className="text-muted-foreground text-sm">—</span>}
                       </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {ver?.dateExpiration ? new Date(ver.dateExpiration).toLocaleDateString("fr-FR") : "—"}
+                      </TableCell>
                       <TableCell className="flex gap-1">
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/employees/${emp.id}?type=ht`)}>
+                          <Eye className="w-4 h-4 mr-1" />Voir
+                        </Button>
                         <Button variant="outline" size="sm" onClick={() => handleRenew(emp)}>
                           <RefreshCw className="w-4 h-4 mr-1" />Renouveler
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => { setSecureTarget({ id: emp.id, matricule: emp.matricule }); setSecurityCode(""); setSecureError(""); }}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4 mr-1" />Supprimer
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -507,38 +476,6 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
           variant="danger"
           onConfirm={confirmDelete}
         />
-
-        {/* HT delete (requires security code) */}
-        <Dialog open={secureTarget !== null} onOpenChange={(open) => { if (!open) { setSecureTarget(null); setSecurityCode(""); setSecureError(""); } }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Supprimer l'habilitation</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Confirmez la suppression de l'habilitation de <strong>{secureTarget?.matricule}</strong> en saisissant le code de sécurité.
-              </p>
-              <div className="space-y-2">
-                <Label htmlFor="seccode">Code de sécurité</Label>
-                <Input
-                  id="seccode"
-                  type="password"
-                  value={securityCode}
-                  autoFocus
-                  onChange={e => setSecurityCode(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && securityCode && confirmSecureDelete()}
-                />
-                {secureError && <p className="text-sm text-destructive">{secureError}</p>}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => { setSecureTarget(null); setSecurityCode(""); setSecureError(""); }}>Annuler</Button>
-              <Button variant="destructive" disabled={!securityCode || secureLoading} onClick={confirmSecureDelete}>
-                {secureLoading ? "Vérification..." : "Supprimer"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </Layout>
   );

@@ -11,10 +11,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Employee } from "@/types/employee";
+import { HT_CODES, ST_CODES } from "@/types/habilitation";
 import { getEmployees, deleteEmployee } from "@/api/employees";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface OrgItem { id: number; name: string; }
+
+// All habilitation symbols (HT then ST) for the symbol filter.
+const SYMBOL_OPTIONS = [...HT_CODES, ...ST_CODES];
 
 // Shorten org names to keep the table compact: Division -> Div., Exploitation -> Exp.
 function abbrev(s?: string | null): string {
@@ -33,6 +37,7 @@ export default function Employees() {
   const [divisionFilter, setDivisionFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [equipeFilter, setEquipeFilter] = useState("all");
+  const [symbolFilter, setSymbolFilter] = useState("all");
   const [sort, setSort] = useState("nom");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
@@ -78,6 +83,10 @@ export default function Employees() {
       if (divisionFilter !== "all") params.divisionId = divisionFilter;
       if (serviceFilter !== "all") params.serviceId = serviceFilter;
       if (equipeFilter !== "all") params.equipeId = equipeFilter;
+      if (symbolFilter !== "all") {
+        if (HT_CODES.includes(symbolFilter)) params.htCode = symbolFilter;
+        else params.stCode = symbolFilter;
+      }
 
       const res = await getEmployees(params);
       if (res.success) {
@@ -89,7 +98,7 @@ export default function Employees() {
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, divisionFilter, serviceFilter, equipeFilter, sort, sortDir, toast]);
+  }, [searchTerm, divisionFilter, serviceFilter, equipeFilter, symbolFilter, sort, sortDir, toast]);
 
   useEffect(() => { fetchEmployees(); }, [fetchEmployees]);
 
@@ -112,9 +121,10 @@ export default function Employees() {
     setDivisionFilter("all");
     setServiceFilter("all");
     setEquipeFilter("all");
+    setSymbolFilter("all");
   };
 
-  const hasActiveFilters = searchTerm || divisionFilter !== "all" || serviceFilter !== "all" || equipeFilter !== "all";
+  const hasActiveFilters = searchTerm || divisionFilter !== "all" || serviceFilter !== "all" || equipeFilter !== "all" || symbolFilter !== "all";
 
   const buildExportUrl = () => {
     const params = new URLSearchParams();
@@ -122,6 +132,10 @@ export default function Employees() {
     if (divisionFilter !== "all") params.set("divisionId", divisionFilter);
     if (serviceFilter !== "all") params.set("serviceId", serviceFilter);
     if (equipeFilter !== "all") params.set("equipeId", equipeFilter);
+    if (symbolFilter !== "all") {
+      if (HT_CODES.includes(symbolFilter)) params.set("htCode", symbolFilter);
+      else params.set("stCode", symbolFilter);
+    }
     const qs = params.toString();
     return `/api/employees/export${qs ? `?${qs}` : ""}`;
   };
@@ -185,6 +199,15 @@ export default function Employees() {
               {equipes.map(eq => <SelectItem key={eq.id} value={String(eq.id)}>{eq.name}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Select value={symbolFilter} onValueChange={setSymbolFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Symbole" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous symboles</SelectItem>
+              {SYMBOL_OPTIONS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={resetFilters}>
               <X className="w-3 h-3 mr-1" />Réinitialiser
@@ -213,8 +236,8 @@ export default function Employees() {
                 </TableHead>
                 <TableHead>Div.</TableHead>
                 <TableHead>Équipe</TableHead>
-                <TableHead>Aptitude</TableHead>
                 <TableHead>Symbole</TableHead>
+                <TableHead>Apte</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -232,12 +255,12 @@ export default function Employees() {
                     <TableCell className="whitespace-nowrap uppercase">{emp.nom} {emp.prenom}</TableCell>
                     <TableCell className="max-w-[160px] truncate" title={ver?.division ?? ""}>{abbrev(ver?.division) || "—"}</TableCell>
                     <TableCell className="whitespace-nowrap">{ver?.equipe || "—"}</TableCell>
-                    <TableCell className="max-w-[140px] truncate" title={emp.aptitudeMedicale ?? ""}>{emp.aptitudeMedicale || "—"}</TableCell>
                     <TableCell>
                       {codes.length > 0
                         ? <span className="flex gap-1 whitespace-nowrap">{codes.map(c => <Badge key={c} variant="secondary" className="text-xs font-mono">{c}</Badge>)}</span>
                         : <span className="text-muted-foreground text-sm">Aucune</span>}
                     </TableCell>
+                    <TableCell className="max-w-[140px] truncate" title={emp.aptitudeMedicale ?? ""}>{emp.aptitudeMedicale || "—"}</TableCell>
                     <TableCell onClick={e => e.stopPropagation()} className="flex gap-1">
                       <Button variant="outline" size="sm" asChild>
                         <Link to={`/agents/${emp.id}/edit`}>Modifier</Link>
