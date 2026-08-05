@@ -422,6 +422,17 @@ export function createServer() {
     authMiddleware(req, res, () => createEmployee(req, res, () => {}));
   });
 
+  // Agent (general info only) — used by the "Agents habilités" section
+  app.post("/api/agents", async (req, res) => {
+    const { authMiddleware, createAgent } = await import("./routes/employees-audit");
+    authMiddleware(req, res, () => createAgent(req, res, () => {}));
+  });
+
+  app.put("/api/employees/:id/agent-info", async (req, res) => {
+    const { authMiddleware, updateAgentInfo } = await import("./routes/employees-audit");
+    authMiddleware(req, res, () => updateAgentInfo(req, res, () => {}));
+  });
+
   app.get("/api/employees/:id", async (req, res) => {
     const { authMiddleware, getEmployee } = await import("./routes/employees-audit");
     authMiddleware(req, res, () => getEmployee(req, res, () => {}));

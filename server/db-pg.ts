@@ -157,6 +157,7 @@ async function createTablesIfNotExist() {
     `ALTER TABLE employee_versions ADD COLUMN pdf_status TEXT`,
     `ALTER TABLE employee_versions ADD COLUMN pdf_path_st TEXT`,
     `ALTER TABLE employee_versions ADD COLUMN pdf_status_st TEXT`,
+    `ALTER TABLE employees ADD COLUMN aptitude_medicale TEXT`,
   ];
   for (const m of migrations) {
     try { await client.execute(m); } catch { /* column already exists */ }

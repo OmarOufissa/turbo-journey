@@ -20,6 +20,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Employees from "./pages/Employees";
 import EmployeeList from "./pages/EmployeeList";
+import AgentForm from "./pages/AgentForm";
 import AddEmployee from "./pages/AddEmployee";
 import EditEmployee from "./pages/EditEmployee";
 import EmployeeCard from "./pages/EmployeeCard";
@@ -96,6 +97,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <EmployeeList key="st" habType="ST" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/agents/add"
+            element={
+              <ProtectedRoute>
+                <AgentForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/agents/:id/edit"
+            element={
+              <ProtectedRoute>
+                <AgentForm />
               </ProtectedRoute>
             }
           />

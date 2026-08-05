@@ -44,6 +44,9 @@ export const employees = sqliteTable("employees", {
   matricule: text("matricule").notNull().unique(),
   nom: text("nom").notNull(),
   prenom: text("prenom").notNull(),
+  // Agent-level medical fitness (free text). Managed from the "Agents habilités"
+  // section, independent of any habilitation.
+  aptitudeMedicale: text("aptitude_medicale"),
   currentVersionId: integer("current_version_id").references((): any => employeeVersions.id, { onDelete: "set null" }),
   deleted: integer("deleted", { mode: "boolean" }).notNull().default(false),
   deletedAt: text("deleted_at"),

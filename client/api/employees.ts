@@ -48,6 +48,24 @@ export async function updateEmployee(id: number | string, data: UpdateEmployeeRe
   return apiClient(`/api/employees/${id}`, { method: "PUT", body: JSON.stringify(data) });
 }
 
+export interface AgentInfo {
+  matricule: string;
+  nom: string;
+  prenom: string;
+  aptitudeMedicale?: string | null;
+  divisionId: number;
+  serviceId: number;
+  equipeId?: number | null;
+}
+
+export async function createAgent(data: AgentInfo): Promise<{ success: boolean; data: { employee: Employee }; error: null }> {
+  return apiClient(`/api/agents`, { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function updateAgentInfo(id: number | string, data: AgentInfo): Promise<{ success: boolean; data: { employee: Employee }; error: null }> {
+  return apiClient(`/api/employees/${id}/agent-info`, { method: "PUT", body: JSON.stringify(data) });
+}
+
 export async function deleteEmployee(id: number | string): Promise<{ success: boolean; data: { auditLogId: number }; error: null }> {
   return apiClient(`/api/employees/${id}`, { method: "DELETE" });
 }

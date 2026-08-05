@@ -34,6 +34,7 @@ export interface Employee {
   matricule: string;
   nom: string;
   prenom: string;
+  aptitudeMedicale?: string | null;
   deleted: boolean;
   createdAt: string;
   updatedAt: string;

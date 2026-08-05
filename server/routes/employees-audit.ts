@@ -113,6 +113,7 @@ async function buildEmployeeResponse(employeeId: number) {
     matricule: emp.matricule,
     nom: emp.nom,
     prenom: emp.prenom,
+    aptitudeMedicale: emp.aptitudeMedicale ?? null,
     deleted: emp.deleted,
     createdAt: emp.createdAt,
     updatedAt: emp.updatedAt,
@@ -178,6 +179,7 @@ export const getEmployees: RequestHandler = async (req, res) => {
     const htCode = req.query.htCode as string | undefined;
     const divisionId = req.query.divisionId ? parseInt(req.query.divisionId as string) : undefined;
     const serviceId = req.query.serviceId ? parseInt(req.query.serviceId as string) : undefined;
+    const equipeId = req.query.equipeId ? parseInt(req.query.equipeId as string) : undefined;
     const fonctionFilter = req.query.fonction as string | undefined;
 
     const conditions: any[] = [eq(schema.employees.deleted, showDeleted)];
@@ -198,6 +200,7 @@ export const getEmployees: RequestHandler = async (req, res) => {
     if (htCode) conditions.push(like(schema.employeeVersions.htCodes, `%"${htCode}"%`));
     if (divisionId) conditions.push(eq(schema.employeeVersions.divisionId, divisionId));
     if (serviceId) conditions.push(eq(schema.employeeVersions.serviceId, serviceId));
+    if (equipeId) conditions.push(eq(schema.employeeVersions.equipeId, equipeId));
     if (fonctionFilter) conditions.push(eq(schema.employeeVersions.fonction, fonctionFilter));
 
     const whereClause = conditions.length === 1 ? conditions[0] : and(...conditions);
@@ -216,6 +219,7 @@ export const getEmployees: RequestHandler = async (req, res) => {
         matricule: schema.employees.matricule,
         nom: schema.employees.nom,
         prenom: schema.employees.prenom,
+        aptitudeMedicale: schema.employees.aptitudeMedicale,
         deleted: schema.employees.deleted,
         createdAt: schema.employees.createdAt,
         updatedAt: schema.employees.updatedAt,
@@ -261,6 +265,7 @@ export const getEmployees: RequestHandler = async (req, res) => {
       matricule: row.matricule,
       nom: row.nom,
       prenom: row.prenom,
+      aptitudeMedicale: row.aptitudeMedicale ?? null,
       deleted: row.deleted,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
@@ -325,6 +330,7 @@ export const getEmployee: RequestHandler = async (req, res) => {
         matricule: emp.matricule,
         nom: emp.nom,
         prenom: emp.prenom,
+        aptitudeMedicale: emp.aptitudeMedicale ?? null,
         deleted: emp.deleted,
         createdAt: emp.createdAt,
         currentVersion: currentVersion ? await buildVersionResponse(currentVersion) : null,
@@ -476,6 +482,122 @@ export const updateEmployee: RequestHandler = async (req, res) => {
       return res.status(409).json({ success: false, data: null, error: "Conflit: une autre modification est en cours. Rechargez et réessayez." });
     }
     console.error("updateEmployee error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
+
+// ============================================================================
+// AGENT — general info only (no habilitation). Used by "Agents habilités".
+// ============================================================================
+
+// Create an agent: person + org info, with an empty habilitation version so the
+// division/service/équipe have somewhere to live. Empty codes mean the agent
+// does not appear in the HT/ST habilitation lists until a habilitation is added.
+export const createAgent: RequestHandler = async (req, res) => {
+  try {
+    const { matricule, nom, prenom, aptitudeMedicale, divisionId, serviceId, equipeId } = req.body ?? {};
+    if (!matricule || !nom || !prenom || !divisionId || !serviceId) {
+      return res.status(400).json({ success: false, data: null, error: "Matricule, nom, prénom, division et service sont requis" });
+    }
+
+    const existing = await db.select({ id: schema.employees.id }).from(schema.employees).where(eq(schema.employees.matricule, String(matricule).trim()));
+    if (existing.length > 0) return res.status(409).json({ success: false, data: null, error: "Matricule déjà existant" });
+
+    const today = new Date().toISOString().split("T")[0];
+    const result = await db.transaction(async (tx) => {
+      const [emp] = await tx.insert(schema.employees).values({
+        matricule: String(matricule).trim(),
+        nom: String(nom).trim().toUpperCase(),
+        prenom: String(prenom).trim().toUpperCase(),
+        aptitudeMedicale: aptitudeMedicale ? String(aptitudeMedicale).trim() : null,
+      }).returning();
+
+      const [version] = await tx.insert(schema.employeeVersions).values({
+        employeeId: emp.id,
+        versionNumber: 1,
+        stCodes: [],
+        htCodes: [],
+        nDeTitre: "",
+        fonction: "",
+        divisionId: Number(divisionId),
+        serviceId: Number(serviceId),
+        equipeId: equipeId ? Number(equipeId) : null,
+        dateValidation: today,
+        dateExpiration: today,
+        createdBy: getUserIdFromRequest(req),
+      }).returning();
+
+      await tx.update(schema.employees).set({ currentVersionId: version.id }).where(eq(schema.employees.id, emp.id));
+
+      const [auditLog] = await tx.insert(schema.auditLogs).values({
+        action: "CREATE_EMPLOYEE",
+        entityId: emp.id,
+        snapshotOld: null,
+        snapshotNew: { matricule: emp.matricule, nom: emp.nom, prenom: emp.prenom, agent: true } as any,
+      }).returning();
+      await tx.update(schema.employeeVersions).set({ auditLogId: auditLog.id }).where(eq(schema.employeeVersions.id, version.id));
+
+      return { empId: emp.id, auditLogId: auditLog.id };
+    });
+
+    const employee = await buildEmployeeResponse(result.empId);
+    res.status(201).json({ success: true, data: { employee, auditLogId: result.auditLogId }, error: null });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) return res.status(409).json({ success: false, data: null, error: "Matricule déjà existant" });
+    console.error("createAgent error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
+
+// Update only the general info of an agent. Employee fields (matricule, nom,
+// prénom, aptitude médicale) plus the org fields on the CURRENT version
+// (division, service, équipe) — never any habilitation code, date or PDF.
+export const updateAgentInfo: RequestHandler = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
+    const { matricule, nom, prenom, aptitudeMedicale, divisionId, serviceId, equipeId } = req.body ?? {};
+
+    const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
+    if (!emp) return res.status(404).json({ success: false, data: null, error: "Agent non trouvé" });
+
+    if (matricule && String(matricule).trim() !== emp.matricule) {
+      const dup = await db.select({ id: schema.employees.id }).from(schema.employees).where(eq(schema.employees.matricule, String(matricule).trim()));
+      if (dup.length > 0) return res.status(409).json({ success: false, data: null, error: "Matricule déjà existant" });
+    }
+
+    const nowStr = new Date().toISOString().replace("T", " ").substring(0, 19);
+    await db.transaction(async (tx) => {
+      const empUpdate: Record<string, unknown> = { updatedAt: nowStr };
+      if (matricule) empUpdate.matricule = String(matricule).trim();
+      if (nom !== undefined) empUpdate.nom = String(nom).trim().toUpperCase();
+      if (prenom !== undefined) empUpdate.prenom = String(prenom).trim().toUpperCase();
+      if (aptitudeMedicale !== undefined) empUpdate.aptitudeMedicale = aptitudeMedicale ? String(aptitudeMedicale).trim() : null;
+      await tx.update(schema.employees).set(empUpdate as any).where(eq(schema.employees.id, id));
+
+      if (emp.currentVersionId) {
+        const verUpdate: Record<string, unknown> = {};
+        if (divisionId) verUpdate.divisionId = Number(divisionId);
+        if (serviceId) verUpdate.serviceId = Number(serviceId);
+        if (equipeId !== undefined) verUpdate.equipeId = equipeId ? Number(equipeId) : null;
+        if (Object.keys(verUpdate).length) {
+          await tx.update(schema.employeeVersions).set(verUpdate as any).where(eq(schema.employeeVersions.id, emp.currentVersionId));
+        }
+      }
+
+      await tx.insert(schema.auditLogs).values({
+        action: "UPDATE_AGENT_INFO",
+        entityId: id,
+        snapshotOld: { matricule: emp.matricule, nom: emp.nom, prenom: emp.prenom, aptitudeMedicale: emp.aptitudeMedicale } as any,
+        snapshotNew: { matricule, nom, prenom, aptitudeMedicale } as any,
+      });
+    });
+
+    const employee = await buildEmployeeResponse(id);
+    res.json({ success: true, data: { employee }, error: null });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) return res.status(409).json({ success: false, data: null, error: "Matricule déjà existant" });
+    console.error("updateAgentInfo error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };

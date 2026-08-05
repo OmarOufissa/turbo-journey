@@ -45,17 +45,17 @@ const navigationItems = [
         url: "/home",
       },
       {
-        title: "Tous les Employés",
+        title: "Agents habilités",
         icon: Users,
         url: "/employees",
       },
       {
-        title: "Employés HT",
+        title: "Habilitation HT",
         icon: ZapOff,
         url: "/employees-ht",
       },
       {
-        title: "Employés ST",
+        title: "Habilitation ST",
         icon: Zap,
         url: "/employees-st",
       },
