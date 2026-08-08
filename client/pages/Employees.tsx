@@ -199,12 +199,12 @@ export default function Employees() {
               {equipes.map(eq => <SelectItem key={eq.id} value={String(eq.id)}>{eq.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={symbolFilter} onValueChange={setSymbolFilter}>
+          <Select value={symbolFilter} onValueChange={setSymbolFilter} disabled={equipeFilter === "all"}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Symbole" />
+              <SelectValue placeholder="Symboles" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous symboles</SelectItem>
+              <SelectItem value="all">Symboles</SelectItem>
               {SYMBOL_OPTIONS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -249,7 +249,7 @@ export default function Employees() {
                   <TableRow
                     key={emp.id}
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => navigate(`/agents/${emp.id}/edit`)}
+                    onClick={() => navigate(`/agents/${emp.id}`)}
                   >
                     <TableCell className="font-mono font-medium whitespace-nowrap">{emp.matricule}</TableCell>
                     <TableCell className="whitespace-nowrap uppercase">{emp.nom} {emp.prenom}</TableCell>

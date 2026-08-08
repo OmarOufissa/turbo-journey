@@ -11,7 +11,7 @@ import { ArrowLeft, Upload, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createEmployee } from "@/api/employees";
 import { setLastAction } from "@/components/UndoButton";
-import { ST_CODES, HT_CODES } from "@/types/habilitation";
+import { ST_CODES, HT_CODES, todayISO, computeExpiration } from "@/types/habilitation";
 import { VALID_FONCTIONS as FALLBACK_FONCTIONS } from "@/types/fonctions";
 import { DOMAINE_OPTIONS as FALLBACK_DOMAINES, OUVRAGE_OPTIONS as FALLBACK_OUVRAGES, INDICATION_OPTIONS as FALLBACK_INDICATIONS } from "@/types/habRows";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -63,8 +63,9 @@ export default function AddEmployee() {
     stCodes: [] as string[],
     htCodes: [] as string[],
     nDeTitre: "",
-    dateValidation: "",
-    dateExpiration: "",
+    // Default validity: today + 3 years − 1 day (both dates stay editable).
+    dateValidation: todayISO(),
+    dateExpiration: computeExpiration(todayISO()),
   });
 
   const [habRows, setHabRows] = useState<HabRows>({});
@@ -279,7 +280,7 @@ export default function AddEmployee() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label>Date de validation *</Label>
-                  <Input type="date" value={form.dateValidation} onChange={e => setForm(f => ({ ...f, dateValidation: e.target.value }))} required />
+                  <Input type="date" value={form.dateValidation} onChange={e => setForm(f => ({ ...f, dateValidation: e.target.value, dateExpiration: computeExpiration(e.target.value) }))} required />
                 </div>
                 <div className="space-y-1">
                   <Label>Date d'expiration *</Label>

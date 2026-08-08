@@ -48,6 +48,25 @@ export const ST_CODES = ["H1N", "H2N", "H1T", "H2T"];
 // HT (Hors Tension) codes — everything else, incl. SF6.
 export const HT_CODES = ["H0V", "B0V", "H1V", "B1V", "H2V", "B2V", "HC", "BC", "BR", "SF6"];
 
+// Today as a YYYY-MM-DD string (local time), used as the default validation date.
+export function todayISO(): string {
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().split("T")[0];
+}
+
+// Default habilitation validity: validation date + 3 years − 1 day.
+// e.g. 2026-08-08 -> 2029-08-07. Returns "" for an empty/invalid input.
+export function computeExpiration(validation: string): string {
+  if (!validation) return "";
+  const d = new Date(validation + "T00:00:00");
+  if (isNaN(d.getTime())) return "";
+  d.setFullYear(d.getFullYear() + 3);
+  d.setDate(d.getDate() - 1);
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().split("T")[0];
+}
+
 export function getExpirationStatus(dateExpiration: string): ExpirationStatus {
   return getExpirationThreshold(dateExpiration);
 }

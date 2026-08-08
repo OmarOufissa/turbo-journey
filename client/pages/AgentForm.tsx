@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
 import { getEmployee, createAgent, updateAgentInfo } from "@/api/employees";
+import { VALID_FONCTIONS as FALLBACK_FONCTIONS } from "@/types/fonctions";
 
 interface OrgItem { id: number; name: string; }
 
@@ -35,12 +36,14 @@ export default function AgentForm() {
   const [divisions, setDivisions] = useState<OrgItem[]>([]);
   const [services, setServices] = useState<OrgItem[]>([]);
   const [equipes, setEquipes] = useState<OrgItem[]>([]);
+  const [fonctionsList, setFonctionsList] = useState<string[]>([...FALLBACK_FONCTIONS]);
 
   const auth = { headers: { Authorization: `Bearer ${token}` } };
 
-  // Load divisions
+  // Load divisions + the list of available fonctions
   useEffect(() => {
     fetch("/api/divisions", auth).then(r => r.json()).then(d => { if (d.success) setDivisions(d.data); }).catch(() => {});
+    fetch("/api/ref/fonctions", auth).then(r => r.json()).then(d => { if (d.success && d.data.length) setFonctionsList(d.data.map((i: any) => i.name)); }).catch(() => {});
   }, []);
 
   // Load services when division changes
@@ -139,8 +142,15 @@ export default function AgentForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fonction">Fonction</Label>
-                <Input id="fonction" value={fonction} onChange={e => setFonction(e.target.value)} placeholder="Ex. Cadre Technique, Agent d'exploitation..." />
+                <Label>Fonction</Label>
+                <Select value={fonction} onValueChange={setFonction}>
+                  <SelectTrigger><SelectValue placeholder="Sélectionner une fonction" /></SelectTrigger>
+                  <SelectContent>
+                    {/* Keep a value already stored on the agent even if it's no longer in the reference list. */}
+                    {fonction && !fonctionsList.includes(fonction) && <SelectItem value={fonction}>{fonction}</SelectItem>}
+                    {fonctionsList.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
