@@ -70,6 +70,26 @@ export const employees = pgTable("employees", {
   deletedIdx: index("employees_deleted_idx").on(table.deleted),
 }));
 
+// Ouvrages (electrical installations) table
+// Follows the same Division -> Service -> Equipe hierarchy as employees
+export const ouvrages = pgTable("ouvrages", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(),
+  // Tension domain: "BT", "HTA" or "HTB"
+  tensionDomain: text("tension_domain").notNull(),
+  divisionId: integer("division_id").notNull().references(() => divisions.id, { onDelete: "cascade" }),
+  serviceId: integer("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
+  equipeId: integer("equipe_id").references(() => equipes.id, { onDelete: "set null" }),
+  deleted: boolean("deleted").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  divisionIdx: index("ouvrages_division_idx").on(table.divisionId),
+  serviceIdx: index("ouvrages_service_idx").on(table.serviceId),
+  tensionDomainIdx: index("ouvrages_tension_domain_idx").on(table.tensionDomain),
+  nameIdx: index("ouvrages_name_idx").on(table.name),
+}));
+
 // Habilitations table
 // CORRECTION 2: Replace 'type' with ST_codes and HT_codes arrays
 // This allows an employee to have both ST and HT codes at the same time

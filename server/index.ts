@@ -132,6 +132,10 @@ async function initializeSeedOnStartup() {
     // Initialize legacy seed data (if any)
     const { initializeSeedOnce } = await import("./seeds/employees-seed");
     await initializeSeedOnce();
+
+    // Initialize ouvrages (electrical installations) - requires services to exist
+    const { initializeOuvragesOnce } = await import("./seeds/ouvragesSeed");
+    await initializeOuvragesOnce();
   } catch (err) {
     console.error("Error initializing seeds:", err);
     // Don't fail startup if seed fails
@@ -279,6 +283,44 @@ export function createServer() {
       "./routes/employees-audit"
     );
     authMiddleware(req, res, () => deleteEmployee(req, res));
+  });
+
+  // Ouvrages (electrical installations) routes
+  app.get("/api/ouvrages", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees");
+    const { getOuvrages } = await import("./routes/ouvrages");
+    authMiddleware(req, res, () => getOuvrages(req, res));
+  });
+
+  app.post("/api/ouvrages", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees");
+    const { createOuvrage } = await import("./routes/ouvrages");
+    authMiddleware(req, res, () => createOuvrage(req, res));
+  });
+
+  // Habilitation request generation routes ("Demande d'habilitation" module)
+  app.get("/api/habilitation-symbols", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees");
+    const { getHabilitationSymbols } = await import("./routes/habilitationRequests");
+    authMiddleware(req, res, () => getHabilitationSymbols(req, res));
+  });
+
+  app.post("/api/habilitation-requests/preview", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees");
+    const { previewHabilitationRequest } = await import("./routes/habilitationRequests");
+    authMiddleware(req, res, () => previewHabilitationRequest(req, res));
+  });
+
+  app.post("/api/habilitation-requests/download.pdf", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees");
+    const { downloadHabilitationRequestPdf } = await import("./routes/habilitationRequests");
+    authMiddleware(req, res, () => downloadHabilitationRequestPdf(req, res));
+  });
+
+  app.post("/api/habilitation-requests/download.docx", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees");
+    const { downloadHabilitationRequestDocx } = await import("./routes/habilitationRequests");
+    authMiddleware(req, res, () => downloadHabilitationRequestDocx(req, res));
   });
 
   // Organizational structure routes - PHASE 1: Using audit-integrated routes

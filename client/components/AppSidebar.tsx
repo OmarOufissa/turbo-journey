@@ -6,6 +6,7 @@ import {
   Calendar,
   BarChart3,
   FileText,
+  FileSignature,
   Settings,
   Shield,
   LogOut,
@@ -45,6 +46,11 @@ const navigationItems = [
         title: "Employés",
         icon: Users,
         url: "/employees",
+      },
+      {
+        title: "Demande d'habilitation",
+        icon: FileSignature,
+        url: "/habilitation-request",
       },
       {
         title: "Renouvellements en attente",

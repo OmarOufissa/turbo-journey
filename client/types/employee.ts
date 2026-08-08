@@ -5,6 +5,7 @@ export interface Employee {
   matricule: string;
   prenom: string;
   nom: string;
+  fonction: string;
   division: string;
   service: string;
   equipe: string;

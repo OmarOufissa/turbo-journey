@@ -21,6 +21,7 @@ import Employees from "./pages/Employees";
 import AddEmployee from "./pages/AddEmployee";
 import EditEmployee from "./pages/EditEmployee";
 import EmployeeCard from "./pages/EmployeeCard";
+import HabilitationRequest from "./pages/HabilitationRequest";
 import ImportEmployees from "./pages/ImportEmployees";
 import RenewalsImproved from "./pages/RenewalsImproved";
 import PendingRenewals from "./pages/PendingRenewals";
@@ -93,6 +94,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AddEmployee />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/habilitation-request"
+            element={
+              <ProtectedRoute>
+                <HabilitationRequest />
               </ProtectedRoute>
             }
           />
