@@ -65,6 +65,8 @@ export default function Settings() {
   const [healthReport, setHealthReport] = useState<any>(null);
   const [healthLoading, setHealthLoading] = useState(false);
   const [backupLoading, setBackupLoading] = useState(false);
+  const [resyncLoading, setResyncLoading] = useState(false);
+  const [resyncConfirm, setResyncConfirm] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("—");
 
   // Load app version from package.json via server
@@ -116,6 +118,26 @@ export default function Settings() {
       toast({ title: "Erreur", description: err.message, variant: "destructive" });
     } finally {
       setBackupLoading(false);
+    }
+  }
+
+  async function handleResync() {
+    setResyncLoading(true);
+    try {
+      const res = await fetch("/api/admin/reseed-safe", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token") ?? ""}` },
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast({ title: "Resynchronisation réussie", description: `Sauvegarde préalable créée (${json.data?.backupId ?? "ok"}). Base rechargée depuis les fichiers Excel.` });
+      } else {
+        throw new Error(json.error ?? "Erreur");
+      }
+    } catch (err: any) {
+      toast({ title: "Échec de la resynchronisation", description: err.message, variant: "destructive" });
+    } finally {
+      setResyncLoading(false);
     }
   }
 
@@ -286,6 +308,50 @@ export default function Settings() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* ── Resync from Excel ─────────────────────────────────────── */}
+        <Card className="border-amber-300 dark:border-amber-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="w-5 h-5" />
+              Resynchroniser depuis Excel
+            </CardTitle>
+            <CardDescription>
+              Recharge toute la base à partir des fichiers Excel de référence (HT + ST) :
+              affectations, symboles, contenu du titre, dates.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/10 dark:border-amber-800 dark:text-amber-300">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div>
+                <strong>Opération destructive.</strong> La base actuelle est <strong>écrasée</strong> et remplacée
+                par le contenu des fichiers Excel. Une <strong>sauvegarde automatique est créée avant</strong> :
+                si elle échoue, la resynchronisation est annulée et la base reste intacte. Restauration possible
+                via la section Sauvegardes.
+              </div>
+            </div>
+            <Button
+              variant="destructive"
+              onClick={() => setResyncConfirm(true)}
+              disabled={resyncLoading}
+              className="gap-2"
+            >
+              {resyncLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              Resynchroniser depuis Excel
+            </Button>
+          </CardContent>
+        </Card>
+
+        <ConfirmDialog
+          open={resyncConfirm}
+          onOpenChange={setResyncConfirm}
+          title="Resynchroniser depuis Excel ?"
+          description="Une sauvegarde sera créée automatiquement, puis toute la base sera écrasée et rechargée depuis les fichiers Excel (HT + ST). Cette action est irréversible sans restauration de la sauvegarde. Continuer ?"
+          confirmText="Sauvegarder puis resynchroniser"
+          variant="danger"
+          onConfirm={handleResync}
+        />
 
         {/* ── Import Defaults ───────────────────────────────────────── */}
         <Card>

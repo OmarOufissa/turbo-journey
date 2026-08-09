@@ -1081,6 +1081,33 @@ export function createServer() {
     });
   });
 
+  // Safe resync: ALWAYS takes a backup first, and refuses to wipe/reseed if the
+  // backup fails. Reversible via Paramètres > Sauvegardes (restore).
+  app.post("/api/admin/reseed-safe", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      let backupId: string | undefined;
+      try {
+        const { createBackupFile } = await import("./services/backupService");
+        const backup = await createBackupFile();
+        backupId = backup.backupId;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[admin/reseed-safe] backup failed, aborting reseed:", msg);
+        return res.status(500).json({ success: false, data: null, error: `Sauvegarde préalable échouée — resync annulé (base intacte). Détail : ${msg}` });
+      }
+      try {
+        const { seedDatabasePG } = await import("./seed-pg");
+        await seedDatabasePG();
+        res.json({ success: true, data: { message: "Resynchronisation effectuée avec succès", backupId }, error: null });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[admin/reseed-safe] reseed failed:", msg);
+        res.status(500).json({ success: false, data: null, error: `Resync échoué. Une sauvegarde a été créée avant (${backupId}) : restaurez-la si besoin. Détail : ${msg}` });
+      }
+    });
+  });
+
   app.post("/api/backups/create", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     authMiddleware(req, res, async () => {
