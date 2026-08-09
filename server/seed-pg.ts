@@ -38,12 +38,22 @@ interface EmployeeData {
   division: string;
   service: string;
   equipe: string;
+  // Raw affectation exactly as written in the Excel (trimmed/collapsed, "xxx"
+  // treated as empty). Used to build the org structure faithfully from the file.
+  divisionRaw: string;
+  serviceRaw: string;
+  equipeRaw: string;
   htCodes: string[];
   stCodes: string[];
   nTitre: string;
   dateValidation: string;
   dateExpiration?: string;
   habRows?: HabRows | null;
+}
+
+// Trim + collapse internal whitespace. Keeps the file's casing as the display name.
+function canonName(s: string): string {
+  return (s || "").replace(/\s+/g, " ").trim();
 }
 
 const MATRICULE_KEYS = ["matricule", "MATRICULE"];
@@ -290,6 +300,11 @@ export async function parseExcelData(): Promise<EmployeeData[]> {
     const service = findMatchingService(serviceText || "", division) || ORGANIZATIONAL_STRUCTURE.find((d) => d.name === division)?.services[0]?.name || "";
     const equipe = findMatchingEquipe(equipeText || "", division, service) || "";
 
+    // Raw values from the file (source of truth for a faithful resync).
+    const divisionRaw = hasTruthyValue(divisionText) ? canonName(divisionText) : "";
+    const serviceRaw = hasTruthyValue(serviceText) ? canonName(serviceText) : "";
+    const equipeRaw = hasTruthyValue(equipeText) ? canonName(equipeText) : "";
+
     const nTitre = getRowValue(row, NUM_TITRE_KEYS);
     const rawDateValue = getFirstMatchingValue(row, DATE_VALIDATION_KEYS);
     const normalizedDate = normalizeDateValue(rawDateValue) || format(new Date(), "yyyy-MM-dd");
@@ -312,6 +327,9 @@ export async function parseExcelData(): Promise<EmployeeData[]> {
       division,
       service,
       equipe,
+      divisionRaw,
+      serviceRaw,
+      equipeRaw,
       htCodes,
       stCodes,
       nTitre,
@@ -335,46 +353,43 @@ export async function seedDatabasePG() {
     await db.delete(schema.divisions);
     console.log("Cleared existing data");
 
+    // Organizational structure is built dynamically FROM the Excel file, so every
+    // division / service / équipe present in the file exists and each agent keeps
+    // their real affectation (faithful resync). Lookups are case/space-insensitive
+    // to avoid duplicates; the first spelling seen becomes the display name.
     const divisions: { [key: string]: number } = {};
     const services: { [key: string]: number } = {};
     const equipes: { [key: string]: number } = {};
+    const DEFAULT_SERVICE = "Non spécifié"; // for agents whose service cell is empty
 
-    for (const division of ORGANIZATIONAL_STRUCTURE) {
-      const [result] = await db.insert(schema.divisions)
-        .values({ name: division.name })
-        .returning({ id: schema.divisions.id });
-      const divisionId = result.id;
-      divisions[division.name] = divisionId;
-
-      for (const service of division.services) {
-        const serviceKey = `${division.name}|${service.name}`;
-        const [serviceResult] = await db.insert(schema.services)
-          .values({
-            name: service.name,
-            divisionId: divisionId
-          })
-          .returning({ id: schema.services.id });
-        const serviceId = serviceResult.id;
-        services[serviceKey] = serviceId;
-
-        for (const equipe of service.equipes) {
-          const equipeKey = `${serviceKey}|${equipe}`;
-          const [equipeResult] = await db.insert(schema.equipes)
-            .values({
-              name: equipe,
-              serviceId: serviceId
-            })
-            .returning({ id: schema.equipes.id });
-          const equipeId = equipeResult.id;
-          equipes[equipeKey] = equipeId;
-        }
+    const ensureDivision = async (nameRaw: string): Promise<{ id: number; k: string }> => {
+      const disp = canonName(nameRaw) || ORGANIZATIONAL_STRUCTURE[0].name;
+      const k = disp.toLowerCase();
+      if (!divisions[k]) {
+        const [r] = await db.insert(schema.divisions).values({ name: disp }).returning({ id: schema.divisions.id });
+        divisions[k] = r.id;
       }
-    }
-
-    console.log("✓ Organizational structure seeded successfully!");
-    console.log(`✓ Created ${Object.keys(divisions).length} divisions`);
-    console.log(`✓ Created ${Object.keys(services).length} services`);
-    console.log(`✓ Created ${Object.keys(equipes).length} équipes`);
+      return { id: divisions[k], k };
+    };
+    const ensureService = async (divId: number, divK: string, nameRaw: string): Promise<{ id: number; k: string }> => {
+      const disp = canonName(nameRaw) || DEFAULT_SERVICE;
+      const k = `${divK}|${disp.toLowerCase()}`;
+      if (!services[k]) {
+        const [r] = await db.insert(schema.services).values({ name: disp, divisionId: divId }).returning({ id: schema.services.id });
+        services[k] = r.id;
+      }
+      return { id: services[k], k };
+    };
+    const ensureEquipe = async (srvId: number, srvK: string, nameRaw: string): Promise<number | undefined> => {
+      const disp = canonName(nameRaw);
+      if (!disp) return undefined;
+      const k = `${srvK}|${disp.toLowerCase()}`;
+      if (!equipes[k]) {
+        const [r] = await db.insert(schema.equipes).values({ name: disp, serviceId: srvId }).returning({ id: schema.equipes.id });
+        equipes[k] = r.id;
+      }
+      return equipes[k];
+    };
 
     const employeeDataList = await parseExcelData();
     let employeeCount = 0;
@@ -382,27 +397,9 @@ export async function seedDatabasePG() {
     let pdfLinked = 0;
 
     for (const empData of employeeDataList) {
-      const divisionId = divisions[empData.division];
-      const serviceKey = `${empData.division}|${empData.service}`;
-      const serviceId = services[serviceKey];
-      let equipeId: number | undefined;
-      if (empData.equipe) {
-        const directKey = `${serviceKey}|${empData.equipe}`;
-        equipeId = equipes[directKey];
-        if (!equipeId) {
-          for (const [key, id] of Object.entries(equipes)) {
-            if (key.startsWith(`${empData.division}|`) && key.endsWith(`|${empData.equipe}`)) {
-              equipeId = id;
-              break;
-            }
-          }
-        }
-      }
-
-      if (!divisionId || !serviceId) {
-        console.warn(`Skipping ${empData.matricule}: missing divisionId or serviceId`);
-        continue;
-      }
+      const { id: divisionId, k: divK } = await ensureDivision(empData.divisionRaw);
+      const { id: serviceId, k: srvK } = await ensureService(divisionId, divK, empData.serviceRaw);
+      const equipeId = await ensureEquipe(serviceId, srvK, empData.equipeRaw);
 
       const existing = await db.select()
         .from(schema.employees)
@@ -475,6 +472,10 @@ export async function seedDatabasePG() {
       versionCount++;
     }
 
+    console.log("✓ Organizational structure built from the Excel file");
+    console.log(`✓ Created ${Object.keys(divisions).length} divisions`);
+    console.log(`✓ Created ${Object.keys(services).length} services`);
+    console.log(`✓ Created ${Object.keys(equipes).length} équipes`);
     console.log(`✓ Created ${employeeCount} employees`);
     console.log(`✓ Created ${versionCount} employee versions`);
     console.log(`✓ Linked ${pdfLinked} existing PDFs`);
