@@ -29,7 +29,7 @@ import {
   WidthType,
   AlignmentType,
 } from "docx";
-import { getTensionDomainLabel } from "../../shared/habilitationSymbols";
+import { getTensionDomainLabel, HT_SYMBOLS, ST_SYMBOLS } from "../../shared/habilitationSymbols";
 
 export interface HabilitationRequestRow {
   symbole: string;
@@ -62,6 +62,15 @@ function fullName(person: HabilitationRequestPerson): string {
   return `${person.nom} ${person.prenom}`.trim();
 }
 
+/** {mark_<SYMBOL>: "X"} for every symbol NOT requested, "" for the ones that were. */
+function unusedSymbolMarks(allSymbols: readonly string[], usedSymbols: string[]): Record<string, string> {
+  const marks: Record<string, string> = {};
+  for (const symbol of allSymbols) {
+    marks[`mark_${symbol}`] = usedSymbols.includes(symbol) ? "" : "X";
+  }
+  return marks;
+}
+
 export async function generateSTRequestDocx(data: HabilitationRequestData): Promise<Buffer> {
   const content = fs.readFileSync(ST_TEMPLATE_PATH, "binary");
   const zip = new PizZip(content);
@@ -85,6 +94,7 @@ export async function generateSTRequestDocx(data: HabilitationRequestData): Prom
       domaine: getTensionDomainLabel(r.domaine),
       ouvrages: r.ouvrages,
     })),
+    ...unusedSymbolMarks(ST_SYMBOLS, data.rows.map((r) => r.symbole)),
   });
 
   return doc.getZip().generate({ type: "nodebuffer" });
@@ -108,6 +118,36 @@ function personLine(person: HabilitationRequestPerson): Paragraph {
       new TextRun({ text: person.matricule, bold: true }),
     ],
   });
+}
+
+/**
+ * Legend row of every valid symbol for the type, an "X" under each one NOT
+ * requested (mirrors the real form's "Barrer la mention inutile" - crossing
+ * out the unused ones - but as a printed X rather than a handwritten strike).
+ */
+function legendTable(allSymbols: readonly string[], usedSymbols: string[]): Table {
+  const cell = (text: string, bold = false) =>
+    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, bold })] })] });
+  const symbolCell = (symbol: string) =>
+    new TableCell({
+      children: [
+        new Paragraph({ children: [new TextRun({ text: symbol, bold: true })] }),
+        new Paragraph({ children: [new TextRun({ text: usedSymbols.includes(symbol) ? "" : "X", bold: true })] }),
+      ],
+    });
+
+  const perRow = 8;
+  const rows: TableRow[] = [];
+  for (let i = 0; i < allSymbols.length; i += perRow) {
+    const chunk = allSymbols.slice(i, i + perRow);
+    rows.push(
+      new TableRow({
+        children: [i === 0 ? cell("Habilitations (1)", true) : cell(""), ...chunk.map(symbolCell)],
+      }),
+    );
+  }
+
+  return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows });
 }
 
 function habilitationTable(rows: HabilitationRequestRow[]): Table {
@@ -222,6 +262,12 @@ export async function generateHTRequestDocx(data: HabilitationRequestData): Prom
                 text: "Pour le former à l'habilitation suivante / aux habilitations suivantes :",
               }),
             ],
+          }),
+          legendTable(HT_SYMBOLS, data.rows.map((r) => r.symbole)),
+          new Paragraph({ children: [new TextRun({ text: "(1) : Barrer la mention inutile." })] }),
+          new Paragraph({ text: "" }),
+          new Paragraph({
+            children: [new TextRun({ bold: true, text: "Le champ d'application est comme suit :" })],
           }),
           habilitationTable(data.rows),
           new Paragraph({ text: "" }),
