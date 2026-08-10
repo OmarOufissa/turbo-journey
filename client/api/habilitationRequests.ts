@@ -14,11 +14,16 @@ export interface Ouvrage {
   equipe: string | null;
 }
 
+export interface HabilitationRequestRow {
+  symbole: string;
+  domaine: string;
+  ouvrageId: number;
+}
+
 export interface GenerateHabilitationRequestPayload {
   employeeId: number;
   type: HabilitationRequestType;
-  symbols: string[];
-  ouvrageIds: number[];
+  rows: HabilitationRequestRow[];
 }
 
 export async function getHabilitationSymbols(
@@ -27,29 +32,18 @@ export async function getHabilitationSymbols(
   return apiClient<SymbolInfo[]>(`/api/habilitation-symbols?type=${type}`);
 }
 
-export async function searchOuvrages(params: {
-  search?: string;
-  divisionId?: number;
-  serviceId?: number;
-  equipeId?: number;
-  tensionDomain?: string[];
-}): Promise<Ouvrage[]> {
+export async function searchOuvrages(params: { search?: string; tensionDomain?: string }): Promise<Ouvrage[]> {
   const query = new URLSearchParams();
   if (params.search) query.set("search", params.search);
-  if (params.divisionId) query.set("divisionId", String(params.divisionId));
-  if (params.serviceId) query.set("serviceId", String(params.serviceId));
-  if (params.equipeId) query.set("equipeId", String(params.equipeId));
-  if (params.tensionDomain?.length) query.set("tensionDomain", params.tensionDomain.join(","));
-
+  if (params.tensionDomain) query.set("tensionDomain", params.tensionDomain);
   return apiClient<Ouvrage[]>(`/api/ouvrages?${query.toString()}`);
 }
 
-async function fetchDocumentBlob(
-  endpoint: string,
+export async function downloadHabilitationRequest(
   payload: GenerateHabilitationRequestPayload,
 ): Promise<Blob> {
   const token = localStorage.getItem("token");
-  const response = await fetch(endpoint, {
+  const response = await fetch("/api/habilitation-requests/download", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -70,22 +64,4 @@ async function fetchDocumentBlob(
   }
 
   return response.blob();
-}
-
-export function previewHabilitationRequest(
-  payload: GenerateHabilitationRequestPayload,
-): Promise<Blob> {
-  return fetchDocumentBlob("/api/habilitation-requests/preview", payload);
-}
-
-export function downloadHabilitationRequestPdf(
-  payload: GenerateHabilitationRequestPayload,
-): Promise<Blob> {
-  return fetchDocumentBlob("/api/habilitation-requests/download.pdf", payload);
-}
-
-export function downloadHabilitationRequestDocx(
-  payload: GenerateHabilitationRequestPayload,
-): Promise<Blob> {
-  return fetchDocumentBlob("/api/habilitation-requests/download.docx", payload);
 }

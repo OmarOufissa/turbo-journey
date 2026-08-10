@@ -52,8 +52,10 @@ export const employees = pgTable("employees", {
   nom: text("nom").notNull(),
   fonction: text("fonction").notNull(),
   divisionId: integer("division_id").notNull().references(() => divisions.id),
-  serviceId: integer("service_id").notNull().references(() => services.id),
-  equipeId: integer("equipe_id").notNull().references(() => equipes.id),
+  // Nullable: some employees (e.g. Chef de Division) are attached directly to
+  // a division or service, without a service/equipe below them.
+  serviceId: integer("service_id").references(() => services.id),
+  equipeId: integer("equipe_id").references(() => equipes.id),
   // CORRECTION 3: Pointer to active version (source of truth)
   currentVersionId: integer("current_version_id"),
   // CORRECTION 10: Employee status for filtering and display

@@ -145,3 +145,16 @@ export function summarizeChampApplication(codes: string[]): string[] {
 export function tensionDomainsForLetter(letter: "B" | "H"): string[] {
   return letter === "B" ? ["BT"] : ["HTA", "HTB"];
 }
+
+/** All tension domain values, for the "Domaine de tension" dropdown. */
+export const TENSION_DOMAINS = ["BT", "HTA", "HTB"] as const;
+
+const TENSION_DOMAIN_FULL_LABEL: Record<string, string> = {
+  BT: "Basse Tension (BT)",
+  HTA: "Haute Tension A (HTA)",
+  HTB: "Haute Tension B (HTB)",
+};
+
+export function getTensionDomainLabel(domain: string): string {
+  return TENSION_DOMAIN_FULL_LABEL[domain] ?? domain;
+}
