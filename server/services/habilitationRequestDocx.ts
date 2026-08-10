@@ -8,6 +8,9 @@
  *  - HT: no editable original file was available (only a legacy .doc), so
  *    the HT form is (re)built from scratch to match Annexe n°2's wording,
  *    reusing the same real ONEE letterhead image.
+ *
+ * Font is Arial 10pt throughout (set once via the document's default run
+ * style); filled-in data is bold so it stands out from the static labels.
  */
 
 import fs from "fs";
@@ -25,7 +28,6 @@ import {
   ImageRun,
   WidthType,
   AlignmentType,
-  HeadingLevel,
 } from "docx";
 import { getTensionDomainLabel } from "../../shared/habilitationSymbols";
 
@@ -55,8 +57,9 @@ export interface HabilitationRequestData {
 const ST_TEMPLATE_PATH = path.join(process.cwd(), "server", "templates", "annexe_ST.docx");
 const LOGO_PATH = path.join(process.cwd(), "server", "assets", "onee-logo.png");
 
+/** "Nom Prénom" - surname first, per the preferred display order. */
 function fullName(person: HabilitationRequestPerson): string {
-  return `${person.prenom} ${person.nom}`.trim();
+  return `${person.nom} ${person.prenom}`.trim();
 }
 
 export async function generateSTRequestDocx(data: HabilitationRequestData): Promise<Buffer> {
@@ -87,18 +90,29 @@ export async function generateSTRequestDocx(data: HabilitationRequestData): Prom
   return doc.getZip().generate({ type: "nodebuffer" });
 }
 
+/** Label (normal weight) followed by a filled-in value (bold, so it stands out). */
 function labeledLine(label: string, value: string): Paragraph {
   return new Paragraph({
+    children: [new TextRun({ text: `${label} : ` }), new TextRun({ text: value, bold: true })],
+  });
+}
+
+function personLine(person: HabilitationRequestPerson): Paragraph {
+  return new Paragraph({
     children: [
-      new TextRun({ text: `${label} : `, bold: true, size: 20 }),
-      new TextRun({ text: value, size: 20 }),
+      new TextRun({ text: "Nom : " }),
+      new TextRun({ text: person.nom, bold: true }),
+      new TextRun({ text: "   Prénom : " }),
+      new TextRun({ text: person.prenom, bold: true }),
+      new TextRun({ text: "   Mle : " }),
+      new TextRun({ text: person.matricule, bold: true }),
     ],
   });
 }
 
 function habilitationTable(rows: HabilitationRequestRow[]): Table {
   const cell = (text: string, bold = false) =>
-    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, bold, size: 20 })] })] });
+    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, bold })] })] });
 
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -113,7 +127,11 @@ function habilitationTable(rows: HabilitationRequestRow[]): Table {
       ...rows.map(
         (r) =>
           new TableRow({
-            children: [cell(r.symbole), cell(getTensionDomainLabel(r.domaine)), cell(r.ouvrages)],
+            children: [
+              cell(r.symbole, true),
+              cell(getTensionDomainLabel(r.domaine), true),
+              cell(r.ouvrages, true),
+            ],
           }),
       ),
     ],
@@ -121,18 +139,24 @@ function habilitationTable(rows: HabilitationRequestRow[]): Table {
 }
 
 function signatureBlock(): Table {
-  const cell = (text: string) =>
-    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, bold: true, size: 20 })] })] });
+  const headerCell = (text: string) =>
+    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, bold: true })] })] });
+  const signatureCell = () =>
+    new TableCell({
+      children: [
+        new Paragraph({ text: "" }),
+        new Paragraph({ text: "" }),
+        new Paragraph({ children: [new TextRun({ text: "Date, cachet et signature :" })] }),
+      ],
+    });
+
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
-      new TableRow({ children: [cell("Le Chef de l'entité concernée :"), cell("Le Directeur concerné :")] }),
       new TableRow({
-        children: [
-          new TableCell({ children: [new Paragraph({ text: "" }), new Paragraph({ text: "" }), new Paragraph({ children: [new TextRun({ text: "Date, cachet et signature :", size: 20 })] })] }),
-          new TableCell({ children: [new Paragraph({ text: "" }), new Paragraph({ text: "" }), new Paragraph({ children: [new TextRun({ text: "Date, cachet et signature :", size: 20 })] })] }),
-        ],
+        children: [headerCell("Le Chef de l'entité concernée :"), headerCell("Le Directeur concerné :")],
       }),
+      new TableRow({ children: [signatureCell(), signatureCell()] }),
     ],
   });
 }
@@ -141,6 +165,13 @@ export async function generateHTRequestDocx(data: HabilitationRequestData): Prom
   const logo = fs.readFileSync(LOGO_PATH);
 
   const doc = new Document({
+    styles: {
+      default: {
+        document: {
+          run: { font: "Arial", size: 20 },
+        },
+      },
+    },
     sections: [
       {
         children: [
@@ -155,11 +186,11 @@ export async function generateHTRequestDocx(data: HabilitationRequestData): Prom
           }),
           new Paragraph({ text: "" }),
           new Paragraph({
-            heading: HeadingLevel.HEADING_2,
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
                 bold: true,
+                size: 24,
                 text:
                   "Demande d'habilitation pour manœuvres, travaux et interventions sur les ouvrages électriques hors tension et BR",
               }),
@@ -170,41 +201,24 @@ export async function generateHTRequestDocx(data: HabilitationRequestData): Prom
           labeledLine("Division", data.division),
           labeledLine("Entité", data.entite),
           new Paragraph({ text: "" }),
+          new Paragraph({ children: [new TextRun({ text: "Je soussigné :" })] }),
+          personLine(data.chef),
           new Paragraph({
             children: [
-              new TextRun({ text: "Je soussigné : Prénom : ", size: 20 }),
-              new TextRun({ text: data.chef.prenom, size: 20 }),
-              new TextRun({ text: "  Nom : ", size: 20 }),
-              new TextRun({ text: data.chef.nom, size: 20 }),
-              new TextRun({ text: "  Mle : ", size: 20 }),
-              new TextRun({ text: data.chef.matricule, size: 20 }),
+              new TextRun({ text: "Fonction : " }),
+              new TextRun({ text: data.chef.fonction, bold: true }),
+              new TextRun({ text: "   propose l'agent : " }),
+              new TextRun({ text: fullName(data.agent), bold: true }),
             ],
           }),
-          labeledLine("Fonction", data.chef.fonction),
           new Paragraph({ text: "" }),
-          new Paragraph({
-            children: [
-              new TextRun({ text: "propose l'agent : ", size: 20 }),
-              new TextRun({ text: fullName(data.agent), bold: true, size: 20 }),
-            ],
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({ text: "Prénom : ", size: 20 }),
-              new TextRun({ text: data.agent.prenom, size: 20 }),
-              new TextRun({ text: "  Nom : ", size: 20 }),
-              new TextRun({ text: data.agent.nom, size: 20 }),
-              new TextRun({ text: "  Mle : ", size: 20 }),
-              new TextRun({ text: data.agent.matricule, size: 20 }),
-            ],
-          }),
+          personLine(data.agent),
           labeledLine("Fonction", data.agent.fonction),
           new Paragraph({ text: "" }),
           new Paragraph({
             children: [
               new TextRun({
                 bold: true,
-                size: 20,
                 text: "Pour le former à l'habilitation suivante / aux habilitations suivantes :",
               }),
             ],
