@@ -62,13 +62,14 @@ function fullName(person: HabilitationRequestPerson): string {
   return `${person.nom} ${person.prenom}`.trim();
 }
 
-/** {mark_<SYMBOL>: "X"} for every symbol NOT requested, "" for the ones that were. */
-function unusedSymbolMarks(allSymbols: readonly string[], usedSymbols: string[]): Record<string, string> {
-  const marks: Record<string, string> = {};
+/** {unused_<SYMBOL>: true} for every symbol NOT requested - drives which of
+ * the template's two pre-formatted variants (plain / struck-through) shows. */
+function unusedSymbolFlags(allSymbols: readonly string[], usedSymbols: string[]): Record<string, boolean> {
+  const flags: Record<string, boolean> = {};
   for (const symbol of allSymbols) {
-    marks[`mark_${symbol}`] = usedSymbols.includes(symbol) ? "" : "X";
+    flags[`unused_${symbol}`] = !usedSymbols.includes(symbol);
   }
-  return marks;
+  return flags;
 }
 
 export async function generateSTRequestDocx(data: HabilitationRequestData): Promise<Buffer> {
@@ -94,7 +95,7 @@ export async function generateSTRequestDocx(data: HabilitationRequestData): Prom
       domaine: getTensionDomainLabel(r.domaine),
       ouvrages: r.ouvrages,
     })),
-    ...unusedSymbolMarks(ST_SYMBOLS, data.rows.map((r) => r.symbole)),
+    ...unusedSymbolFlags(ST_SYMBOLS, data.rows.map((r) => r.symbole)),
   });
 
   return doc.getZip().generate({ type: "nodebuffer" });
@@ -121,9 +122,9 @@ function personLine(person: HabilitationRequestPerson): Paragraph {
 }
 
 /**
- * Legend row of every valid symbol for the type, an "X" under each one NOT
- * requested (mirrors the real form's "Barrer la mention inutile" - crossing
- * out the unused ones - but as a printed X rather than a handwritten strike).
+ * Legend row of every valid symbol for the type, struck through for each one
+ * NOT requested - this is "Barrer la mention inutile" (cross out the unused
+ * mention) applied literally, directly on the code itself.
  */
 function legendTable(allSymbols: readonly string[], usedSymbols: string[]): Table {
   const cell = (text: string, bold = false) =>
@@ -131,8 +132,9 @@ function legendTable(allSymbols: readonly string[], usedSymbols: string[]): Tabl
   const symbolCell = (symbol: string) =>
     new TableCell({
       children: [
-        new Paragraph({ children: [new TextRun({ text: symbol, bold: true })] }),
-        new Paragraph({ children: [new TextRun({ text: usedSymbols.includes(symbol) ? "" : "X", bold: true })] }),
+        new Paragraph({
+          children: [new TextRun({ text: symbol, bold: true, strike: !usedSymbols.includes(symbol) })],
+        }),
       ],
     });
 
