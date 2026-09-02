@@ -62,13 +62,67 @@ function fullName(person: HabilitationRequestPerson): string {
   return `${person.nom} ${person.prenom}`.trim();
 }
 
-/** {mark_<SYMBOL>: "X"} for every symbol NOT requested, "" for the ones that were. */
-function unusedSymbolMarks(allSymbols: readonly string[], usedSymbols: string[]): Record<string, string> {
-  const marks: Record<string, string> = {};
-  for (const symbol of allSymbols) {
-    marks[`mark_${symbol}`] = usedSymbols.includes(symbol) ? "" : "X";
+/**
+ * Marks unused symbols in a "Habilitations(1)" legend table by drawing a
+ * diagonal line across the whole cell (a table cell border), not a
+ * character on top of the symbol - the symbol itself stays untouched and
+ * legible. Works as a post-processing pass on the finished document, so
+ * the same code applies identically whether the legend table came from the
+ * real ST template (docxtemplater) or was built from scratch for HT (the
+ * `docx` library has no diagonal-border option, hence doing it here).
+ *
+ * The legend table is found by its "Habilitations" label cell; each
+ * subsequent row is assumed to be [label cell, 8 symbol cells] in
+ * `allSymbols` order (true for both documents - see legendTable() below and
+ * the ST template's own row layout).
+ */
+async function markUnusedSymbolsWithDiagonal(
+  buffer: Buffer,
+  allSymbols: readonly string[],
+  usedSymbols: string[],
+): Promise<Buffer> {
+  const DIAGONAL_BORDER =
+    '<w:tcBorders><w:tl2br w:val="single" w:sz="8" w:space="0" w:color="000000"/></w:tcBorders>';
+  const CELLS_PER_ROW = 9; // 1 label cell + 8 symbol cells
+
+  function withDiagonalBorder(cellXml: string): string {
+    const tcW = cellXml.match(/<w:tcW\b[^>]*\/>/);
+    if (tcW) {
+      const at = cellXml.indexOf(tcW[0]) + tcW[0].length;
+      return cellXml.slice(0, at) + DIAGONAL_BORDER + cellXml.slice(at);
+    }
+    const tcPrOpen = cellXml.indexOf("<w:tcPr>");
+    if (tcPrOpen !== -1) {
+      const at = tcPrOpen + "<w:tcPr>".length;
+      return cellXml.slice(0, at) + DIAGONAL_BORDER + cellXml.slice(at);
+    }
+    const openTag = cellXml.match(/^<w:tc\b[^>]*>/);
+    const tag = openTag ? openTag[0] : "<w:tc>";
+    return tag + `<w:tcPr>${DIAGONAL_BORDER}</w:tcPr>` + cellXml.slice(tag.length);
   }
-  return marks;
+
+  const zip = new PizZip(buffer);
+  const file = zip.file("word/document.xml");
+  if (!file) return buffer;
+  const xml = file.asText();
+
+  const labelIdx = xml.indexOf(">Habilitations");
+  const tblStart = labelIdx === -1 ? -1 : xml.lastIndexOf("<w:tbl>", labelIdx);
+  const tblEnd = labelIdx === -1 ? -1 : xml.indexOf("</w:tbl>", labelIdx) + "</w:tbl>".length;
+  if (tblStart === -1 || tblEnd === -1) return buffer;
+
+  let cellIndex = -1;
+  let symbolIndex = 0;
+  const patchedTable = xml.slice(tblStart, tblEnd).replace(/<w:tc\b[^>]*>[\s\S]*?<\/w:tc>/g, (cellXml) => {
+    cellIndex++;
+    if (cellIndex % CELLS_PER_ROW === 0) return cellXml; // label cell
+    const symbol = allSymbols[symbolIndex];
+    symbolIndex++;
+    return symbol && !usedSymbols.includes(symbol) ? withDiagonalBorder(cellXml) : cellXml;
+  });
+
+  zip.file("word/document.xml", xml.slice(0, tblStart) + patchedTable + xml.slice(tblEnd));
+  return zip.generate({ type: "nodebuffer" });
 }
 
 export async function generateSTRequestDocx(data: HabilitationRequestData): Promise<Buffer> {
@@ -94,10 +148,10 @@ export async function generateSTRequestDocx(data: HabilitationRequestData): Prom
       domaine: getTensionDomainLabel(r.domaine),
       ouvrages: r.ouvrages,
     })),
-    ...unusedSymbolMarks(ST_SYMBOLS, data.rows.map((r) => r.symbole)),
   });
 
-  return doc.getZip().generate({ type: "nodebuffer" });
+  const buffer = doc.getZip().generate({ type: "nodebuffer" });
+  return markUnusedSymbolsWithDiagonal(buffer, ST_SYMBOLS, data.rows.map((r) => r.symbole));
 }
 
 /** Label (normal weight) followed by a filled-in value (bold, so it stands out). */
@@ -121,22 +175,16 @@ function personLine(person: HabilitationRequestPerson): Paragraph {
 }
 
 /**
- * Legend row of every valid symbol for the type, with a big bold "X" under
- * each one NOT requested (mirrors "Barrer la mention inutile" - crossing out
- * the unused ones), left blank for the one(s) actually requested.
+ * Legend row of every valid symbol for the type. Symbols stay plain here;
+ * unused ones get a diagonal line across their cell afterwards, via
+ * markUnusedSymbolsWithDiagonal() (the docx library has no diagonal-border
+ * option, so that step works directly on the rendered XML).
  */
-function legendTable(allSymbols: readonly string[], usedSymbols: string[]): Table {
+function legendTable(allSymbols: readonly string[]): Table {
   const cell = (text: string, bold = false) =>
     new TableCell({ children: [new Paragraph({ children: [new TextRun({ text, bold })] })] });
   const symbolCell = (symbol: string) =>
-    new TableCell({
-      children: [
-        new Paragraph({ children: [new TextRun({ text: symbol, bold: true })] }),
-        new Paragraph({
-          children: [new TextRun({ text: usedSymbols.includes(symbol) ? "" : "X", bold: true, size: 56 })],
-        }),
-      ],
-    });
+    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: symbol, bold: true })] })] });
 
   const perRow = 8;
   const rows: TableRow[] = [];
@@ -265,7 +313,7 @@ export async function generateHTRequestDocx(data: HabilitationRequestData): Prom
               }),
             ],
           }),
-          legendTable(HT_SYMBOLS, data.rows.map((r) => r.symbole)),
+          legendTable(HT_SYMBOLS),
           new Paragraph({ children: [new TextRun({ text: "(1) : Barrer la mention inutile." })] }),
           new Paragraph({ text: "" }),
           new Paragraph({
@@ -280,7 +328,8 @@ export async function generateHTRequestDocx(data: HabilitationRequestData): Prom
     ],
   });
 
-  return Packer.toBuffer(doc);
+  const buffer = await Packer.toBuffer(doc);
+  return markUnusedSymbolsWithDiagonal(buffer, HT_SYMBOLS, data.rows.map((r) => r.symbole));
 }
 
 export async function generateHabilitationRequestDocx(data: HabilitationRequestData): Promise<Buffer> {
