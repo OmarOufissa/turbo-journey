@@ -35,6 +35,14 @@ jobs:
         with:
           node-version: 22
 
+      # better-sqlite3 has no prebuilt binary for this Windows runner's
+      # Node ABI, so pnpm compiles it from source via node-gyp - which
+      # needs MSVC on PATH. node-gyp's own Visual Studio auto-detection
+      # fails on this runner image, so set up the dev environment
+      # explicitly instead of relying on it.
+      - if: matrix.platform == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
