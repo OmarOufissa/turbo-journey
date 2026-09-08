@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { dbGet, dbRun } from "../db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";

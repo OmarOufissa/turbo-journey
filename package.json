@@ -2,6 +2,7 @@
   "name": "fusion-starter",
   "private": true,
   "type": "module",
+  "main": "electron/main.cjs",
   "pkg": {
     "assets": [
       "dist/spa/*"
@@ -22,15 +23,44 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "electron:preview": "npm run build && electron ."
+  },
+  "build": {
+    "appId": "com.onee.gestion-habilitations",
+    "productName": "Gestion des Habilitations",
+    "asar": false,
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "dist/spa/**/*",
+      "dist/server/**/*",
+      "drizzle/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/favicon.ico"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1014.0",
-    "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/pdfkit": "^0.17.5",
-    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "docx": "^9.7.1",
     "docxtemplater": "^3.69.3",
@@ -130,7 +160,6 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "better-sqlite3",
-      "bcrypt",
       "esbuild",
       "@swc/core"
     ]

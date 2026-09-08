@@ -16,7 +16,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import path from "path";
 import fs from "fs";
 import * as schema from "./schema";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 
 const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), "data", "habilitations.sqlite");
