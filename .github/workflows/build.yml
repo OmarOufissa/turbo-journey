@@ -48,9 +48,12 @@ jobs:
         env:
           # This runner's node-gyp can't parse the installed Visual Studio's
           # version string ("unknown version 'undefined'") even once pointed
-          # straight at it, so force a known version and skip that detection
-          # entirely. Harmless (unread) on non-Windows runners.
+          # straight at it (GYP_MSVS_VERSION alone didn't help - node-gyp's
+          # own log says it only checks "the command line or npm config"),
+          # so also set it as an npm config value, which node-gyp reads via
+          # the npm_config_* env var convention. Harmless on non-Windows.
           GYP_MSVS_VERSION: "2022"
+          npm_config_msvs_version: "2022"
 
       - name: Build
         run: pnpm build
