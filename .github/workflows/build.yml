@@ -45,12 +45,22 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          # This runner's node-gyp can't parse the installed Visual Studio's
+          # version string ("unknown version 'undefined'") even once pointed
+          # straight at it, so force a known version and skip that detection
+          # entirely. Harmless (unread) on non-Windows runners.
+          GYP_MSVS_VERSION: "2022"
 
       - name: Build
         run: pnpm build
 
       - name: Package
-        run: pnpm exec electron-builder ${{ matrix.eb_flag }}
+        # electron-builder auto-detects CI and tries to publish a GitHub
+        # Release, which fails without a token - this workflow only wants
+        # the built installer as a build artifact (see "Upload installer
+        # artifacts" below), so disable publishing explicitly.
+        run: pnpm exec electron-builder ${{ matrix.eb_flag }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
