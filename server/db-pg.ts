@@ -2,17 +2,27 @@
  * Database connection layer.
  *
  * Kept as "db-pg.ts" for historical reasons (this file used to wrap
- * PostgreSQL) even though it now talks to an embedded SQLite database via
- * better-sqlite3 - every other server file imports from this exact path, so
- * renaming it would touch ~20 files for no functional benefit.
+ * PostgreSQL) even though it now talks to an embedded SQLite database -
+ * every other server file imports from this exact path, so renaming it
+ * would touch ~20 files for no functional benefit.
+ *
+ * Uses Node's built-in node:sqlite module (via drizzle-orm's sqlite-proxy
+ * driver) rather than the better-sqlite3 native addon: better-sqlite3
+ * needs a C++ compiler at install time on every target platform, and the
+ * Windows build environment this app is packaged on (see
+ * .github/workflows/build.yml) has a Visual Studio installation that
+ * node-gyp cannot identify ("unknown version 'undefined'") - confirmed
+ * unfixable across three different node-gyp configuration attempts.
+ * node:sqlite ships inside Node itself, so there is nothing to compile on
+ * any platform.
  *
  * The database file lives at SQLITE_DB_PATH if set (the Electron main
  * process sets this to a file inside the user's app-data directory so data
  * survives app updates), otherwise next to the project for local/dev use.
  */
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { DatabaseSync } from "node:sqlite";
+import { drizzle } from "drizzle-orm/sqlite-proxy";
+import { migrate } from "drizzle-orm/sqlite-proxy/migrator";
 import path from "path";
 import fs from "fs";
 import * as schema from "./schema";
@@ -23,12 +33,42 @@ const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), "data", "h
 
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
-const sqlite = new Database(dbPath);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
+const sqlite = new DatabaseSync(dbPath);
+sqlite.exec("PRAGMA journal_mode = WAL");
+sqlite.exec("PRAGMA foreign_keys = ON");
+
+/**
+ * drizzle-orm's sqlite-proxy driver funnels every query through this
+ * callback instead of talking to a native driver directly.
+ *
+ * node:sqlite's StatementSync returns column-name-keyed objects by
+ * default, which silently drops columns on a name collision (e.g. a join
+ * between two tables that both have an "id" column - only the last "id"
+ * survives). setReturnArrays() switches to positional arrays instead,
+ * which is what drizzle expects so it can reconstruct typed rows itself
+ * from its own column/field metadata - the same approach the
+ * better-sqlite3 driver uses internally (its .raw(true) mode). Not yet in
+ * @types/node despite existing at runtime, hence the `any` cast.
+ */
+async function sqliteProxyCallback(
+  sqlText: string,
+  params: any[],
+  method: "run" | "all" | "values" | "get"
+): Promise<{ rows: any }> {
+  const stmt = sqlite.prepare(sqlText);
+  if (method === "run") {
+    const result = stmt.run(...params);
+    return { rows: [], lastInsertRowid: result.lastInsertRowid, changes: result.changes } as any;
+  }
+  (stmt as any).setReturnArrays(true);
+  if (method === "get") {
+    return { rows: stmt.get(...params) };
+  }
+  return { rows: stmt.all(...params) };
+}
 
 // Initialize Drizzle ORM
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(sqliteProxyCallback, { schema });
 
 /**
  * Locate the drizzle migrations folder. There is no drizzle-kit at runtime
@@ -51,6 +91,25 @@ function findMigrationsFolder(): string | null {
   return candidates.find((p) => fs.existsSync(path.join(p, "meta", "_journal.json"))) ?? null;
 }
 
+/**
+ * Applies a batch of already-resolved migration SQL statements inside one
+ * transaction. Called by drizzle-orm/sqlite-proxy/migrator's migrate(),
+ * which reads and diffs the migrations folder itself and only hands this
+ * callback the statements that still need to run.
+ */
+async function proxyMigrator(migrationQueries: string[]): Promise<void> {
+  sqlite.exec("BEGIN");
+  try {
+    for (const query of migrationQueries) {
+      sqlite.exec(query);
+    }
+    sqlite.exec("COMMIT");
+  } catch (err) {
+    sqlite.exec("ROLLBACK");
+    throw err;
+  }
+}
+
 // Exposed for server/db.ts's raw-SQL compatibility layer (dbRun/dbGet/dbAll)
 export const rawDb = sqlite;
 
@@ -67,7 +126,7 @@ export async function initializeDatabase() {
     // only thing that creates tables on a brand new install.
     const migrationsFolder = findMigrationsFolder();
     if (migrationsFolder) {
-      migrate(db, { migrationsFolder });
+      await migrate(db, proxyMigrator, { migrationsFolder });
       console.log(`Schema migrations applied from ${migrationsFolder}`);
     } else {
       console.warn(
@@ -123,10 +182,11 @@ export async function getDatabase() {
  * CRITICAL: If callback throws, entire transaction rolls back
  * Used for: mutation + audit logging together
  *
- * better-sqlite3 is synchronous under the hood, so the `txDb` passed to the
- * callback is the same shared `db` instance - the manual BEGIN/COMMIT/
- * ROLLBACK below scopes the transaction around whatever the (effectively
- * synchronous) callback does.
+ * node:sqlite is synchronous under the hood (drizzle's async proxy
+ * interface just wraps it), so the `txDb` passed to the callback is the
+ * same shared `db` instance - the manual BEGIN/COMMIT/ROLLBACK below
+ * scopes the transaction around whatever the (effectively synchronous)
+ * callback does.
  *
  * @param callback Function to execute within transaction
  * @throws Error if transaction fails or callback throws

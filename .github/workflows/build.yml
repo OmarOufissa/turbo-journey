@@ -35,25 +35,8 @@ jobs:
         with:
           node-version: 22
 
-      # better-sqlite3 has no prebuilt binary for this Windows runner's
-      # Node ABI, so pnpm compiles it from source via node-gyp - which
-      # needs MSVC on PATH. node-gyp's own Visual Studio auto-detection
-      # fails on this runner image, so set up the dev environment
-      # explicitly instead of relying on it.
-      - if: matrix.platform == 'windows'
-        uses: ilammy/msvc-dev-cmd@v1
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        env:
-          # This runner's node-gyp can't parse the installed Visual Studio's
-          # version string ("unknown version 'undefined'") even once pointed
-          # straight at it (GYP_MSVS_VERSION alone didn't help - node-gyp's
-          # own log says it only checks "the command line or npm config"),
-          # so also set it as an npm config value, which node-gyp reads via
-          # the npm_config_* env var convention. Harmless on non-Windows.
-          GYP_MSVS_VERSION: "2022"
-          npm_config_msvs_version: "2022"
 
       - name: Build
         run: pnpm build

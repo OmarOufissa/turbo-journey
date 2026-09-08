@@ -5,15 +5,18 @@ export { db, initializeDatabase } from "./db-pg";
 
 /**
  * Compatibility layer for existing code using dbRun, dbGet, dbAll with
- * native SQLite `?` placeholders. better-sqlite3 is synchronous; these
- * still return Promises so existing `await dbGet(...)` call sites keep
- * working unchanged.
+ * native SQLite `?` placeholders. node:sqlite is synchronous; these still
+ * return Promises so existing `await dbGet(...)` call sites keep working
+ * unchanged.
  */
 export function dbRun(query: string, params: any[] = []): Promise<{ changes: number; lastInsertRowid: any }> {
   try {
     const result = rawDb.prepare(query).run(...params);
     return Promise.resolve({
-      changes: result.changes,
+      // node:sqlite types changes/lastInsertRowid as number | bigint (for
+      // very large values); this app's tables are small, so normalize to
+      // number for existing call sites that expect that.
+      changes: Number(result.changes),
       lastInsertRowid: result.lastInsertRowid,
     });
   } catch (err) {
