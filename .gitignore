@@ -25,3 +25,8 @@ dist-ssr
 
 .config/
 !.env
+
+# Local embedded SQLite database (dev) and Electron build output
+data/
+dist-electron/
+habilitations.sqlite

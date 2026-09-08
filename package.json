@@ -31,6 +31,7 @@
     "@types/multer": "^2.0.0",
     "@types/pdfkit": "^0.17.5",
     "bcrypt": "^6.0.0",
+    "better-sqlite3": "^13.0.3",
     "docx": "^9.7.1",
     "docxtemplater": "^3.69.3",
     "dotenv": "^17.2.1",
@@ -80,6 +81,7 @@
     "@swc/core": "^1.13.3",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/react-query": "^5.84.2",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.2.1",
@@ -95,6 +97,8 @@
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "drizzle-kit": "^0.31.8",
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.12",
     "globals": "^16.3.0",
@@ -122,5 +126,13 @@
     "vite": "^7.1.2",
     "vitest": "^3.2.4"
   },
-  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
+  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "bcrypt",
+      "esbuild",
+      "@swc/core"
+    ]
+  }
 }

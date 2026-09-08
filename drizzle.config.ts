@@ -1,14 +1,14 @@
 import { defineConfig } from "drizzle-kit";
-import dotenv from "dotenv";
+import path from "path";
 
-dotenv.config();
+const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), "data", "habilitations.sqlite");
 
 export default defineConfig({
   schema: "./server/schema.ts",
   out: "./drizzle",
-  dialect: "postgresql",
+  dialect: "sqlite",
   dbCredentials: {
-    url: process.env.DATABASE_URL || "",
+    url: dbPath,
   },
   verbose: true,
   strict: true,

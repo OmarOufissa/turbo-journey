@@ -1,17 +1,36 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+/**
+ * Database connection layer.
+ *
+ * Kept as "db-pg.ts" for historical reasons (this file used to wrap
+ * PostgreSQL) even though it now talks to an embedded SQLite database via
+ * better-sqlite3 - every other server file imports from this exact path, so
+ * renaming it would touch ~20 files for no functional benefit.
+ *
+ * The database file lives at SQLITE_DB_PATH if set (the Electron main
+ * process sets this to a file inside the user's app-data directory so data
+ * survives app updates), otherwise next to the project for local/dev use.
+ */
+import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import path from "path";
 import * as schema from "./schema";
 import bcrypt from "bcrypt";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
-// Create PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes("localhost") ? false : { rejectUnauthorized: false },
-});
+const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), "data", "habilitations.sqlite");
+
+import fs from "fs";
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+const sqlite = new Database(dbPath);
+sqlite.pragma("journal_mode = WAL");
+sqlite.pragma("foreign_keys = ON");
 
 // Initialize Drizzle ORM
-export const db = drizzle(pool, { schema });
+export const db = drizzle(sqlite, { schema });
+
+// Exposed for server/db.ts's raw-SQL compatibility layer (dbRun/dbGet/dbAll)
+export const rawDb = sqlite;
 
 // Initialize database with demo user
 export async function initializeDatabase() {
@@ -19,7 +38,7 @@ export async function initializeDatabase() {
     console.log("Checking database connection...");
 
     // Test connection
-    await pool.query("SELECT NOW()");
+    sqlite.prepare("SELECT 1").get();
     console.log("Database connection successful");
 
     // Check if demo user exists
@@ -41,18 +60,11 @@ export async function initializeDatabase() {
       console.log("Demo user already exists");
     }
 
-    // Check if organizational structure is already seeded
-    const divisionsCount = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(schema.divisions);
-
-    if (!divisionsCount[0] || divisionsCount[0].count === 0) {
-      console.log("Seeding organizational structure and employee data...");
-      const { seedDatabasePG } = await import("./seed-pg");
-      await seedDatabasePG();
-    } else {
-      console.log("Database already seeded");
-    }
+    // Organizational structure and employee data are seeded from the real
+    // Direction Transport Centre Casa organigramme by
+    // seeds/organigrammeSeed.ts (called from index.ts's startup sequence,
+    // right after this function returns) - not from here, so the app never
+    // needs a network call just to start up.
 
     console.log("Database initialized successfully");
   } catch (err) {
@@ -76,17 +88,10 @@ export async function getDatabase() {
  * CRITICAL: If callback throws, entire transaction rolls back
  * Used for: mutation + audit logging together
  *
- * Pattern:
- *   try {
- *     const result = await withAuditTransaction(async (txDb) => {
- *       // mutation 1
- *       // mutation 2
- *       // audit logging
- *       return { success: true, data };
- *     });
- *   } catch (err) {
- *     // Transaction rolled back, error returned
- *   }
+ * better-sqlite3 is synchronous under the hood, so the `txDb` passed to the
+ * callback is the same shared `db` instance - the manual BEGIN/COMMIT/
+ * ROLLBACK below scopes the transaction around whatever the (effectively
+ * synchronous) callback does.
  *
  * @param callback Function to execute within transaction
  * @throws Error if transaction fails or callback throws
@@ -95,36 +100,22 @@ export async function getDatabase() {
 export async function withAuditTransaction<T>(
   callback: (txDb: typeof db) => Promise<T>
 ): Promise<T> {
-  const client = await pool.connect();
+  sqlite.exec("BEGIN");
   try {
-    // Begin transaction
-    await client.query("BEGIN TRANSACTION");
-
-    // Create transaction-scoped Drizzle instance
-    const txDb = drizzle(client, { schema });
-
-    // Execute callback
-    const result = await callback(txDb);
-
-    // Commit on success
-    await client.query("COMMIT");
+    const result = await callback(db);
+    sqlite.exec("COMMIT");
     return result;
   } catch (err) {
-    // Rollback on any error
     try {
-      await client.query("ROLLBACK");
+      sqlite.exec("ROLLBACK");
     } catch (rollbackErr) {
       console.error("Error during rollback:", rollbackErr);
     }
 
-    // Re-throw original error with context
     const errorMsg = err instanceof Error ? err.message : String(err);
     throw new Error(
       `Transaction failed and rolled back. No data was modified. Details: ${errorMsg}`
     );
-  } finally {
-    // Always release client back to pool
-    client.release();
   }
 }
 

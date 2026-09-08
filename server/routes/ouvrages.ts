@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { db } from "../db-pg";
 import * as schema from "../schema";
-import { and, eq, ilike, or } from "drizzle-orm";
+import { and, eq, like, or } from "drizzle-orm";
 
 /**
  * GET /api/ouvrages
@@ -16,7 +16,7 @@ export const getOuvrages: RequestHandler = async (req, res) => {
     const conditions = [eq(schema.ouvrages.deleted, false)];
 
     if (typeof search === "string" && search.trim()) {
-      conditions.push(ilike(schema.ouvrages.name, `%${search.trim()}%`));
+      conditions.push(like(schema.ouvrages.name, `%${search.trim()}%`));
     }
     if (typeof divisionId === "string" && divisionId) {
       conditions.push(eq(schema.ouvrages.divisionId, parseInt(divisionId)));

@@ -1,42 +1,42 @@
-import { pgTable, serial, text, integer, timestamp, index, uniqueIndex, jsonb, boolean, check } from "drizzle-orm/pg-core";
+import { sqliteTable, integer, text, index, uniqueIndex, check } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 // Users table
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   emailIdx: uniqueIndex("users_email_idx").on(table.email),
 }));
 
 // Divisions table
-export const divisions = pgTable("divisions", {
-  id: serial("id").primaryKey(),
+export const divisions = sqliteTable("divisions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   nameIdx: uniqueIndex("divisions_name_idx").on(table.name),
 }));
 
 // Services table
-export const services = pgTable("services", {
-  id: serial("id").primaryKey(),
+export const services = sqliteTable("services", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   divisionId: integer("division_id").notNull().references(() => divisions.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   divisionIdx: index("services_division_idx").on(table.divisionId),
   uniqueNamePerDivision: uniqueIndex("services_name_division_idx").on(table.name, table.divisionId),
 }));
 
 // Equipes table
-export const equipes = pgTable("equipes", {
-  id: serial("id").primaryKey(),
+export const equipes = sqliteTable("equipes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   serviceId: integer("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   serviceIdx: index("equipes_service_idx").on(table.serviceId),
   uniqueNamePerService: uniqueIndex("equipes_name_service_idx").on(table.name, table.serviceId),
@@ -45,8 +45,8 @@ export const equipes = pgTable("equipes", {
 // Employees table
 // CORRECTION 3: currentVersionId points to the active version
 // CORRECTION 10: status field for UI filtering (ACTIVE, EXPIRED, PENDING_RENEWAL)
-export const employees = pgTable("employees", {
-  id: serial("id").primaryKey(),
+export const employees = sqliteTable("employees", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   matricule: text("matricule").notNull().unique(),
   prenom: text("prenom").notNull(),
   nom: text("nom").notNull(),
@@ -60,9 +60,9 @@ export const employees = pgTable("employees", {
   currentVersionId: integer("current_version_id"),
   // CORRECTION 10: Employee status for filtering and display
   status: text("status").notNull().default("ACTIVE"), // ACTIVE, EXPIRED, PENDING_RENEWAL
-  deleted: boolean("deleted").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  deleted: integer("deleted", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   matriculeIdx: uniqueIndex("employees_matricule_idx").on(table.matricule),
   divisionIdx: index("employees_division_idx").on(table.divisionId),
@@ -74,8 +74,8 @@ export const employees = pgTable("employees", {
 
 // Ouvrages (electrical installations) table
 // Follows the same Division -> Service -> Equipe hierarchy as employees
-export const ouvrages = pgTable("ouvrages", {
-  id: serial("id").primaryKey(),
+export const ouvrages = sqliteTable("ouvrages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   type: text("type").notNull(),
   // Tension domain: "BT", "HTA" or "HTB"
@@ -83,8 +83,8 @@ export const ouvrages = pgTable("ouvrages", {
   divisionId: integer("division_id").notNull().references(() => divisions.id, { onDelete: "cascade" }),
   serviceId: integer("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
   equipeId: integer("equipe_id").references(() => equipes.id, { onDelete: "set null" }),
-  deleted: boolean("deleted").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  deleted: integer("deleted", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   divisionIdx: index("ouvrages_division_idx").on(table.divisionId),
   serviceIdx: index("ouvrages_service_idx").on(table.serviceId),
@@ -95,8 +95,8 @@ export const ouvrages = pgTable("ouvrages", {
 // Habilitations table
 // CORRECTION 2: Replace 'type' with ST_codes and HT_codes arrays
 // This allows an employee to have both ST and HT codes at the same time
-export const habilitations = pgTable("habilitations", {
-  id: serial("id").primaryKey(),
+export const habilitations = sqliteTable("habilitations", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
   // CORRECTION 2: Separate arrays for ST and HT codes (allows both to coexist)
   stCodes: text("st_codes").notNull().default("[]"), // JSON array of ST codes
@@ -107,11 +107,11 @@ export const habilitations = pgTable("habilitations", {
   dateExpiration: text("date_expiration").notNull(),
   // PDF reference
   pdfPath: text("pdf_path"),
-  pdfUploadedAt: timestamp("pdf_uploaded_at"),
+  pdfUploadedAt: integer("pdf_uploaded_at", { mode: "timestamp" }),
   // Soft delete support (for undo logic)
-  deleted: boolean("deleted").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  deleted: integer("deleted", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   employeeIdx: index("habilitations_employee_idx").on(table.employeeId),
   // CORRECTION 9: Performance indexes for filtering and sorting
@@ -127,8 +127,8 @@ export const habilitations = pgTable("habilitations", {
 // Enhanced Audit logs table - CRITICAL FOR PRODUCTION SAFETY
 // Every data-changing action MUST be logged with full snapshots
 // This ensures complete traceability and revert capability
-export const auditLogs = pgTable("audit_logs", {
-  id: serial("id").primaryKey(),
+export const auditLogs = sqliteTable("audit_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   // User who performed the action (will be hardcoded to 1 for single-user, upgradable later)
   userId: integer("user_id").references(() => users.id),
   // Action type: CREATE_EMPLOYEE, UPDATE_EMPLOYEE, DELETE_EMPLOYEE, etc.
@@ -140,14 +140,14 @@ export const auditLogs = pgTable("audit_logs", {
   entityId: integer("entity_id"),
   // Matricule for quick lookup without JOIN (improve query performance)
   matricule: text("matricule"),
-  // FULL snapshot of old data (before mutation) - use JSONB for direct querying
-  snapshotOld: jsonb("snapshot_old"),
-  // FULL snapshot of new data (after mutation) - use JSONB for direct querying
-  snapshotNew: jsonb("snapshot_new"),
+  // FULL snapshot of old data (before mutation)
+  snapshotOld: text("snapshot_old", { mode: "json" }),
+  // FULL snapshot of new data (after mutation)
+  snapshotNew: text("snapshot_new", { mode: "json" }),
   // If this is a revert action, link to the original audit entry
-  revertedFromAuditLogId: integer("reverted_from_audit_log_id").references(() => auditLogs.id),
+  revertedFromAuditLogId: integer("reverted_from_audit_log_id").references((): any => auditLogs.id),
   // Timestamp of action (immutable, used for append-only guarantee)
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   // Indexes for common queries
   entityIdx: index("audit_logs_entity_idx").on(table.entityType, table.entityId),
@@ -170,18 +170,18 @@ export const auditLogs = pgTable("audit_logs", {
 // Employee versions - track all historical states of an employee
 // CORRECTION 3: Source of truth for employee data (employees table points to current version)
 // Used for viewing "what was this employee's info on [date]?"
-export const employeeVersions = pgTable("employee_versions", {
-  id: serial("id").primaryKey(),
+export const employeeVersions = sqliteTable("employee_versions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   // Reference to the employee
   employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
   // Version number (auto-increment per employee)
   versionNumber: integer("version_number").notNull(),
   // Full snapshot of employee data at this version (source of truth)
-  snapshotData: jsonb("snapshot_data").notNull(),
+  snapshotData: text("snapshot_data", { mode: "json" }).notNull(),
   // Link to audit log entry that created this version
   auditLogId: integer("audit_log_id").references(() => auditLogs.id),
   // When this version was created
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   employeeIdx: index("employee_versions_employee_id_idx").on(table.employeeId),
   versionIdx: uniqueIndex("employee_versions_employee_version_idx").on(table.employeeId, table.versionNumber),
@@ -197,14 +197,14 @@ export const employeeVersions = pgTable("employee_versions", {
 // Pending renewals - renewal requests waiting for manual activation
 // CORRECTION 1: Manual activation (admin clicks "Activate Renewal")
 // CORRECTION 4: Full snapshot identical to a version for consistency
-export const pendingRenewals = pgTable("pending_renewals", {
-  id: serial("id").primaryKey(),
+export const pendingRenewals = sqliteTable("pending_renewals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   // Employee being renewed
   employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
   // Full snapshot of the renewal data (identical structure to employee_versions)
-  snapshotData: jsonb("snapshot_data").notNull(),
+  snapshotData: text("snapshot_data", { mode: "json" }).notNull(),
   // Date when this renewal will be/was activated
-  activationDate: timestamp("activation_date").notNull(),
+  activationDate: integer("activation_date", { mode: "timestamp" }).notNull(),
   // Status: 'pending', 'activated', 'cancelled'
   status: text("status").notNull().default("pending"),
   // Link to audit log entry that created this renewal
@@ -212,9 +212,9 @@ export const pendingRenewals = pgTable("pending_renewals", {
   // Link to audit log entry that activated this renewal (if activated)
   activatedByAuditLogId: integer("activated_by_audit_log_id").references(() => auditLogs.id),
   // When renewal was created
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
   // When renewal was activated
-  activatedAt: timestamp("activated_at"),
+  activatedAt: integer("activated_at", { mode: "timestamp" }),
 }, (table) => ({
   employeeIdx: index("pending_renewals_employee_id_idx").on(table.employeeId),
   // CORRECTION 9: Performance indexes
@@ -225,20 +225,20 @@ export const pendingRenewals = pgTable("pending_renewals", {
 
 // Habilitation archive - preserve old habilitations on renewal
 // Prevents data loss when renewing: old record stays, new record created
-export const habilitationArchive = pgTable("habilitation_archive", {
-  id: serial("id").primaryKey(),
+export const habilitationArchive = sqliteTable("habilitation_archive", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   // Reference to the original habilitation (now archived)
   habilitationId: integer("habilitation_id").notNull(),
   // Employee who had this habilitation
   employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
   // Full snapshot of the archived habilitation
-  snapshotData: jsonb("snapshot_data").notNull(),
+  snapshotData: text("snapshot_data", { mode: "json" }).notNull(),
   // If renewed, link to the new habilitation record
   renewedToHabilitationId: integer("renewed_to_habilitation_id"),
   // Reason for archiving: 'renewal', 'manual_edit', 'deletion'
   reason: text("reason"),
   // When archived
-  archivedAt: timestamp("archived_at").defaultNow().notNull(),
+  archivedAt: integer("archived_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   employeeIdx: index("habilitation_archive_employee_id_idx").on(table.employeeId),
   habIdx: index("habilitation_archive_habilitation_id_idx").on(table.habilitationId),
@@ -251,8 +251,8 @@ export const habilitationArchive = pgTable("habilitation_archive", {
 
 // Email log - track all sent notifications
 // Prevents duplicate emails and provides audit trail for notifications
-export const emailLog = pgTable("email_log", {
-  id: serial("id").primaryKey(),
+export const emailLog = sqliteTable("email_log", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   // Employee receiving the email
   employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
   // Habilitation being notified about
@@ -262,15 +262,15 @@ export const emailLog = pgTable("email_log", {
   // Recipient email address (snapshot of employee email at send time)
   recipientEmail: text("recipient_email"),
   // Full email content sent
-  emailContent: jsonb("email_content"),
+  emailContent: text("email_content", { mode: "json" }),
   // Send status: 'pending', 'sent', 'failed'
   status: text("status").notNull(),
   // Error message if status='failed'
   errorMessage: text("error_message"),
   // When email was sent (or attempted)
-  sentAt: timestamp("sent_at"),
+  sentAt: integer("sent_at", { mode: "timestamp" }),
   // When this log entry was created
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   employeeIdx: index("email_log_employee_id_idx").on(table.employeeId),
   habIdx: index("email_log_habilitation_id_idx").on(table.habilitationId),
@@ -284,34 +284,34 @@ export const emailLog = pgTable("email_log", {
 // ============================================================================
 
 // Employee notes table
-export const employeeNotes = pgTable("employee_notes", {
-  id: serial("id").primaryKey(),
+export const employeeNotes = sqliteTable("employee_notes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
   userId: integer("user_id").references(() => users.id),
   note: text("note").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   employeeIdx: index("employee_notes_employee_idx").on(table.employeeId),
 }));
 
 // Saved filters table
-export const savedFilters = pgTable("saved_filters", {
-  id: serial("id").primaryKey(),
+export const savedFilters = sqliteTable("saved_filters", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   filters: text("filters").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 
 // Notification templates table
-export const notificationTemplates = pgTable("notification_templates", {
-  id: serial("id").primaryKey(),
+export const notificationTemplates = sqliteTable("notification_templates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(),
   subject: text("subject").notNull(),
   body: text("body").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 }, (table) => ({
   nameIdx: uniqueIndex("notification_templates_name_idx").on(table.name),
 }));
