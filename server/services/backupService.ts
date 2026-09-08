@@ -13,6 +13,7 @@
  */
 
 import { db } from "../db-pg";
+import crypto from "crypto";
 import * as schema from "../schema";
 import { format } from "date-fns";
 import fs from "fs";
@@ -67,7 +68,6 @@ if (!fs.existsSync(BACKUP_DIR)) {
  * Calculate SHA256 checksum of data
  */
 function calculateChecksum(data: string): string {
-  const crypto = require("crypto");
   return crypto.createHash("sha256").update(data).digest("hex");
 }
 

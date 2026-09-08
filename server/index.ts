@@ -5,6 +5,7 @@ import multer from "multer";
 import path from "path";
 import { handleDemo } from "./routes/demo";
 import { initializeDatabase } from "./db-pg";
+import { validationMiddleware } from "./middleware/validationMiddleware";
 
 // Initialize database on server creation
 let dbInitialized = false;
@@ -151,7 +152,6 @@ export function createServer() {
   app.use(express.urlencoded({ extended: true }));
 
   // PHASE 1: Data validation middleware
-  const { validationMiddleware } = require("./middleware/validationMiddleware");
   app.use(validationMiddleware);
 
   // Database ready middleware

@@ -12,14 +12,15 @@
  */
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import path from "path";
+import fs from "fs";
 import * as schema from "./schema";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 
 const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), "data", "habilitations.sqlite");
 
-import fs from "fs";
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
 const sqlite = new Database(dbPath);
@@ -28,6 +29,27 @@ sqlite.pragma("foreign_keys = ON");
 
 // Initialize Drizzle ORM
 export const db = drizzle(sqlite, { schema });
+
+/**
+ * Locate the drizzle migrations folder. There is no drizzle-kit at runtime
+ * on an end user's machine, so the schema is created/updated here via
+ * drizzle-orm's own migrator instead. The folder is plain SQL text (no
+ * bundler involved), so its path differs depending on how the server is
+ * running: source checkout, the built dist/server/node-build.mjs, or a
+ * packaged Electron app (main.cjs copies it next to process.resourcesPath).
+ */
+function findMigrationsFolder(): string | null {
+  const __dirname = path.dirname(new URL(import.meta.url).pathname);
+  const candidates = [
+    process.env.MIGRATIONS_DIR,
+    path.join(process.cwd(), "drizzle"),
+    path.join(__dirname, "../drizzle"), // dist/server/db-pg.js -> ../drizzle
+    path.join(__dirname, "../../drizzle"), // one level deeper, just in case
+    (process as any).resourcesPath ? path.join((process as any).resourcesPath, "drizzle") : undefined,
+  ].filter((p): p is string => !!p);
+
+  return candidates.find((p) => fs.existsSync(path.join(p, "meta", "_journal.json"))) ?? null;
+}
 
 // Exposed for server/db.ts's raw-SQL compatibility layer (dbRun/dbGet/dbAll)
 export const rawDb = sqlite;
@@ -40,6 +62,19 @@ export async function initializeDatabase() {
     // Test connection
     sqlite.prepare("SELECT 1").get();
     console.log("Database connection successful");
+
+    // Create/update the schema. No drizzle-kit at runtime, so this is the
+    // only thing that creates tables on a brand new install.
+    const migrationsFolder = findMigrationsFolder();
+    if (migrationsFolder) {
+      migrate(db, { migrationsFolder });
+      console.log(`Schema migrations applied from ${migrationsFolder}`);
+    } else {
+      console.warn(
+        "WARNING: Could not locate the drizzle migrations folder. " +
+          "The database schema will not be created/updated."
+      );
+    }
 
     // Check if demo user exists
     const existingUser = await db
