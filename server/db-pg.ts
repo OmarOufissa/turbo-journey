@@ -25,6 +25,7 @@ import { drizzle } from "drizzle-orm/sqlite-proxy";
 import { migrate } from "drizzle-orm/sqlite-proxy/migrator";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import * as schema from "./schema";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
@@ -79,16 +80,26 @@ export const db = drizzle(sqliteProxyCallback, { schema });
  * packaged Electron app (main.cjs copies it next to process.resourcesPath).
  */
 function findMigrationsFolder(): string | null {
-  const __dirname = path.dirname(new URL(import.meta.url).pathname);
+  // new URL(import.meta.url).pathname is NOT a valid filesystem path on
+  // Windows (it keeps a leading "/" before the drive letter, e.g.
+  // "/C:/Program Files/..."), which silently breaks every candidate below
+  // it and previously meant no migrations folder was ever found on
+  // Windows - fileURLToPath() handles this correctly on every platform.
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
     process.env.MIGRATIONS_DIR,
     path.join(process.cwd(), "drizzle"),
     path.join(__dirname, "../drizzle"), // dist/server/db-pg.js -> ../drizzle
     path.join(__dirname, "../../drizzle"), // one level deeper, just in case
     (process as any).resourcesPath ? path.join((process as any).resourcesPath, "drizzle") : undefined,
+    (process as any).resourcesPath ? path.join((process as any).resourcesPath, "app", "drizzle") : undefined,
   ].filter((p): p is string => !!p);
 
-  return candidates.find((p) => fs.existsSync(path.join(p, "meta", "_journal.json"))) ?? null;
+  const found = candidates.find((p) => fs.existsSync(path.join(p, "meta", "_journal.json")));
+  if (!found) {
+    console.warn(`Migrations folder not found. Candidates tried:\n${candidates.join("\n")}`);
+  }
+  return found ?? null;
 }
 
 /**

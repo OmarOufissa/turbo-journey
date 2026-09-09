@@ -6,12 +6,55 @@
  * packaged app needs nothing installed on the machine (no Postgres, no
  * Node, no browser setup) beyond the installer itself.
  */
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, dialog } = require("electron");
 const path = require("path");
+const fs = require("fs");
 const http = require("http");
 const { pathToFileURL } = require("url");
 
 const PORT = process.env.PORT || 47821;
+
+/**
+ * A packaged app launched by double-clicking has no visible console, so
+ * anything logged (by this file or by the embedded server, which shares
+ * this same process) would otherwise be lost. Mirror it to a log file next
+ * to the database, and make startup failures visible instead of silent.
+ */
+let logFilePath = null;
+function setupLogging() {
+  const logDir = path.join(app.getPath("userData"), "logs");
+  fs.mkdirSync(logDir, { recursive: true });
+  logFilePath = path.join(logDir, "app.log");
+
+  const stream = fs.createWriteStream(logFilePath, { flags: "a" });
+  const write = (level) => (...args) => {
+    const line = `[${new Date().toISOString()}] [${level}] ${args
+      .map((a) => (a instanceof Error ? a.stack || a.message : typeof a === "string" ? a : JSON.stringify(a)))
+      .join(" ")}\n`;
+    stream.write(line);
+  };
+  const original = { log: console.log, error: console.error, warn: console.warn };
+  console.log = (...a) => { original.log(...a); write("INFO")(...a); };
+  console.error = (...a) => { original.error(...a); write("ERROR")(...a); };
+  console.warn = (...a) => { original.warn(...a); write("WARN")(...a); };
+
+  process.on("uncaughtException", (err) => {
+    console.error("Uncaught exception:", err);
+    showFatalError("Erreur inattendue", err);
+  });
+  process.on("unhandledRejection", (err) => {
+    console.error("Unhandled rejection:", err);
+  });
+}
+
+function showFatalError(title, err) {
+  const message =
+    (err && err.stack) || String(err) || "Erreur inconnue";
+  dialog.showErrorBox(
+    title,
+    `${message}\n\nDétails enregistrés dans :\n${logFilePath}`
+  );
+}
 
 function waitForServer(url, timeoutMs) {
   const deadline = Date.now() + timeoutMs;
@@ -72,10 +115,18 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  setupLogging();
+  console.log(`Starting. userData=${app.getPath("userData")} port=${PORT}`);
+
   try {
     await startServer();
+    console.log("Embedded server is up.");
   } catch (err) {
     console.error("Failed to start the embedded server:", err);
+    showFatalError(
+      "Le serveur intégré n'a pas démarré",
+      err
+    );
   }
   createWindow();
 
