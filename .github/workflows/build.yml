@@ -10,21 +10,7 @@ on:
 
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            platform: windows
-            eb_flag: --win
-          - os: macos-latest
-            platform: mac
-            eb_flag: --mac
-          - os: ubuntu-latest
-            platform: linux
-            eb_flag: --linux
-
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -46,14 +32,14 @@ jobs:
         # Release, which fails without a token - this workflow only wants
         # the built installer as a build artifact (see "Upload installer
         # artifacts" below), so disable publishing explicitly.
-        run: pnpm exec electron-builder ${{ matrix.eb_flag }} --publish never
+        run: pnpm exec electron-builder --win --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload installer artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: installer-${{ matrix.platform }}
+          name: installer-windows
           path: dist-electron/
           retention-days: 30
 
