@@ -13,6 +13,13 @@ export const HT_SYMBOLS = ["BC", "BR", "B0V", "B1V", "B2V", "HC", "H0V", "H1V", 
 export const ST_SYMBOLS = ["B1T", "B2T", "H1T", "H2T", "B1N", "B2N", "H1N", "H2N"];
 export const DOMAINES = ["TBT", "BT", "HT", "HTA", "HTB"];
 
+// Every symbol that may appear in a legend table (both templates, incl. the HT
+// form's non-V variants). Used only to decide which legend cells to cross out.
+const ALL_LEGEND_SYMBOLS = [
+  "B0", "B0V", "B1", "B1V", "B2", "B2V", "BC", "BR", "H0", "H0V", "H1", "H1V", "H2", "H2V", "HC", "SF6",
+  "B1T", "B2T", "H1T", "H2T", "B1N", "B2N", "H1N", "H2N",
+];
+
 export type DemandeType = "HT" | "ST";
 export interface DemandeRow { symbole: string; domaine: string; ouvrages: string; }
 export interface DemandeInput { employeeId: number; type: DemandeType; rows: DemandeRow[]; }
@@ -130,7 +137,7 @@ export async function generateDemande(input: DemandeInput): Promise<{ buffer: Bu
   // Post-process: diagonal on unused legend symbols
   const outZip = doc.getZip();
   let xml = outZip.file("word/document.xml")!.asText();
-  xml = crossOutUnusedSymbols(xml, allowedSymbols, rows.map((r) => r.symbole.trim()));
+  xml = crossOutUnusedSymbols(xml, ALL_LEGEND_SYMBOLS, rows.map((r) => r.symbole.trim()));
   outZip.file("word/document.xml", xml);
   const buffer = outZip.generate({ type: "nodebuffer" }) as Buffer;
 
