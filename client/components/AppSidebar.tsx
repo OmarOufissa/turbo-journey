@@ -14,6 +14,7 @@ import {
   Building2,
   DatabaseBackup,
   BookOpen,
+  FilePlus2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -58,6 +59,11 @@ const navigationItems = [
         title: "Habilitation ST",
         icon: Zap,
         url: "/employees-st",
+      },
+      {
+        title: "Demande d'habilitation",
+        icon: FilePlus2,
+        url: "/demande-habilitation",
       },
       {
         title: "Calendrier",

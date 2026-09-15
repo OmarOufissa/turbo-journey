@@ -22,6 +22,7 @@ import Employees from "./pages/Employees";
 import EmployeeList from "./pages/EmployeeList";
 import AgentForm from "./pages/AgentForm";
 import AgentDetail from "./pages/AgentDetail";
+import DemandeHabilitation from "./pages/DemandeHabilitation";
 import AddEmployee from "./pages/AddEmployee";
 import EditEmployee from "./pages/EditEmployee";
 import EmployeeCard from "./pages/EmployeeCard";
@@ -186,6 +187,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/demande-habilitation"
+            element={
+              <ProtectedRoute>
+                <DemandeHabilitation />
               </ProtectedRoute>
             }
           />

@@ -1108,6 +1108,31 @@ export function createServer() {
     });
   });
 
+  // ── Demande d'habilitation électrique (module .docx) ──
+  app.get("/api/demande-habilitation/options", async (_req, res) => {
+    const { HT_SYMBOLS, ST_SYMBOLS, DOMAINES } = await import("./services/demandeHabilitationService");
+    res.json({ success: true, data: { htSymbols: HT_SYMBOLS, stSymbols: ST_SYMBOLS, domaines: DOMAINES }, error: null });
+  });
+
+  app.post("/api/demande-habilitation", async (req, res) => {
+    const { authMiddleware } = await import("./routes/employees-audit");
+    authMiddleware(req, res, async () => {
+      const mod = await import("./services/demandeHabilitationService");
+      try {
+        const { employeeId, type, rows } = req.body ?? {};
+        const { buffer, filename } = await mod.generateDemande({ employeeId: Number(employeeId), type, rows });
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+        res.send(buffer);
+      } catch (err) {
+        const isVal = err instanceof mod.DemandeError;
+        const msg = err instanceof Error ? err.message : String(err);
+        if (!isVal) console.error("[demande-habilitation]", msg);
+        res.status(isVal ? 400 : 500).json({ success: false, data: null, error: msg });
+      }
+    });
+  });
+
   app.post("/api/backups/create", async (req, res) => {
     const { authMiddleware } = await import("./routes/employees-audit");
     authMiddleware(req, res, async () => {
