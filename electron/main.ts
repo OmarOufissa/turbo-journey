@@ -35,12 +35,29 @@ function resolveDataDir(): string {
 // Set DB path to persistent data dir before any server module loads
 if (!isDev) {
   const dataDir = resolveDataDir();
-  process.env.DATABASE_URL = `file:${path.join(dataDir, "habilitations.db")}`;
+  const dbFile = path.join(dataDir, "habilitations.db");
+  // First run (no DB yet): ship with the real DTC database (314 agents) instead
+  // of seeding from Excel. Existing installs keep their own DB untouched.
+  if (!fs.existsSync(dbFile)) {
+    const seedDb = path.join(__dirname, "../server/seeds/data/habilitations.seed.db");
+    try {
+      if (fs.existsSync(seedDb)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+        fs.copyFileSync(seedDb, dbFile);
+        console.log("Initialized database from bundled seed DB");
+      }
+    } catch (err) {
+      console.error("Failed to copy seed DB, will fall back to Excel seeding:", err);
+    }
+  }
+  process.env.DATABASE_URL = `file:${dbFile}`;
   process.env.UPLOADS_BASE_DIR = path.join(dataDir, "uploads");
   process.env.UPLOADS_DIR = path.join(dataDir, "uploads", "pdfs");
   process.env.PDF_TEMPLATE_PATH = path.join(__dirname, "../server/seeds/data/titre_HAE_vierge.pdf");
   process.env.HABILITATIONS_EXCEL_URL = path.join(__dirname, "../server/seeds/data/employees.xlsx");
   process.env.HABILITATIONS_TST_EXCEL_URL = path.join(__dirname, "../server/seeds/data/employees_tst.xlsx");
+  process.env.DEMANDE_HAE_ST_TEMPLATE = path.join(__dirname, "../server/templates/demande_hae_st.docx");
+  process.env.DEMANDE_HAE_HT_TEMPLATE = path.join(__dirname, "../server/templates/demande_hae_ht.docx");
 }
 
 // ─── IPC Handlers ─────────────────────────────────────────────────────────
