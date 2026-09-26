@@ -15,6 +15,7 @@ import {
   DatabaseBackup,
   BookOpen,
   FilePlus2,
+  ClipboardCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -64,6 +65,11 @@ const navigationItems = [
         title: "Demande d'habilitation",
         icon: FilePlus2,
         url: "/demande-habilitation",
+      },
+      {
+        title: "Fiches d'évaluation",
+        icon: ClipboardCheck,
+        url: "/fiches-evaluation",
       },
       {
         title: "Calendrier",
