@@ -13,7 +13,7 @@ import { getEmployees } from "@/api/employees";
 import { Employee } from "@/types/employee";
 
 type DemandeType = "HT" | "ST";
-interface Row { symbole: string; domaine: string; ouvrages: string; }
+interface Row { symbole: string; domaines: string[]; ouvrages: string; }
 
 export default function DemandeHabilitation() {
   const { toast } = useToast();
@@ -30,7 +30,7 @@ export default function DemandeHabilitation() {
   const [agent, setAgent] = useState<Employee | null>(null);
 
   const [type, setType] = useState<DemandeType>("HT");
-  const [rows, setRows] = useState<Row[]>([{ symbole: "", domaine: "", ouvrages: "" }]);
+  const [rows, setRows] = useState<Row[]>([{ symbole: "", domaines: [], ouvrages: "" }]);
   const [submitting, setSubmitting] = useState(false);
   const debounce = useRef<any>(null);
 
@@ -62,12 +62,13 @@ export default function DemandeHabilitation() {
   const clearAgent = () => { setAgent(null); setSearch(""); setResults([]); };
 
   const setRow = (i: number, patch: Partial<Row>) => setRows(rs => rs.map((r, idx) => idx === i ? { ...r, ...patch } : r));
-  const addRow = () => setRows(rs => [...rs, { symbole: "", domaine: "", ouvrages: "" }]);
+  const addRow = () => setRows(rs => [...rs, { symbole: "", domaines: [], ouvrages: "" }]);
   const removeRow = (i: number) => setRows(rs => rs.length > 1 ? rs.filter((_, idx) => idx !== i) : rs);
 
-  const onTypeChange = (t: DemandeType) => { setType(t); setRows([{ symbole: "", domaine: "", ouvrages: "" }]); };
+  const onTypeChange = (t: DemandeType) => { setType(t); setRows([{ symbole: "", domaines: [], ouvrages: "" }]); };
 
-  const canSubmit = agent && rows.every(r => r.symbole && r.domaine && r.ouvrages);
+  const canSubmit = agent && rows.every(r => r.symbole && r.domaines.length > 0 && r.ouvrages);
+  const toggleDomaine = (i: number, d: string) => setRow(i, { domaines: rows[i].domaines.includes(d) ? rows[i].domaines.filter(x => x !== d) : [...rows[i].domaines, d] });
 
   const generate = async () => {
     if (!agent) { toast({ title: "Agent requis", description: "Sélectionnez un agent.", variant: "destructive" }); return; }
@@ -76,7 +77,7 @@ export default function DemandeHabilitation() {
       const res = await fetch("/api/demande-habilitation", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ employeeId: agent.id, type, rows }),
+        body: JSON.stringify({ employeeId: agent.id, type, rows: rows.map(r => ({ symbole: r.symbole, domaine: r.domaines.join(" "), ouvrages: r.ouvrages })) }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Erreur" }));
@@ -86,8 +87,10 @@ export default function DemandeHabilitation() {
       const cd = res.headers.get("Content-Disposition") || "";
       const fn = /filename="?([^"]+)"?/.exec(cd)?.[1] || `demande_habilitation_${type}_${agent.matricule}.docx`;
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = fn; document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
+      const a = document.createElement("a"); a.href = url; a.download = fn; a.style.display = "none"; document.body.appendChild(a); a.click();
+      // Revoke/cleanup AFTER the download has had time to start — revoking
+      // synchronously can cancel it (notably in the Electron/sandboxed app).
+      setTimeout(() => { try { a.remove(); URL.revokeObjectURL(url); } catch {} }, 4000);
       toast({ title: "Demande générée", description: fn });
     } catch (e: any) {
       toast({ title: "Erreur", description: e.message, variant: "destructive" });
@@ -184,11 +187,22 @@ export default function DemandeHabilitation() {
                   </Select>
                 </div>
                 <div className="col-span-3 space-y-1">
-                  {i === 0 && <Label className="text-xs">Domaine de tension</Label>}
-                  <Select value={r.domaine} onValueChange={v => setRow(i, { domaine: v })}>
-                    <SelectTrigger><SelectValue placeholder="Domaine" /></SelectTrigger>
-                    <SelectContent>{domaines.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                  </Select>
+                  {i === 0 && <Label className="text-xs">Domaine de tension (multi)</Label>}
+                  <div className="flex flex-wrap gap-1">
+                    {domaines.map(d => {
+                      const on = r.domaines.includes(d);
+                      return (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => toggleDomaine(i, d)}
+                          className={`px-2 py-1 rounded-md border text-xs font-medium transition-colors ${on ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
+                        >
+                          {d}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="col-span-5 space-y-1">
                   {i === 0 && <Label className="text-xs">Ouvrage concerné</Label>}

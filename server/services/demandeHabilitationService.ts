@@ -77,7 +77,10 @@ export async function generateDemande(input: DemandeInput): Promise<{ buffer: Bu
     const d = (r.domaine || "").trim();
     const o = (r.ouvrages || "").trim();
     if (!allowedSymbols.includes(s)) throw new DemandeError(`Ligne ${i + 1} : symbole « ${s} » invalide pour une demande ${type}.`);
-    if (!DOMAINES.includes(d)) throw new DemandeError(`Ligne ${i + 1} : domaine de tension « ${d} » invalide.`);
+    const domaineTokens = d.split(/\s+/).filter(Boolean);
+    if (domaineTokens.length === 0) throw new DemandeError(`Ligne ${i + 1} : domaine de tension requis.`);
+    const badDom = domaineTokens.find((t) => !DOMAINES.includes(t));
+    if (badDom) throw new DemandeError(`Ligne ${i + 1} : domaine de tension « ${badDom} » invalide.`);
     if (!o) throw new DemandeError(`Ligne ${i + 1} : ouvrage concerné requis.`);
     if (!ouvrageSet.has(o.toLowerCase())) throw new DemandeError(`Ligne ${i + 1} : ouvrage « ${o} » introuvable dans le référentiel.`);
   });
