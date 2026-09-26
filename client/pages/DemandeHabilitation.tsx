@@ -1,19 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-import { FilePlus2, Plus, Trash2, Download, Loader2, Search } from "lucide-react";
+import { FilePlus2, Download, Loader2, Search, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getEmployees } from "@/api/employees";
 import { Employee } from "@/types/employee";
 
 type DemandeType = "HT" | "ST";
-interface Row { symbole: string; domaines: string[]; ouvrages: string; }
+interface Detail { domaines: string[]; ouvrages: string; }
 
 export default function DemandeHabilitation() {
   const { toast } = useToast();
@@ -30,7 +23,8 @@ export default function DemandeHabilitation() {
   const [agent, setAgent] = useState<Employee | null>(null);
 
   const [type, setType] = useState<DemandeType>("HT");
-  const [rows, setRows] = useState<Row[]>([{ symbole: "", domaines: [], ouvrages: "" }]);
+  const [selected, setSelected] = useState<string[]>([]);           // ordered selected symbols
+  const [detail, setDetail] = useState<Record<string, Detail>>({}); // per-symbol domaine/ouvrage
   const [submitting, setSubmitting] = useState(false);
   const debounce = useRef<any>(null);
 
@@ -54,30 +48,33 @@ export default function DemandeHabilitation() {
 
   const symbols = type === "HT" ? htSymbols : stSymbols;
 
-  const pickAgent = (e: Employee) => {
-    setAgent(e);
-    setSearch(`${e.matricule} — ${e.nom} ${e.prenom}`);
-    setShowResults(false);
-  };
+  const pickAgent = (e: Employee) => { setAgent(e); setSearch(`${e.matricule} — ${e.nom} ${e.prenom}`); setShowResults(false); };
   const clearAgent = () => { setAgent(null); setSearch(""); setResults([]); };
 
-  const setRow = (i: number, patch: Partial<Row>) => setRows(rs => rs.map((r, idx) => idx === i ? { ...r, ...patch } : r));
-  const addRow = () => setRows(rs => [...rs, { symbole: "", domaines: [], ouvrages: "" }]);
-  const removeRow = (i: number) => setRows(rs => rs.length > 1 ? rs.filter((_, idx) => idx !== i) : rs);
+  const onTypeChange = (t: DemandeType) => { setType(t); setSelected([]); setDetail({}); };
 
-  const onTypeChange = (t: DemandeType) => { setType(t); setRows([{ symbole: "", domaines: [], ouvrages: "" }]); };
+  const toggleSymbol = (s: string) => {
+    setSelected(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+    setDetail(prev => prev[s] ? prev : { ...prev, [s]: { domaines: [], ouvrages: "" } });
+  };
+  const setSymDomaine = (s: string, d: string) => setDetail(prev => {
+    const cur = prev[s] || { domaines: [], ouvrages: "" };
+    const domaines = cur.domaines.includes(d) ? cur.domaines.filter(x => x !== d) : [...cur.domaines, d];
+    return { ...prev, [s]: { ...cur, domaines } };
+  });
+  const setSymOuvrage = (s: string, v: string) => setDetail(prev => ({ ...prev, [s]: { ...(prev[s] || { domaines: [], ouvrages: "" }), ouvrages: v } }));
 
-  const canSubmit = agent && rows.every(r => r.symbole && r.domaines.length > 0 && r.ouvrages);
-  const toggleDomaine = (i: number, d: string) => setRow(i, { domaines: rows[i].domaines.includes(d) ? rows[i].domaines.filter(x => x !== d) : [...rows[i].domaines, d] });
+  const canSubmit = !!agent && selected.length > 0 && selected.every(s => (detail[s]?.domaines.length ?? 0) > 0 && (detail[s]?.ouvrages ?? "").trim());
 
   const generate = async () => {
     if (!agent) { toast({ title: "Agent requis", description: "Sélectionnez un agent.", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
+      const rows = selected.map(s => ({ symbole: s, domaine: (detail[s]?.domaines || []).join(" "), ouvrages: (detail[s]?.ouvrages || "").trim() }));
       const res = await fetch("/api/demande-habilitation", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ employeeId: agent.id, type, rows: rows.map(r => ({ symbole: r.symbole, domaine: r.domaines.join(" "), ouvrages: r.ouvrages })) }),
+        body: JSON.stringify({ employeeId: agent.id, type, rows }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Erreur" }));
@@ -88,8 +85,6 @@ export default function DemandeHabilitation() {
       const fn = /filename="?([^"]+)"?/.exec(cd)?.[1] || `demande_habilitation_${type}_${agent.matricule}.docx`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url; a.download = fn; a.style.display = "none"; document.body.appendChild(a); a.click();
-      // Revoke/cleanup AFTER the download has had time to start — revoking
-      // synchronously can cancel it (notably in the Electron/sandboxed app).
       setTimeout(() => { try { a.remove(); URL.revokeObjectURL(url); } catch {} }, 4000);
       toast({ title: "Demande générée", description: fn });
     } catch (e: any) {
@@ -104,34 +99,57 @@ export default function DemandeHabilitation() {
 
   return (
     <Layout>
-      <div className="p-6 max-w-4xl space-y-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><FilePlus2 className="w-6 h-6" /> Demande d'habilitation</h1>
-          <p className="text-muted-foreground text-sm mt-1">Générer le document Word officiel de demande d'habilitation électrique.</p>
-        </div>
+      <style>{CSS}</style>
+      <div className="dh-scope">
+        <div className="dh-wrap">
+          <div className="dh-head">
+            <h1><FilePlus2 className="w-6 h-6" /> Demande d'habilitation</h1>
+            <p>Générer le document Word officiel de demande d'habilitation électrique.</p>
+          </div>
 
-        {/* Agent */}
-        <Card>
-          <CardHeader><CardTitle className="text-base">1. Agent concerné</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            <div className="relative">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="pl-9"
-                  placeholder="Rechercher par matricule, nom ou prénom..."
-                  value={search}
-                  onChange={e => { setSearch(e.target.value); if (agent) setAgent(null); }}
-                  onFocus={() => results.length && setShowResults(true)}
-                />
-                {agent && <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2" onClick={clearAgent}>Changer</Button>}
-              </div>
+          {/* 1. Type */}
+          <section className="dh-card">
+            <div className="dh-step">1. Type de demande</div>
+            <div className="dh-seg">
+              {(["HT", "ST"] as const).map(t => (
+                <button key={t} className={type === t ? "on" : ""} onClick={() => onTypeChange(t)}>
+                  {t === "HT" ? "HT — Hors Tension" : "ST — Sous Tension (TST)"}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* 2. Symboles (carreaux, multi) */}
+          <section className="dh-card">
+            <div className="dh-step">2. Symboles d'habilitation <span className="dh-sub">— sélection multiple</span></div>
+            <div className="dh-tiles">
+              {symbols.map(s => (
+                <button key={s} className={`dh-tile ${selected.includes(s) ? "on" : ""}`} onClick={() => toggleSymbol(s)} aria-pressed={selected.includes(s)}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* 3. Agent */}
+          <section className="dh-card">
+            <div className="dh-step">3. Agent concerné</div>
+            <div className="dh-searchbox">
+              <Search className="dh-searchicon w-4 h-4" />
+              <input
+                className="dh-input dh-search"
+                placeholder="Rechercher par matricule, nom ou prénom…"
+                value={search}
+                onChange={e => { setSearch(e.target.value); if (agent) setAgent(null); }}
+                onFocus={() => results.length && setShowResults(true)}
+              />
+              {agent && <button className="dh-change" onClick={clearAgent}><X className="w-3 h-3" /> Changer</button>}
               {showResults && results.length > 0 && !agent && (
-                <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md max-h-64 overflow-auto">
+                <div className="dh-results">
                   {results.map(e => (
-                    <button key={e.id} onClick={() => pickAgent(e)} className="w-full text-left px-3 py-2 hover:bg-muted text-sm">
-                      <span className="font-mono">{e.matricule}</span> — <span className="uppercase">{e.nom} {e.prenom}</span>
-                      <span className="text-muted-foreground"> · {e.currentVersion?.division ?? ""}</span>
+                    <button key={e.id} className="dh-result" onClick={() => pickAgent(e)}>
+                      <span className="dh-mono">{e.matricule}</span> — <b>{e.nom} {e.prenom}</b>
+                      <span className="dh-muted"> · {e.currentVersion?.division ?? ""}</span>
                     </button>
                   ))}
                 </div>
@@ -139,100 +157,114 @@ export default function DemandeHabilitation() {
             </div>
 
             {agent && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 rounded-md border bg-muted/30 p-3 text-sm">
-                <Field label="Matricule" v={agent.matricule} />
-                <Field label="Nom et prénom" v={`${agent.nom} ${agent.prenom}`} />
-                <Field label="Fonction" v={ver?.fonction} />
-                <Field label="Division" v={ver?.division} />
-                <Field label="Service" v={ver?.service} />
-                <Field label="Équipe" v={ver?.equipe ?? "—"} />
-                <div className="col-span-2 md:col-span-3">
-                  <p className="text-xs text-muted-foreground mb-1">Habilitations actuelles</p>
-                  {currentHab.length ? <div className="flex flex-wrap gap-1">{currentHab.map(c => <Badge key={c} variant="secondary" className="font-mono text-xs">{c}</Badge>)}</div> : <span className="text-muted-foreground">Aucune</span>}
+              <div className="dh-summary">
+                <F label="Matricule" v={agent.matricule} />
+                <F label="Nom et prénom" v={`${agent.nom} ${agent.prenom}`} />
+                <F label="Fonction" v={ver?.fonction} />
+                <F label="Division" v={ver?.division} />
+                <F label="Service" v={ver?.service} />
+                <F label="Équipe" v={ver?.equipe ?? "—"} />
+                <div className="dh-hab">
+                  <div className="dh-flabel">Habilitations actuelles</div>
+                  {currentHab.length ? <div className="dh-badges">{currentHab.map(c => <span key={c} className="dh-badge">{c}</span>)}</div> : <span className="dh-muted">Aucune</span>}
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </section>
 
-        {/* Type */}
-        <Card>
-          <CardHeader><CardTitle className="text-base">2. Type de demande</CardTitle></CardHeader>
-          <CardContent>
-            <div className="flex gap-3">
-              {(["HT", "ST"] as const).map(t => (
-                <button key={t} onClick={() => onTypeChange(t)}
-                  className={`px-5 py-2 rounded-lg border text-sm font-medium transition-colors ${type === t ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}>
-                  {t === "HT" ? "HT — Hors Tension" : "ST — Sous Tension (TST)"}
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Rows */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">3. Habilitations demandées</CardTitle>
-            <CardDescription>Une ligne par symbole. Symboles filtrés selon le type ({type}).</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {rows.map((r, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-3 space-y-1">
-                  {i === 0 && <Label className="text-xs">Symbole</Label>}
-                  <Select value={r.symbole} onValueChange={v => setRow(i, { symbole: v })}>
-                    <SelectTrigger><SelectValue placeholder="Symbole" /></SelectTrigger>
-                    <SelectContent>{symbols.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="col-span-3 space-y-1">
-                  {i === 0 && <Label className="text-xs">Domaine de tension (multi)</Label>}
-                  <div className="flex flex-wrap gap-1">
-                    {domaines.map(d => {
-                      const on = r.domaines.includes(d);
-                      return (
-                        <button
-                          key={d}
-                          type="button"
-                          onClick={() => toggleDomaine(i, d)}
-                          className={`px-2 py-1 rounded-md border text-xs font-medium transition-colors ${on ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"}`}
-                        >
-                          {d}
-                        </button>
-                      );
-                    })}
+          {/* 4. Détail par symbole */}
+          <section className="dh-card">
+            <div className="dh-step">4. Détail des habilitations demandées</div>
+            {selected.length === 0 ? (
+              <div className="dh-empty">Sélectionnez au moins un symbole ci-dessus.</div>
+            ) : (
+              <div className="dh-details">
+                {selected.map(s => (
+                  <div key={s} className="dh-detrow">
+                    <div className="dh-symtag">{s}</div>
+                    <div className="dh-detfields">
+                      <div>
+                        <div className="dh-flabel">Domaine de tension (multi)</div>
+                        <div className="dh-chips">
+                          {domaines.map(d => (
+                            <button key={d} className={`dh-chip ${detail[s]?.domaines.includes(d) ? "on" : ""}`} onClick={() => setSymDomaine(s, d)}>{d}</button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="dh-flabel">Ouvrage concerné</div>
+                        <input className="dh-input" list="dh-ouvrages" value={detail[s]?.ouvrages || ""} onChange={e => setSymOuvrage(s, e.target.value)} placeholder="Ouvrage…" />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="col-span-5 space-y-1">
-                  {i === 0 && <Label className="text-xs">Ouvrage concerné</Label>}
-                  <SearchableSelect value={r.ouvrages} onChange={v => setRow(i, { ouvrages: v })} options={ouvrages} placeholder="Ouvrage..." />
-                </div>
-                <div className="col-span-1">
-                  <Button variant="ghost" size="sm" onClick={() => removeRow(i)} disabled={rows.length === 1} className="text-red-500 hover:text-red-700">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                ))}
               </div>
-            ))}
-            <Button variant="outline" size="sm" onClick={addRow} className="gap-1"><Plus className="w-4 h-4" /> Ajouter une ligne</Button>
-          </CardContent>
-        </Card>
+            )}
+            <datalist id="dh-ouvrages">{ouvrages.map(o => <option key={o} value={o} />)}</datalist>
+          </section>
 
-        <Button size="lg" className="w-full gap-2" disabled={!canSubmit || submitting} onClick={generate}>
-          {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-          Générer et télécharger la demande
-        </Button>
+          <button className="dh-btn" disabled={!canSubmit || submitting} onClick={generate}>
+            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            Générer et télécharger la demande
+          </button>
+        </div>
       </div>
     </Layout>
   );
 }
 
-function Field({ label, v }: { label: string; v?: string | null }) {
-  return (
-    <div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="font-medium">{v || "—"}</p>
-    </div>
-  );
+function F({ label, v }: { label: string; v?: string | null }) {
+  return <div><div className="dh-flabel">{label}</div><div className="dh-fval">{v || "—"}</div></div>;
 }
+
+const CSS = `
+.dh-scope{--accent:#1f5aa6;--accent-soft:#e8f0fb;--ink:#1a1d22;--muted:#5b6470;--line:#c9d0d8;--panel:#fff;--bg:#eef1f4;
+  background:var(--bg);color:var(--ink);min-height:100%;font-family:Arial,"Helvetica Neue",Helvetica,sans-serif}
+.dh-wrap{max-width:1000px;margin:0 auto;padding:20px 16px}
+.dh-head h1{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:800;margin:0 0 2px}
+.dh-head p{color:var(--muted);font-size:13px;margin:0 0 16px}
+.dh-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.dh-step{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink);font-weight:800;margin-bottom:12px}
+.dh-sub{color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0}
+.dh-seg{display:inline-flex;border:1.5px solid var(--accent);border-radius:9px;overflow:hidden}
+.dh-seg button{font:inherit;font-weight:700;padding:9px 18px;border:0;background:#fff;color:var(--accent);cursor:pointer}
+.dh-seg button.on{background:var(--accent);color:#fff}
+.dh-tiles{display:flex;flex-wrap:wrap;gap:10px}
+.dh-tile{min-width:66px;padding:12px 16px;border:1.5px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;
+  font-weight:800;font-size:15px;color:var(--ink);transition:all .12s}
+.dh-tile:hover{border-color:var(--accent)}
+.dh-tile.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.dh-searchbox{position:relative}
+.dh-searchicon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.dh-input{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.dh-search{padding-left:34px}
+.dh-change{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;gap:4px;
+  border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 9px;font:inherit;font-size:12px;cursor:pointer;color:var(--muted)}
+.dh-results{position:absolute;z-index:20;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);
+  border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.12);max-height:260px;overflow:auto}
+.dh-result{display:block;width:100%;text-align:left;padding:9px 11px;border:0;background:#fff;cursor:pointer;font:inherit;font-size:13px}
+.dh-result:hover{background:var(--accent-soft)}
+.dh-mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.dh-muted{color:var(--muted)}
+.dh-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;border:1px solid var(--line);
+  border-radius:10px;background:#f7f9fc;padding:14px}
+.dh-flabel{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700;margin-bottom:3px}
+.dh-fval{font-weight:600;font-size:13px}
+.dh-hab{grid-column:1/-1}
+.dh-badges{display:flex;flex-wrap:wrap;gap:6px}
+.dh-badge{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:700;background:var(--accent-soft);
+  color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:2px 7px}
+.dh-empty{color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:22px;text-align:center;font-size:13px}
+.dh-details{display:flex;flex-direction:column;gap:12px}
+.dh-detrow{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;background:#f7f9fc}
+.dh-symtag{flex:0 0 auto;min-width:58px;text-align:center;font-weight:800;font-size:15px;color:var(--accent);
+  background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:10px;padding:10px 12px}
+.dh-detfields{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dh-chips{display:flex;flex-wrap:wrap;gap:6px}
+.dh-chip{font:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 10px;cursor:pointer;color:var(--ink)}
+.dh-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.dh-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:#fff;border:0;
+  border-radius:10px;padding:13px 18px;font:inherit;font-weight:800;font-size:15px;cursor:pointer}
+.dh-btn:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:640px){.dh-summary{grid-template-columns:repeat(2,1fr)}.dh-detrow{flex-direction:column}.dh-detfields{grid-template-columns:1fr}}
+`;
