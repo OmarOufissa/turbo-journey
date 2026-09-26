@@ -25,7 +25,9 @@ export default function DemandeHabilitation() {
   const [type, setType] = useState<DemandeType>("HT");
   const [selected, setSelected] = useState<string[]>([]);           // ordered selected symbols
   const [detail, setDetail] = useState<Record<string, Detail>>({}); // per-symbol domaine/ouvrage
+  const [ouvFilter, setOuvFilter] = useState<Record<string, string>>({}); // per-symbol ouvrage search
   const [submitting, setSubmitting] = useState(false);
+  const matchOuv = (s: string) => { const f = (ouvFilter[s] || "").toLowerCase(); return f ? ouvrages.filter(o => o.toLowerCase().includes(f)) : ouvrages; };
   const debounce = useRef<any>(null);
 
   useEffect(() => {
@@ -192,15 +194,20 @@ export default function DemandeHabilitation() {
                         </div>
                       </div>
                       <div>
-                        <div className="dh-flabel">Ouvrage concerné</div>
-                        <input className="dh-input" list="dh-ouvrages" value={detail[s]?.ouvrages || ""} onChange={e => setSymOuvrage(s, e.target.value)} placeholder="Ouvrage…" />
+                        <div className="dh-flabel">Ouvrage concerné — cliquez pour choisir</div>
+                        <input className="dh-input dh-ouvsearch" value={ouvFilter[s] || ""} onChange={e => setOuvFilter(f => ({ ...f, [s]: e.target.value }))} placeholder="Filtrer les ouvrages…" />
+                        <div className="dh-ouvlist">
+                          {matchOuv(s).map(o => (
+                            <button key={o} type="button" className={`dh-ouvopt ${detail[s]?.ouvrages === o ? "on" : ""}`} onClick={() => setSymOuvrage(s, o)}>{o}</button>
+                          ))}
+                          {matchOuv(s).length === 0 && <div className="dh-ouvnone">Aucun ouvrage ne correspond.</div>}
+                        </div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-            <datalist id="dh-ouvrages">{ouvrages.map(o => <option key={o} value={o} />)}</datalist>
           </section>
 
           <button className="dh-btn" disabled={!canSubmit || submitting} onClick={generate}>
@@ -259,10 +266,17 @@ const CSS = `
 .dh-detrow{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;background:#f7f9fc}
 .dh-symtag{flex:0 0 auto;min-width:58px;text-align:center;font-weight:800;font-size:15px;color:var(--accent);
   background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:10px;padding:10px 12px}
-.dh-detfields{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dh-detfields{flex:1;display:grid;grid-template-columns:1fr;gap:12px}
 .dh-chips{display:flex;flex-wrap:wrap;gap:6px}
 .dh-chip{font:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 10px;cursor:pointer;color:var(--ink)}
 .dh-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.dh-ouvsearch{margin-bottom:6px}
+.dh-ouvlist{max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+.dh-ouvopt{display:block;width:100%;text-align:left;padding:8px 11px;border:0;border-bottom:1px solid #eef1f4;background:#fff;cursor:pointer;font:inherit;font-size:13px;line-height:1.4;white-space:normal;color:var(--ink)}
+.dh-ouvopt:last-child{border-bottom:0}
+.dh-ouvopt:hover{background:var(--accent-soft)}
+.dh-ouvopt.on{background:var(--accent);color:#fff;font-weight:700}
+.dh-ouvnone{padding:10px 11px;color:var(--muted);font-size:13px}
 .dh-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:#fff;border:0;
   border-radius:10px;padding:13px 18px;font:inherit;font-weight:800;font-size:15px;cursor:pointer}
 .dh-btn:disabled{opacity:.45;cursor:not-allowed}
