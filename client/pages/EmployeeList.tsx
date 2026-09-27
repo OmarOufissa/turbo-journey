@@ -249,7 +249,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
               onAction={(action) => bulk.runBulkAction(action)}
             />
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="text-sm [&_th]:h-9 [&_th]:px-3 [&_th]:py-1 [&_th]:whitespace-nowrap [&_td]:px-3 [&_td]:py-1.5">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10">
@@ -312,11 +312,11 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
                           ) : "—"}
                         </TableCell>
                         <TableCell onClick={e => e.stopPropagation()} className="flex gap-1">
-                          <Button variant="outline" size="sm" onClick={() => navigate(`/employees/${emp.id}?type=${habType.toLowerCase()}`)}>
-                            <Eye className="w-4 h-4 mr-1" />Voir
+                          <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => navigate(`/employees/${emp.id}?type=${habType.toLowerCase()}`)}>
+                            <Eye className="w-3.5 h-3.5 mr-1" />Voir
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleRenew(emp)}>
-                            <RefreshCw className="w-4 h-4 mr-1" />Renouveler
+                          <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => handleRenew(emp)}>
+                            <RefreshCw className="w-3.5 h-3.5 mr-1" />Renouveler
                           </Button>
                         </TableCell>
                       </TableRow>

@@ -96,6 +96,7 @@
         </div>
         <div class="fld" style="flex:1;min-width:240px">
           <label>2. Agent</label>
+          <input type="text" id="agentSearch" placeholder="Rechercher par nom, prénom ou matricule…" style="margin-bottom:6px"/>
           <select id="agentSel"></select>
         </div>
         <div class="fld">
@@ -126,7 +127,8 @@
       </div>
 
       <div class="btnbar">
-        <button class="btn" id="printBtn">Imprimer / Enregistrer en PDF</button>
+        <button class="btn" id="downloadBtn">Télécharger (Word .docx)</button>
+        <button class="btn sec" id="printBtn">Imprimer / Enregistrer en PDF</button>
         <span class="hint" id="ctxHint"></span>
       </div>
     </div>
@@ -135,6 +137,7 @@
   <div id="fiches"></div>
 </div>
 
+<script src="./vendor/html-docx.js"></script>
 <script src="./fiches-tool.js"></script>
 </body>
 </html>

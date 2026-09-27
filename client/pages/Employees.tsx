@@ -225,7 +225,7 @@ export default function Employees() {
           />
         ) : (
           <div className="overflow-x-auto">
-          <Table>
+          <Table className="text-sm [&_th]:h-9 [&_th]:px-3 [&_th]:py-1 [&_th]:whitespace-nowrap [&_td]:px-3 [&_td]:py-1.5">
             <TableHeader>
               <TableRow>
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("matricule")}>
@@ -262,16 +262,16 @@ export default function Employees() {
                     </TableCell>
                     <TableCell className="max-w-[140px] truncate" title={emp.aptitudeMedicale ?? ""}>{emp.aptitudeMedicale || "—"}</TableCell>
                     <TableCell onClick={e => e.stopPropagation()} className="flex gap-1">
-                      <Button variant="outline" size="sm" asChild>
+                      <Button variant="outline" size="sm" className="h-7 px-2 text-xs" asChild>
                         <Link to={`/agents/${emp.id}/edit`}>Modifier</Link>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setDeleteTarget({ id: emp.id, matricule: emp.matricule })}
-                        className="text-red-500 hover:text-red-700"
+                        className="h-7 px-2 text-red-500 hover:text-red-700"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </TableCell>
                   </TableRow>

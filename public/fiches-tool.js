@@ -65,14 +65,30 @@ function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").repla
 /* ---------------- Init UI ---------------- */
 const agentSel=document.getElementById("agentSel");
 function populateAgents(){
+  // Filter the list by the search box (nom / prénom / matricule). Option values
+  // stay the ORIGINAL index into DEMO_AGENTS so the selection logic is unchanged.
+  const searchEl=document.getElementById("agentSearch");
+  const q=(searchEl?searchEl.value:"").trim().toLowerCase();
+  const tokens=q?q.split(/\s+/).filter(Boolean):[];
   agentSel.innerHTML="";
-  DEMO_AGENTS.forEach((a,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=`${a.matricule} — ${a.nom} ${a.prenom} · ${a.division}`; agentSel.appendChild(o); });
+  let shown=0;
+  DEMO_AGENTS.forEach((a,i)=>{
+    if(tokens.length){
+      const hay=`${a.matricule||""} ${a.nom||""} ${a.prenom||""}`.toLowerCase();
+      if(!tokens.every(t=>hay.includes(t))) return;
+    }
+    const o=document.createElement("option"); o.value=i; o.textContent=`${a.matricule} — ${a.nom} ${a.prenom} · ${a.division}`; agentSel.appendChild(o); shown++;
+  });
   const optM=document.createElement("option"); optM.value="manual"; optM.textContent="✎ Saisie manuelle…"; agentSel.appendChild(optM);
-  if(state.agentIdx!=="manual" && Number(state.agentIdx)>=DEMO_AGENTS.length) state.agentIdx=DEMO_AGENTS.length?0:"manual";
+  // Keep a valid selection: if the current agent is filtered out, select the first match.
+  const values=Array.from(agentSel.options).map(o=>o.value);
+  if(!values.includes(String(state.agentIdx))) state.agentIdx = shown ? Number(agentSel.options[0].value) : "manual";
   agentSel.value=String(state.agentIdx);
   document.getElementById("manualRow").hidden = agentSel.value!=="manual";
 }
 populateAgents();
+const agentSearchEl=document.getElementById("agentSearch");
+if(agentSearchEl) agentSearchEl.addEventListener("input",()=>{ populateAgents(); render(); });
 
 const symBox=document.getElementById("symBox");
 SYMBOLS.forEach(s=>{
@@ -100,6 +116,26 @@ dateInp.addEventListener("change",()=>{ state.date=dateInp.value; render(); });
 document.getElementById("maintChk").addEventListener("change",e=>{ state.maint=e.target.checked; render(); });
 ["m_nom","m_prenom","m_mat","m_div","m_srv","m_fonc","m_eq"].forEach(id=>document.getElementById(id).addEventListener("input",render));
 document.getElementById("printBtn").addEventListener("click",()=>window.print());
+
+// Télécharger la (les) fiche(s) au format Word .docx (conversion HTML → docx, hors-ligne).
+document.getElementById("downloadBtn").addEventListener("click",()=>{
+  try{
+    if(!window.htmlDocx || typeof window.htmlDocx.asBlob!=="function"){ alert("Le module d'export Word n'est pas chargé."); return; }
+    const styleEl=document.querySelector("style");
+    const css=styleEl?styleEl.innerHTML:"";
+    const fichesHtml=document.getElementById("fiches").innerHTML;
+    if(!fichesHtml.trim()){ alert("Aucune fiche à exporter."); return; }
+    const a=currentAgent();
+    const namePart=(`${a.nom||""}_${a.prenom||""}`).replace(/[^\p{L}\p{N}_-]+/gu,"").replace(/^_+|_+$/g,"")||"agent";
+    const full=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${fichesHtml}</body></html>`;
+    const blob=window.htmlDocx.asBlob(full,{orientation:"portrait",margins:{top:454,right:454,bottom:454,left:454}});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url; link.download=`fiche_evaluation_${state.type}_${namePart}.docx`;
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+  }catch(err){ alert("Impossible de générer le fichier Word : "+((err&&err.message)||err)); }
+});
 
 function currentAgent(){
   if(agentSel.value==="manual") return {
