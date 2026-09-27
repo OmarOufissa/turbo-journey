@@ -1,23 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { getEmployees } from "@/api/employees";
 import { useToast } from "@/hooks/use-toast";
-// The validated evaluation-sheet tool, imported as raw HTML and fed the real agents.
-import ficheTemplate from "./fichesEvaluationTemplate.html?raw";
 
 interface FicheAgent { nom: string; prenom: string; matricule: string; division: string; service: string; fonction: string; equipe: string; }
 
+// The validated evaluation-sheet tool is served as a same-origin static page
+// (public/fiches-tool.html + public/fiches-tool.js) so it stays CSP-compliant
+// inside the packaged Electron app (script-src 'self' blocks inline scripts).
+// Real agents are handed to it over postMessage once it signals it is ready.
 export default function FichesEvaluation() {
   const { toast } = useToast();
-  const [srcDoc, setSrcDoc] = useState("");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [agents, setAgents] = useState<FicheAgent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getEmployees({ limit: 1000, sort: "nom", sortDir: "asc" })
       .then((res) => {
         if (!res.success) throw new Error("load");
-        const agents: FicheAgent[] = res.data.employees
+        const list: FicheAgent[] = res.data.employees
           .filter((e) => e.currentVersion)
           .map((e) => ({
             nom: e.nom,
@@ -28,13 +31,23 @@ export default function FichesEvaluation() {
             fonction: e.currentVersion?.fonction || "",
             equipe: e.currentVersion?.equipe || "",
           }));
-        const json = JSON.stringify(agents);
-        // function replacement avoids $-pattern interpretation in the injected JSON
-        setSrcDoc(ficheTemplate.replace("__AGENTS__", () => json));
+        setAgents(list);
       })
       .catch(() => toast({ title: "Erreur", description: "Impossible de charger les agents.", variant: "destructive" }))
       .finally(() => setLoading(false));
   }, []);
+
+  // Send agents to the tool: on its "ready" signal and whenever the list changes.
+  useEffect(() => {
+    const post = () => iframeRef.current?.contentWindow?.postMessage({ type: "fiches-agents", agents }, "*");
+    const onMsg = (ev: MessageEvent) => {
+      if (ev.data && ev.data.type === "fiches-ready") post();
+    };
+    window.addEventListener("message", onMsg);
+    // In case the iframe was already ready before this effect ran.
+    post();
+    return () => window.removeEventListener("message", onMsg);
+  }, [agents]);
 
   return (
     <Layout>
@@ -47,8 +60,10 @@ export default function FichesEvaluation() {
           <LoadingSpinner />
         ) : (
           <iframe
+            ref={iframeRef}
             title="Fiches d'évaluation"
-            srcDoc={srcDoc}
+            src="/fiches-tool.html"
+            onLoad={() => iframeRef.current?.contentWindow?.postMessage({ type: "fiches-agents", agents }, "*")}
             style={{ width: "100%", height: "calc(100vh - 140px)", minHeight: "600px", border: "1px solid var(--border, #d0d5dd)", borderRadius: "8px", background: "#fff" }}
           />
         )}
