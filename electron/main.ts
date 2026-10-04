@@ -215,6 +215,53 @@ function applySecurityHeaders() {
   });
 }
 
+// ─── Downloads ──────────────────────────────────────────────────────────────
+// Exports (Excel, Word, PDF) are triggered by the renderer. Without this handler
+// the file location is unpredictable and users "can't find the file". We save
+// every download straight to the user's Downloads folder (unique name) and then
+// tell them exactly where it is, with a button to open the folder.
+function setupDownloads() {
+  session.defaultSession.on("will-download", (_event, item) => {
+    try {
+      const downloadsDir = app.getPath("downloads");
+      fs.mkdirSync(downloadsDir, { recursive: true });
+      const original = item.getFilename() || "export";
+      const ext = path.extname(original);
+      const base = path.basename(original, ext);
+      let target = path.join(downloadsDir, original);
+      // Avoid overwriting an existing file: append a short timestamp if needed.
+      if (fs.existsSync(target)) {
+        const stamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
+        target = path.join(downloadsDir, `${base}_${stamp}${ext}`);
+      }
+      item.setSavePath(target);
+      item.once("done", (_e, state) => {
+        const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+        if (state === "completed") {
+          dialog
+            .showMessageBox(win, {
+              type: "info",
+              title: "Téléchargement terminé",
+              message: "Le fichier a été enregistré dans votre dossier Téléchargements.",
+              detail: target,
+              buttons: ["Ouvrir le dossier", "OK"],
+              defaultId: 0,
+              cancelId: 1,
+            })
+            .then(({ response }) => {
+              if (response === 0) shell.showItemInFolder(target);
+            })
+            .catch(() => {});
+        } else {
+          dialog.showErrorBox("Téléchargement échoué", `Le téléchargement n'a pas abouti (${state}).`);
+        }
+      });
+    } catch (err) {
+      console.error("will-download handler failed:", err);
+    }
+  });
+}
+
 // ─── App lifecycle ────────────────────────────────────────────────────────
 
 // Disable Chromium GPU process crash dialog in production
@@ -241,6 +288,7 @@ if (!gotSingleInstanceLock) {
   app.whenReady().then(async () => {
     try {
       applySecurityHeaders();
+      setupDownloads();
       await startServer();
       createWindow();
     } catch (err) {

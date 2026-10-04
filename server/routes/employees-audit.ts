@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { db } from "../db-pg";
 import * as schema from "../schema";
-import { eq, desc, asc, sql, and, or, like, gte, lte, isNull, isNotNull } from "drizzle-orm";
+import { eq, desc, asc, sql, and, or, like, gte, lte, isNull, isNotNull, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
 import { getUserIdFromRequest } from "../utils/authHelpers";
@@ -1022,16 +1022,43 @@ export const exportEmployees: RequestHandler = async (req, res) => {
     const expirationFrom = req.query.expirationFrom as string | undefined;
     const expirationTo = req.query.expirationTo as string | undefined;
     const hasPdf = req.query.hasPdf as string | undefined;
+    // Honor the same filters shown in the lists so the export matches the screen.
+    const divisionId = req.query.divisionId ? parseInt(req.query.divisionId as string) : undefined;
+    const serviceId = req.query.serviceId ? parseInt(req.query.serviceId as string) : undefined;
+    const equipeId = req.query.equipeId ? parseInt(req.query.equipeId as string) : undefined;
+    const stCode = req.query.stCode as string | undefined;
+    const htCode = req.query.htCode as string | undefined;
+    const type = req.query.type as string | undefined; // "HT" | "ST" (restrict to that habilitation list)
+    // Optional explicit selection: export only these employee ids (the agents
+    // the user ticked). When present it takes precedence over the other filters.
+    const idsParam = req.query.ids as string | undefined;
+    const ids = idsParam
+      ? idsParam.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !Number.isNaN(n))
+      : [];
 
     const conditions: any[] = [eq(schema.employees.deleted, false)];
-    if (search) {
-      const pat = `%${search}%`;
-      conditions.push(or(like(schema.employees.matricule, pat), like(schema.employees.nom, pat), like(schema.employees.prenom, pat)));
+    if (ids.length > 0) {
+      // Explicit selection wins: export exactly these agents, ignore screen filters.
+      conditions.push(inArray(schema.employees.id, ids));
+    } else {
+      if (search) {
+        const pat = `%${search}%`;
+        conditions.push(or(like(schema.employees.matricule, pat), like(schema.employees.nom, pat), like(schema.employees.prenom, pat)));
+      }
+      if (expirationFrom) conditions.push(gte(schema.employeeVersions.dateExpiration, expirationFrom));
+      if (expirationTo) conditions.push(lte(schema.employeeVersions.dateExpiration, expirationTo));
+      if (hasPdf === "true") conditions.push(isNotNull(schema.employeeVersions.pdfPath));
+      if (hasPdf === "false") conditions.push(isNull(schema.employeeVersions.pdfPath));
+      if (divisionId && !Number.isNaN(divisionId)) conditions.push(eq(schema.employeeVersions.divisionId, divisionId));
+      if (serviceId && !Number.isNaN(serviceId)) conditions.push(eq(schema.employeeVersions.serviceId, serviceId));
+      if (equipeId && !Number.isNaN(equipeId)) conditions.push(eq(schema.employeeVersions.equipeId, equipeId));
+      if (stCode) conditions.push(like(schema.employeeVersions.stCodes, `%"${stCode}"%`));
+      if (htCode) conditions.push(like(schema.employeeVersions.htCodes, `%"${htCode}"%`));
+      // Restrict to agents who actually hold HT (resp. ST) symbols — a non-empty
+      // JSON array always contains a quote character; "[]" does not.
+      if (type === "HT") conditions.push(like(schema.employeeVersions.htCodes, `%"%`));
+      if (type === "ST") conditions.push(like(schema.employeeVersions.stCodes, `%"%`));
     }
-    if (expirationFrom) conditions.push(gte(schema.employeeVersions.dateExpiration, expirationFrom));
-    if (expirationTo) conditions.push(lte(schema.employeeVersions.dateExpiration, expirationTo));
-    if (hasPdf === "true") conditions.push(isNotNull(schema.employeeVersions.pdfPath));
-    if (hasPdf === "false") conditions.push(isNull(schema.employeeVersions.pdfPath));
     const whereClause = conditions.length === 1 ? conditions[0] : and(...conditions);
 
     const rows = await db

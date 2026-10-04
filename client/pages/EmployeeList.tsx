@@ -127,6 +127,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
 
   const buildExportUrl = () => {
     const params = new URLSearchParams();
+    params.set("type", habType); // restrict export to this habilitation list (HT or ST)
     if (searchTerm) params.set("search", searchTerm);
     if (codeFilter !== "all") {
       if (isHT) params.set("htCode", codeFilter);
@@ -155,6 +156,13 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">{title} ({total})</h1>
           <div className="flex gap-2">
+            {bulk.selectedIds.size > 0 && (
+              <Button variant="default" size="sm" asChild>
+                <a href={`/api/employees/export?type=${habType}&ids=${Array.from(bulk.selectedIds).join(",")}`} download>
+                  <Download className="w-4 h-4 mr-1" />Exporter la sélection ({bulk.selectedIds.size})
+                </a>
+              </Button>
+            )}
             <Button variant="outline" size="sm" asChild>
               <a href={buildExportUrl()} download>
                 <Download className="w-4 h-4 mr-1" />Exporter ({total})
