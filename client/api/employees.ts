@@ -13,6 +13,7 @@ export async function getEmployees(params?: {
   htCode?: string;
   divisionId?: string;
   serviceId?: string;
+  equipeId?: string;
   fonction?: string;
   sort?: string;
   sortDir?: string;
@@ -29,6 +30,7 @@ export async function getEmployees(params?: {
   if (params?.htCode) qs.set('htCode', params.htCode);
   if (params?.divisionId) qs.set('divisionId', params.divisionId);
   if (params?.serviceId) qs.set('serviceId', params.serviceId);
+  if (params?.equipeId) qs.set('equipeId', params.equipeId);
   if (params?.fonction) qs.set('fonction', params.fonction);
   if (params?.sort) qs.set('sort', params.sort);
   if (params?.sortDir) qs.set('sortDir', params.sortDir);

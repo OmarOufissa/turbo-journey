@@ -41,6 +41,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
   const [divisionFilter, setDivisionFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [equipeFilter, setEquipeFilter] = useState("all");
+  const [expireBefore, setExpireBefore] = useState("");
   const [colorCodingEnabled, setColorCodingEnabled] = useState(() => {
     return localStorage.getItem(COLOR_TOGGLE_KEY) !== "false";
   });
@@ -95,6 +96,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
       if (divisionFilter !== "all") params.divisionId = divisionFilter;
       if (serviceFilter !== "all") params.serviceId = serviceFilter;
       if (equipeFilter !== "all") params.equipeId = equipeFilter;
+      if (expireBefore) params.expirationTo = expireBefore;
 
       const res = await getEmployees(params);
       if (res.success) {
@@ -112,7 +114,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, codeFilter, divisionFilter, serviceFilter, equipeFilter, sort, sortDir, isHT, toast]);
+  }, [searchTerm, codeFilter, divisionFilter, serviceFilter, equipeFilter, expireBefore, sort, sortDir, isHT, toast]);
 
   useEffect(() => { fetchEmployees(); }, [fetchEmployees]);
 
@@ -136,6 +138,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
     if (divisionFilter !== "all") params.set("divisionId", divisionFilter);
     if (serviceFilter !== "all") params.set("serviceId", serviceFilter);
     if (equipeFilter !== "all") params.set("equipeId", equipeFilter);
+    if (expireBefore) params.set("expirationTo", expireBefore);
     const qs = params.toString();
     return `/api/employees/export${qs ? `?${qs}` : ""}`;
   };
@@ -146,9 +149,10 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
     setDivisionFilter("all");
     setServiceFilter("all");
     setEquipeFilter("all");
+    setExpireBefore("");
   };
 
-  const hasActiveFilters = searchTerm || codeFilter !== "all" || divisionFilter !== "all" || serviceFilter !== "all" || equipeFilter !== "all";
+  const hasActiveFilters = searchTerm || codeFilter !== "all" || divisionFilter !== "all" || serviceFilter !== "all" || equipeFilter !== "all" || !!expireBefore;
 
   return (
     <Layout>
@@ -228,6 +232,16 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
               {codeOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
+          <div className="flex flex-col">
+            <label className="text-[11px] font-medium text-muted-foreground mb-0.5">Expire avant</label>
+            <Input
+              type="date"
+              value={expireBefore}
+              onChange={e => setExpireBefore(e.target.value)}
+              className="w-40"
+              title="N'afficher que les agents dont l'habilitation expire avant cette date"
+            />
+          </div>
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={resetFilters}>
               <X className="w-3 h-3 mr-1" />Réinitialiser
