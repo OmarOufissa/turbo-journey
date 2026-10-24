@@ -4,7 +4,19 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { HabRows } from '../schema';
 import { PDFS_DIR, buildPdfFilename, resolvePdfPath, resolveGeneratedPdfPath } from '../utils/pathUtils';
-import { formatDateFrench } from '../utils/dateUtils';
+import { formatDateDMY } from '../utils/dateUtils';
+
+// Director identity printed in the template's signature block ("Pour l'ONEE…").
+// The blank template still carries the previous director's name baked in, so we
+// white it out and redraw the current one. Configurable via env for the next change.
+const DIRECTEUR_NOM = process.env.TITRE_DIRECTEUR_NOM ?? 'OUAZIZ EL MOSTAFA';
+// Bounding box of the baked-in name ("BRAHIMI ALI"), top-origin, per page.
+const DIRECTEUR_BOX = {
+  x: 357.74,
+  coverRight: 500,
+  p1: { yMin: 611.14, yMax: 619.58 },
+  p2: { yMin: 604.18, yMax: 612.62 },
+};
 
 export interface VersionSnapshot {
   matricule: string;
@@ -158,6 +170,21 @@ function drawTextScaled(
 
 function drawLine(page: PDFPage, x1: number, y1: number, x2: number, y2: number) {
   page.drawLine({ start: { x: x1, y: y1 }, end: { x: x2, y: y2 }, thickness: 0.5, color: rgb(0, 0, 0) });
+}
+
+// Replace the template's baked-in director name with the current one.
+function drawDirectorName(page: PDFPage, bold: any, box: { yMin: number; yMax: number }) {
+  const H = page.getHeight();
+  const pad = 1.5;
+  page.drawRectangle({
+    x: DIRECTEUR_BOX.x - 1.5,
+    y: H - box.yMax - pad,
+    width: DIRECTEUR_BOX.coverRight - DIRECTEUR_BOX.x,
+    height: (box.yMax - box.yMin) + 2 * pad,
+    color: rgb(1, 1, 1),
+  });
+  const baseline = H - box.yMax + (box.yMax - box.yMin) * 0.2;
+  page.drawText(DIRECTEUR_NOM, { x: DIRECTEUR_BOX.x, y: baseline, size: 9, font: bold, color: rgb(0, 0, 0) });
 }
 
 // Count how many lines text needs when wrapped to maxWidth
@@ -413,8 +440,11 @@ function fillPage1(
   const entiteParts = [snapshot.division, snapshot.service, snapshot.equipe].filter(Boolean) as string[];
   drawTextScaled(page, entiteParts.join(' / '), P1.entite.x, P1.entite.y, 410, bold, SZ);
 
-  drawText(page, formatDateFrench(snapshot.dateValidation), P1.dateDelivrance.x, P1.dateDelivrance.y, regular, SZ);
-  drawText(page, formatDateFrench(snapshot.dateExpiration), P1.valableJusquau.x,  P1.valableJusquau.y,  regular, SZ);
+  drawText(page, formatDateDMY(snapshot.dateValidation), P1.dateDelivrance.x, P1.dateDelivrance.y, regular, SZ);
+  drawText(page, formatDateDMY(snapshot.dateExpiration), P1.valableJusquau.x,  P1.valableJusquau.y,  regular, SZ);
+
+  // Current director name (replaces the one baked into the template)
+  drawDirectorName(page, bold, DIRECTEUR_BOX.p1);
 
   // Dynamic table — ST titre uses the TST layout, otherwise the standard HT table
   if (pdfType === 'st') {
