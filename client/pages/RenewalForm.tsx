@@ -14,6 +14,7 @@ import { VALID_FONCTIONS as FALLBACK_FONCTIONS } from "@/types/fonctions";
 import { DOMAINE_OPTIONS as FALLBACK_DOMAINES, OUVRAGE_OPTIONS as FALLBACK_OUVRAGES, INDICATION_OPTIONS as FALLBACK_INDICATIONS } from "@/types/habRows";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { Employee, HabRows } from "@/types/employee";
+import { expirationForType } from "@/types/employee";
 
 interface OrgItem { id: number; name: string; }
 
@@ -159,8 +160,12 @@ export default function RenewalForm() {
     e.preventDefault();
     if (!employee || !id) return;
 
-    if (form.stCodes.length === 0 && form.htCodes.length === 0) {
-      toast({ title: "Erreur", description: "Au moins un code ST ou HT requis", variant: "destructive" });
+    if (isHT && form.htCodes.length === 0) {
+      toast({ title: "Erreur", description: "Au moins un code HT requis", variant: "destructive" });
+      return;
+    }
+    if (!isHT && form.stCodes.length === 0) {
+      toast({ title: "Erreur", description: "Au moins un code ST requis", variant: "destructive" });
       return;
     }
     if (new Date(form.dateExpiration) <= new Date(form.dateValidation)) {
@@ -181,6 +186,8 @@ export default function RenewalForm() {
         habRows: Object.keys(habRows).length > 0 ? habRows : null,
         dateValidation: form.dateValidation,
         dateExpiration: form.dateExpiration,
+        // Renew only this habilitation type — the other type stays untouched.
+        renewType: isHT ? "ht" : "st",
       };
 
       const res = await fetch(`/api/employees/${id}`, {
@@ -227,8 +234,9 @@ export default function RenewalForm() {
     );
   }
 
-  // HT renewal only deals with Hors Tension symbols (rows carrying an htKey).
-  const activeRows = getActiveRows(form.stCodes, form.htCodes).filter(r => (isHT ? r.htKey !== null : true));
+  // Each renewal concerns a single habilitation type: HT rows carry an htKey,
+  // ST rows carry an stKey. Show only the rows for the type being renewed.
+  const activeRows = getActiveRows(form.stCodes, form.htCodes).filter(r => (isHT ? r.htKey !== null : r.stKey !== null));
 
   return (
     <Layout>
@@ -249,7 +257,11 @@ export default function RenewalForm() {
         </div>
 
         <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 p-4 text-sm text-blue-800 dark:text-blue-200">
-          Une nouvelle version sera créée immédiatement. La version actuelle (expire le {new Date(employee.currentVersion.dateExpiration).toLocaleDateString("fr-FR")}) sera conservée dans l'historique.
+          Renouvellement de l'habilitation <b>{isHT ? "Hors Tension (HT)" : "Sous Tension (ST)"}</b> uniquement — l'autre type n'est pas modifié.
+          {(() => {
+            const cur = expirationForType(employee.currentVersion, isHT ? "ht" : "st");
+            return cur ? <> La version actuelle ({isHT ? "HT" : "ST"}) expire le {new Date(cur).toLocaleDateString("fr-FR")} et sera conservée dans l'historique.</> : null;
+          })()}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -322,11 +334,11 @@ export default function RenewalForm() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Habilitation</CardTitle>
-              <CardDescription>{isHT ? "Au moins un code HT requis" : "Au moins un code ST ou HT requis"}</CardDescription>
+              <CardTitle>Habilitation {isHT ? "Hors Tension (HT)" : "Sous Tension (ST)"}</CardTitle>
+              <CardDescription>{isHT ? "Au moins un code HT requis" : "Au moins un code ST requis"}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className={isHT ? "grid grid-cols-1 gap-6" : "grid grid-cols-2 gap-6"}>
+              <div className="grid grid-cols-1 gap-6">
                 {!isHT && (
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold">Codes ST</Label>
@@ -340,6 +352,7 @@ export default function RenewalForm() {
                   </div>
                 </div>
                 )}
+                {isHT && (
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold">Codes HT</Label>
                   <div className="grid grid-cols-2 gap-1">
@@ -351,6 +364,7 @@ export default function RenewalForm() {
                     ))}
                   </div>
                 </div>
+                )}
               </div>
             </CardContent>
           </Card>

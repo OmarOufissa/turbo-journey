@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
 import { getEmployee } from "@/api/employees";
 import { Employee } from "@/types/employee";
+import { expirationForType, validationForType } from "@/types/employee";
 
 function Field({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -77,19 +78,29 @@ export default function AgentDetail() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <Field label="N° de titre" value={ver?.nDeTitre} />
-              <Field label="Date de validation" value={fmt(ver?.dateValidation)} />
-              <Field label="Date d'expiration" value={fmt(ver?.dateExpiration)} />
             </div>
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">Symboles Hors Tension (HT)</p>
               {htCodes.length > 0
-                ? <div className="flex flex-wrap gap-1">{htCodes.map(c => <Badge key={c} variant="secondary" className="font-mono text-xs">{c}</Badge>)}</div>
+                ? <>
+                    <div className="flex flex-wrap gap-1">{htCodes.map(c => <Badge key={c} variant="secondary" className="font-mono text-xs">{c}</Badge>)}</div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-1">
+                      <Field label="Validation HT" value={fmt(validationForType(ver, "ht"))} />
+                      <Field label="Expiration HT" value={fmt(expirationForType(ver, "ht"))} />
+                    </div>
+                  </>
                 : <p className="text-sm text-muted-foreground">—</p>}
             </div>
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">Symboles Sous Tension (ST)</p>
               {stCodes.length > 0
-                ? <div className="flex flex-wrap gap-1">{stCodes.map(c => <Badge key={c} variant="secondary" className="font-mono text-xs">{c}</Badge>)}</div>
+                ? <>
+                    <div className="flex flex-wrap gap-1">{stCodes.map(c => <Badge key={c} variant="secondary" className="font-mono text-xs">{c}</Badge>)}</div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-1">
+                      <Field label="Validation ST" value={fmt(validationForType(ver, "st"))} />
+                      <Field label="Expiration ST" value={fmt(expirationForType(ver, "st"))} />
+                    </div>
+                  </>
                 : <p className="text-sm text-muted-foreground">—</p>}
             </div>
           </CardContent>

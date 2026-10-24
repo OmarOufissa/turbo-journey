@@ -49,6 +49,9 @@ const updateEmployeeSchema = addVersionRefinements(
     nom: z.string().min(1).optional(),
     prenom: z.string().min(1).optional(),
     expectedUpdatedAt: z.string().optional(),
+    // Which habilitation this renewal targets. When set, the OTHER type's codes
+    // and dates are carried over from the current version untouched.
+    renewType: z.enum(["ht", "st"]).optional(),
   })
 );
 
@@ -92,6 +95,11 @@ async function buildVersionResponse(version: typeof schema.employeeVersions.$inf
     habRows: version.habRows ?? null,
     dateValidation: version.dateValidation,
     dateExpiration: version.dateExpiration,
+    // Per-type validity (fallback to the shared date for rows predating the split)
+    dateValidationHt: version.dateValidationHt ?? ((version.htCodes?.length ?? 0) > 0 ? version.dateValidation : null),
+    dateExpirationHt: version.dateExpirationHt ?? ((version.htCodes?.length ?? 0) > 0 ? version.dateExpiration : null),
+    dateValidationSt: version.dateValidationSt ?? ((version.stCodes?.length ?? 0) > 0 ? version.dateValidation : null),
+    dateExpirationSt: version.dateExpirationSt ?? ((version.stCodes?.length ?? 0) > 0 ? version.dateExpiration : null),
     pdfPath: version.pdfPath ?? null,
     pdfStatus: version.pdfStatus ?? null,
     pdfPathSt: version.pdfPathSt ?? null,
@@ -181,6 +189,13 @@ export const getEmployees: RequestHandler = async (req, res) => {
     const serviceId = req.query.serviceId ? parseInt(req.query.serviceId as string) : undefined;
     const equipeId = req.query.equipeId ? parseInt(req.query.equipeId as string) : undefined;
     const fonctionFilter = req.query.fonction as string | undefined;
+    const type = (req.query.type as string | undefined)?.toUpperCase(); // "HT" | "ST"
+    // When a list is scoped to a habilitation type, expiration sort/filter use
+    // that type's own date (falling back to the shared date for legacy rows).
+    const expiCol =
+      type === "HT" ? sql`coalesce(${schema.employeeVersions.dateExpirationHt}, ${schema.employeeVersions.dateExpiration})`
+      : type === "ST" ? sql`coalesce(${schema.employeeVersions.dateExpirationSt}, ${schema.employeeVersions.dateExpiration})`
+      : sql`${schema.employeeVersions.dateExpiration}`;
 
     const conditions: any[] = [eq(schema.employees.deleted, showDeleted)];
 
@@ -192,8 +207,8 @@ export const getEmployees: RequestHandler = async (req, res) => {
         like(schema.employees.prenom, pat)
       ));
     }
-    if (expirationFrom) conditions.push(gte(schema.employeeVersions.dateExpiration, expirationFrom));
-    if (expirationTo) conditions.push(lte(schema.employeeVersions.dateExpiration, expirationTo));
+    if (expirationFrom) conditions.push(gte(expiCol, expirationFrom));
+    if (expirationTo) conditions.push(lte(expiCol, expirationTo));
     if (hasPdf === "true") conditions.push(isNotNull(schema.employeeVersions.pdfPath));
     if (hasPdf === "false") conditions.push(isNull(schema.employeeVersions.pdfPath));
     if (stCode) conditions.push(like(schema.employeeVersions.stCodes, `%"${stCode}"%`));
@@ -206,7 +221,7 @@ export const getEmployees: RequestHandler = async (req, res) => {
     const whereClause = conditions.length === 1 ? conditions[0] : and(...conditions);
 
     const sortField = req.query.sort === "expiration"
-      ? schema.employeeVersions.dateExpiration
+      ? expiCol
       : req.query.sort === "nom"
         ? schema.employees.nom
         : schema.employees.matricule;
@@ -235,6 +250,10 @@ export const getEmployees: RequestHandler = async (req, res) => {
         equipeId: schema.employeeVersions.equipeId,
         dateValidation: schema.employeeVersions.dateValidation,
         dateExpiration: schema.employeeVersions.dateExpiration,
+        dateValidationHt: schema.employeeVersions.dateValidationHt,
+        dateExpirationHt: schema.employeeVersions.dateExpirationHt,
+        dateValidationSt: schema.employeeVersions.dateValidationSt,
+        dateExpirationSt: schema.employeeVersions.dateExpirationSt,
         pdfPath: schema.employeeVersions.pdfPath,
         pdfStatus: schema.employeeVersions.pdfStatus,
         pdfPathSt: schema.employeeVersions.pdfPathSt,
@@ -284,6 +303,10 @@ export const getEmployees: RequestHandler = async (req, res) => {
         equipe: row.equipeName ?? null,
         dateValidation: row.dateValidation,
         dateExpiration: row.dateExpiration,
+        dateValidationHt: row.dateValidationHt ?? ((row.htCodes?.length ?? 0) > 0 ? row.dateValidation : null),
+        dateExpirationHt: row.dateExpirationHt ?? ((row.htCodes?.length ?? 0) > 0 ? row.dateExpiration : null),
+        dateValidationSt: row.dateValidationSt ?? ((row.stCodes?.length ?? 0) > 0 ? row.dateValidation : null),
+        dateExpirationSt: row.dateExpirationSt ?? ((row.stCodes?.length ?? 0) > 0 ? row.dateExpiration : null),
         pdfPath: row.pdfPath ?? null,
         pdfStatus: row.pdfStatus ?? null,
         pdfPathSt: row.pdfPathSt ?? null,
@@ -377,6 +400,11 @@ export const createEmployee: RequestHandler = async (req, res) => {
         habRows: habRows ?? null,
         dateValidation,
         dateExpiration,
+        // Seed each present type with the same initial dates (independent thereafter).
+        dateValidationHt: (htCodes?.length ?? 0) > 0 ? dateValidation : null,
+        dateExpirationHt: (htCodes?.length ?? 0) > 0 ? dateExpiration : null,
+        dateValidationSt: (stCodes?.length ?? 0) > 0 ? dateValidation : null,
+        dateExpirationSt: (stCodes?.length ?? 0) > 0 ? dateExpiration : null,
         createdBy: getUserIdFromRequest(req),
       }).returning();
 
@@ -415,7 +443,7 @@ export const updateEmployee: RequestHandler = async (req, res) => {
     if (!parsed.success) {
       return res.status(400).json({ success: false, data: null, error: parsed.error.errors[0]?.message ?? "Données invalides" });
     }
-    const { stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, habRows, dateValidation, dateExpiration, nom, prenom, expectedUpdatedAt } = parsed.data;
+    const { stCodes, htCodes, nDeTitre, fonction, divisionId, serviceId, equipeId, habRows, dateValidation, dateExpiration, nom, prenom, expectedUpdatedAt, renewType } = parsed.data;
 
     const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Employé non trouvé" });
@@ -428,6 +456,47 @@ export const updateEmployee: RequestHandler = async (req, res) => {
     const oldVersion = emp.currentVersionId
       ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId)))[0]
       : null;
+
+    // ── HT / ST are independent. Compute each type's codes + dates for the new
+    // version. A type-scoped renewal (renewType) leaves the OTHER type exactly as
+    // it was on the current version; a generic edit applies the form dates to
+    // whichever types are present. ──────────────────────────────────────────────
+    const oldHtCodes = (oldVersion?.htCodes as string[] | undefined) ?? [];
+    const oldStCodes = (oldVersion?.stCodes as string[] | undefined) ?? [];
+    const oldHtVal = oldVersion?.dateValidationHt ?? (oldHtCodes.length ? oldVersion?.dateValidation ?? null : null);
+    const oldHtExp = oldVersion?.dateExpirationHt ?? (oldHtCodes.length ? oldVersion?.dateExpiration ?? null : null);
+    const oldStVal = oldVersion?.dateValidationSt ?? (oldStCodes.length ? oldVersion?.dateValidation ?? null : null);
+    const oldStExp = oldVersion?.dateExpirationSt ?? (oldStCodes.length ? oldVersion?.dateExpiration ?? null : null);
+
+    let finalHtCodes: string[], finalStCodes: string[];
+    let htVal: string | null, htExp: string | null, stVal: string | null, stExp: string | null;
+    if (renewType === "ht") {
+      finalHtCodes = htCodes ?? [];
+      htVal = finalHtCodes.length ? dateValidation : null;
+      htExp = finalHtCodes.length ? dateExpiration : null;
+      finalStCodes = oldStCodes; stVal = oldStVal; stExp = oldStExp; // untouched
+    } else if (renewType === "st") {
+      finalStCodes = stCodes ?? [];
+      stVal = finalStCodes.length ? dateValidation : null;
+      stExp = finalStCodes.length ? dateExpiration : null;
+      finalHtCodes = oldHtCodes; htVal = oldHtVal; htExp = oldHtExp; // untouched
+    } else {
+      finalHtCodes = htCodes ?? [];
+      finalStCodes = stCodes ?? [];
+      htVal = finalHtCodes.length ? dateValidation : null;
+      htExp = finalHtCodes.length ? dateExpiration : null;
+      stVal = finalStCodes.length ? dateValidation : null;
+      stExp = finalStCodes.length ? dateExpiration : null;
+    }
+    // Generic (shared) date = soonest expiry among the present types — keeps
+    // notifications/stats/legacy screens meaningful. NOT NULL, so always set.
+    const present = [
+      finalHtCodes.length && htExp ? { v: htVal!, e: htExp } : null,
+      finalStCodes.length && stExp ? { v: stVal!, e: stExp } : null,
+    ].filter(Boolean) as { v: string; e: string }[];
+    const soonest = present.sort((a, b) => a.e.localeCompare(b.e))[0];
+    const genericVal = soonest?.v ?? dateValidation;
+    const genericExp = soonest?.e ?? dateExpiration;
 
     const result = await db.transaction(async (tx) => {
       const [{ maxVer }] = await tx
@@ -446,16 +515,20 @@ export const updateEmployee: RequestHandler = async (req, res) => {
       const [version] = await tx.insert(schema.employeeVersions).values({
         employeeId: id,
         versionNumber: newVersionNum,
-        stCodes: stCodes ?? [],
-        htCodes: htCodes ?? [],
+        stCodes: finalStCodes,
+        htCodes: finalHtCodes,
         nDeTitre,
         fonction,
         divisionId,
         serviceId,
         equipeId: equipeId ?? null,
         habRows: habRows ?? null,
-        dateValidation,
-        dateExpiration,
+        dateValidation: genericVal,
+        dateExpiration: genericExp,
+        dateValidationHt: htVal,
+        dateExpirationHt: htExp,
+        dateValidationSt: stVal,
+        dateExpirationSt: stExp,
         createdBy: getUserIdFromRequest(req),
       }).returning();
 
@@ -1029,6 +1102,12 @@ export const exportEmployees: RequestHandler = async (req, res) => {
     const stCode = req.query.stCode as string | undefined;
     const htCode = req.query.htCode as string | undefined;
     const type = req.query.type as string | undefined; // "HT" | "ST" (restrict to that habilitation list)
+    const typeU = type?.toUpperCase();
+    // Expiration filter uses the scoped type's own date (fallback to shared date).
+    const expiCol =
+      typeU === "HT" ? sql`coalesce(${schema.employeeVersions.dateExpirationHt}, ${schema.employeeVersions.dateExpiration})`
+      : typeU === "ST" ? sql`coalesce(${schema.employeeVersions.dateExpirationSt}, ${schema.employeeVersions.dateExpiration})`
+      : sql`${schema.employeeVersions.dateExpiration}`;
     // Optional explicit selection: export only these employee ids (the agents
     // the user ticked). When present it takes precedence over the other filters.
     const idsParam = req.query.ids as string | undefined;
@@ -1045,8 +1124,8 @@ export const exportEmployees: RequestHandler = async (req, res) => {
         const pat = `%${search}%`;
         conditions.push(or(like(schema.employees.matricule, pat), like(schema.employees.nom, pat), like(schema.employees.prenom, pat)));
       }
-      if (expirationFrom) conditions.push(gte(schema.employeeVersions.dateExpiration, expirationFrom));
-      if (expirationTo) conditions.push(lte(schema.employeeVersions.dateExpiration, expirationTo));
+      if (expirationFrom) conditions.push(gte(expiCol, expirationFrom));
+      if (expirationTo) conditions.push(lte(expiCol, expirationTo));
       if (hasPdf === "true") conditions.push(isNotNull(schema.employeeVersions.pdfPath));
       if (hasPdf === "false") conditions.push(isNull(schema.employeeVersions.pdfPath));
       if (divisionId && !Number.isNaN(divisionId)) conditions.push(eq(schema.employeeVersions.divisionId, divisionId));
@@ -1075,6 +1154,10 @@ export const exportEmployees: RequestHandler = async (req, res) => {
         equipeName: schema.equipes.name,
         dateValidation: schema.employeeVersions.dateValidation,
         dateExpiration: schema.employeeVersions.dateExpiration,
+        dateValidationHt: schema.employeeVersions.dateValidationHt,
+        dateExpirationHt: schema.employeeVersions.dateExpirationHt,
+        dateValidationSt: schema.employeeVersions.dateValidationSt,
+        dateExpirationSt: schema.employeeVersions.dateExpirationSt,
         pdfPath: schema.employeeVersions.pdfPath,
         versionNumber: schema.employeeVersions.versionNumber,
       })
@@ -1101,23 +1184,34 @@ export const exportEmployees: RequestHandler = async (req, res) => {
       return "Valide";
     }
 
-    const wsData = rows.map((r) => ({
-      Matricule: r.matricule,
-      Nom: r.nom,
-      Prenom: r.prenom,
-      Fonction: r.fonction,
-      Division: r.divisionName ?? "",
-      Service: r.serviceName ?? "",
-      Equipe: r.equipeName ?? "",
-      ST_codes: (r.stCodes ?? []).join(", "),
-      HT_codes: (r.htCodes ?? []).join(", "),
-      N_de_titre: r.nDeTitre,
-      Date_validation: r.dateValidation,
-      Date_expiration: r.dateExpiration,
-      Statut_expiration: expirationColor(r.dateExpiration),
-      PDF: r.pdfPath ? "Oui" : "Non",
-      Version: r.versionNumber,
-    }));
+    const wsData = rows.map((r) => {
+      const ht = (r.htCodes ?? []).length > 0;
+      const st = (r.stCodes ?? []).length > 0;
+      const htVal = r.dateValidationHt ?? (ht ? r.dateValidation : "");
+      const htExp = r.dateExpirationHt ?? (ht ? r.dateExpiration : "");
+      const stVal = r.dateValidationSt ?? (st ? r.dateValidation : "");
+      const stExp = r.dateExpirationSt ?? (st ? r.dateExpiration : "");
+      return {
+        Matricule: r.matricule,
+        Nom: r.nom,
+        Prenom: r.prenom,
+        Fonction: r.fonction,
+        Division: r.divisionName ?? "",
+        Service: r.serviceName ?? "",
+        Equipe: r.equipeName ?? "",
+        ST_codes: (r.stCodes ?? []).join(", "),
+        HT_codes: (r.htCodes ?? []).join(", "),
+        N_de_titre: r.nDeTitre,
+        Validation_HT: htVal || "",
+        Expiration_HT: htExp || "",
+        Statut_HT: htExp ? expirationColor(htExp) : "",
+        Validation_ST: stVal || "",
+        Expiration_ST: stExp || "",
+        Statut_ST: stExp ? expirationColor(stExp) : "",
+        PDF: r.pdfPath ? "Oui" : "Non",
+        Version: r.versionNumber,
+      };
+    });
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(wsData);
@@ -1135,9 +1229,12 @@ export const exportEmployees: RequestHandler = async (req, res) => {
       { wch: 20 }, // ST_codes
       { wch: 20 }, // HT_codes
       { wch: 16 }, // N_de_titre
-      { wch: 14 }, // Date_validation
-      { wch: 14 }, // Date_expiration
-      { wch: 14 }, // Statut_expiration
+      { wch: 14 }, // Validation_HT
+      { wch: 14 }, // Expiration_HT
+      { wch: 12 }, // Statut_HT
+      { wch: 14 }, // Validation_ST
+      { wch: 14 }, // Expiration_ST
+      { wch: 12 }, // Statut_ST
       { wch: 6  }, // PDF
       { wch: 8  }, // Version
     ];

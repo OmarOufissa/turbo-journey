@@ -78,6 +78,13 @@ export const employeeVersions = sqliteTable("employee_versions", {
   equipeId: integer("equipe_id").references(() => equipes.id),
   dateValidation: text("date_validation").notNull(),
   dateExpiration: text("date_expiration").notNull(),
+  // HT and ST have independent validity. These per-type dates are the source of
+  // truth for each habilitation; the generic dateValidation/dateExpiration above
+  // is kept as a fallback (= soonest expiry) for notifications/stats/legacy rows.
+  dateValidationHt: text("date_validation_ht"),
+  dateExpirationHt: text("date_expiration_ht"),
+  dateValidationSt: text("date_validation_st"),
+  dateExpirationSt: text("date_expiration_st"),
   habRows: text("hab_rows", { mode: "json" }).$type<HabRows | null>(),
   autorisationSpecialesVerso: text("autorisation_speciales_verso"),
   pdfPath: text("pdf_path"),

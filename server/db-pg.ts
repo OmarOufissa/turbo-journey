@@ -158,6 +158,10 @@ async function createTablesIfNotExist() {
     `ALTER TABLE employee_versions ADD COLUMN pdf_path_st TEXT`,
     `ALTER TABLE employee_versions ADD COLUMN pdf_status_st TEXT`,
     `ALTER TABLE employees ADD COLUMN aptitude_medicale TEXT`,
+    `ALTER TABLE employee_versions ADD COLUMN date_validation_ht TEXT`,
+    `ALTER TABLE employee_versions ADD COLUMN date_expiration_ht TEXT`,
+    `ALTER TABLE employee_versions ADD COLUMN date_validation_st TEXT`,
+    `ALTER TABLE employee_versions ADD COLUMN date_expiration_st TEXT`,
   ];
   for (const m of migrations) {
     try { await client.execute(m); } catch { /* column already exists */ }
@@ -168,7 +172,29 @@ async function createTablesIfNotExist() {
   await makeAuditLogsEntityIdNullable();
   await removeSf6FromStCodes();
   await backfillTstCodes();
+  await backfillPerTypeDates();
   await ensureAuthSecrets();
+}
+
+// HT and ST now have independent validity dates. For versions created before
+// this change, seed each per-type date from the single shared date, but only for
+// the habilitation types the version actually holds (non-empty code list). Rows
+// already backfilled are left untouched. Idempotent.
+async function backfillPerTypeDates() {
+  try {
+    await client.execute(
+      `UPDATE employee_versions
+         SET date_validation_ht = date_validation, date_expiration_ht = date_expiration
+       WHERE date_expiration_ht IS NULL AND ht_codes IS NOT NULL AND ht_codes != '[]' AND ht_codes != ''`
+    );
+    await client.execute(
+      `UPDATE employee_versions
+         SET date_validation_st = date_validation, date_expiration_st = date_expiration
+       WHERE date_expiration_st IS NULL AND st_codes IS NOT NULL AND st_codes != '[]' AND st_codes != ''`
+    );
+  } catch (err) {
+    console.error("backfillPerTypeDates failed:", err);
+  }
 }
 
 // A build bug previously omitted employees_tst.xlsx from the packaged app, so

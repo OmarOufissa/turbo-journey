@@ -13,6 +13,7 @@ import { Employee, EmployeeVersion } from "@/types/employee";
 import { getEmployee, revertToVersion } from "@/api/employees";
 import { setLastAction } from "@/components/UndoButton";
 import { getExpirationStatus, EXPIRATION_COLOR_CONFIG } from "@/types/habilitation";
+import { expirationForType, validationForType } from "@/types/employee";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
@@ -312,7 +313,10 @@ export default function EmployeeCard() {
   }
 
   const ver = employee.currentVersion;
-  const status = ver ? getExpirationStatus(ver.dateExpiration) : "valid";
+  const typeKey = viewType === "ht" || viewType === "st" ? viewType : null;
+  const verExp = expirationForType(ver, typeKey) ?? ver?.dateExpiration;
+  const verVal = validationForType(ver, typeKey) ?? ver?.dateValidation;
+  const status = verExp ? getExpirationStatus(verExp) : "valid";
   const config = EXPIRATION_COLOR_CONFIG[status];
 
   // Backend returns versions desc (newest first)
@@ -397,8 +401,8 @@ export default function EmployeeCard() {
                     <span className="font-mono">{ver.htCodes.length > 0 ? ver.htCodes.join(", ") : "—"}</span>
                   </div>
                 )}
-                <div className="flex justify-between"><span className="text-muted-foreground">Validation</span><span>{new Date(ver.dateValidation).toLocaleDateString("fr-FR")}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Expiration</span><span className={cn("font-medium", config.textColor)}>{new Date(ver.dateExpiration).toLocaleDateString("fr-FR")}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Validation</span><span>{verVal ? new Date(verVal).toLocaleDateString("fr-FR") : "—"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Expiration</span><span className={cn("font-medium", config.textColor)}>{verExp ? new Date(verExp).toLocaleDateString("fr-FR") : "—"}</span></div>
 
                 <div className="pt-3 border-t space-y-3">
                   {isTstEmployee(ver) ? (

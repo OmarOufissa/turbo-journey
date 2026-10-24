@@ -15,6 +15,7 @@ export async function getEmployees(params?: {
   serviceId?: string;
   equipeId?: string;
   fonction?: string;
+  type?: string;
   sort?: string;
   sortDir?: string;
 }): Promise<{ success: boolean; data: EmployeesPage; error: null }> {
@@ -32,6 +33,7 @@ export async function getEmployees(params?: {
   if (params?.serviceId) qs.set('serviceId', params.serviceId);
   if (params?.equipeId) qs.set('equipeId', params.equipeId);
   if (params?.fonction) qs.set('fonction', params.fonction);
+  if (params?.type) qs.set('type', params.type);
   if (params?.sort) qs.set('sort', params.sort);
   if (params?.sortDir) qs.set('sortDir', params.sortDir);
   const query = qs.toString() ? `?${qs}` : '';

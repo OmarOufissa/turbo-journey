@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Employee } from "@/types/employee";
+import { expirationForType } from "@/types/employee";
 import { getExpirationStatus, EXPIRATION_COLOR_CONFIG, HT_CODES, ST_CODES } from "@/types/habilitation";
 import { getEmployees } from "@/api/employees";
 import { useBulkOperations } from "@/hooks/useBulkOperations";
@@ -87,7 +88,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
   const fetchEmployees = useCallback(async () => {
     setIsLoading(true);
     try {
-      const params: Record<string, any> = { page: 1, limit: 1000, sort, sortDir };
+      const params: Record<string, any> = { page: 1, limit: 1000, sort, sortDir, type: habType };
       if (searchTerm) params.search = searchTerm;
       if (codeFilter !== "all") {
         if (isHT) params.htCode = codeFilter;
@@ -298,7 +299,8 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
                 <TableBody>
                   {employees.map(emp => {
                     const ver = emp.currentVersion;
-                    const status = ver ? getExpirationStatus(ver.dateExpiration) : "valid";
+                    const expDate = expirationForType(ver, isHT ? "ht" : "st") ?? ver?.dateExpiration;
+                    const status = expDate ? getExpirationStatus(expDate) : "valid";
                     const config = EXPIRATION_COLOR_CONFIG[status];
                     const codes = isHT ? (ver?.htCodes ?? []) : (ver?.stCodes ?? []);
                     return (
@@ -326,9 +328,9 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
                             : <span className="text-muted-foreground text-sm">—</span>}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {ver ? (
+                          {ver && expDate ? (
                             <span className={cn("text-sm font-medium", colorCodingEnabled && config.textColor)}>
-                              {new Date(ver.dateExpiration).toLocaleDateString("fr-FR")}
+                              {new Date(expDate).toLocaleDateString("fr-FR")}
                               {colorCodingEnabled && ` (${config.name})`}
                             </span>
                           ) : "—"}

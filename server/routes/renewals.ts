@@ -105,6 +105,43 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
 
     const userId = getUserIdFromRequest(req);
 
+    // HT/ST have independent validity. Carry the type NOT being renewed over from
+    // the current version untouched; apply the snapshot dates only to the present
+    // (or renewed) type. renewType may be "ht" | "st"; absent = renew both.
+    const cur = emp.currentVersionId
+      ? (await db.select().from(schema.employeeVersions).where(eq(schema.employeeVersions.id, emp.currentVersionId)))[0]
+      : null;
+    const renewType: "ht" | "st" | undefined = snap.renewType;
+    const snapHtCodes: string[] = snap.htCodes ?? [];
+    const snapStCodes: string[] = snap.stCodes ?? [];
+    const curHtCodes = (cur?.htCodes as string[] | undefined) ?? [];
+    const curStCodes = (cur?.stCodes as string[] | undefined) ?? [];
+    const curHtVal = cur?.dateValidationHt ?? (curHtCodes.length ? cur?.dateValidation ?? null : null);
+    const curHtExp = cur?.dateExpirationHt ?? (curHtCodes.length ? cur?.dateExpiration ?? null : null);
+    const curStVal = cur?.dateValidationSt ?? (curStCodes.length ? cur?.dateValidation ?? null : null);
+    const curStExp = cur?.dateExpirationSt ?? (curStCodes.length ? cur?.dateExpiration ?? null : null);
+
+    let finalHtCodes: string[], finalStCodes: string[];
+    let htVal: string | null, htExp: string | null, stVal: string | null, stExp: string | null;
+    if (renewType === "ht") {
+      finalHtCodes = snapHtCodes; htVal = finalHtCodes.length ? snap.dateValidation : null; htExp = finalHtCodes.length ? snap.dateExpiration : null;
+      finalStCodes = curStCodes; stVal = curStVal; stExp = curStExp;
+    } else if (renewType === "st") {
+      finalStCodes = snapStCodes; stVal = finalStCodes.length ? snap.dateValidation : null; stExp = finalStCodes.length ? snap.dateExpiration : null;
+      finalHtCodes = curHtCodes; htVal = curHtVal; htExp = curHtExp;
+    } else {
+      finalHtCodes = snapHtCodes; finalStCodes = snapStCodes;
+      htVal = finalHtCodes.length ? snap.dateValidation : null; htExp = finalHtCodes.length ? snap.dateExpiration : null;
+      stVal = finalStCodes.length ? snap.dateValidation : null; stExp = finalStCodes.length ? snap.dateExpiration : null;
+    }
+    const present = [
+      finalHtCodes.length && htExp ? { v: htVal!, e: htExp } : null,
+      finalStCodes.length && stExp ? { v: stVal!, e: stExp } : null,
+    ].filter(Boolean) as { v: string; e: string }[];
+    const soonest = present.sort((a, b) => a.e.localeCompare(b.e))[0];
+    const genericVal = soonest?.v ?? snap.dateValidation;
+    const genericExp = soonest?.e ?? snap.dateExpiration;
+
     const result = await db.transaction(async (tx) => {
       const [{ maxVer }] = await tx
         .select({ maxVer: sql<number>`coalesce(max(version_number), 0)` })
@@ -114,16 +151,20 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
       const [version] = await tx.insert(schema.employeeVersions).values({
         employeeId: renewal.employeeId,
         versionNumber: Number(maxVer) + 1,
-        stCodes: snap.stCodes ?? [],
-        htCodes: snap.htCodes ?? [],
+        stCodes: finalStCodes,
+        htCodes: finalHtCodes,
         nDeTitre: snap.nDeTitre ?? "",
         fonction: snap.fonction ?? "",
         divisionId: parseInt(snap.divisionId),
         serviceId: parseInt(snap.serviceId),
         equipeId: snap.equipeId ? parseInt(snap.equipeId) : null,
         habRows: snap.habRows ?? null,
-        dateValidation: snap.dateValidation,
-        dateExpiration: snap.dateExpiration,
+        dateValidation: genericVal,
+        dateExpiration: genericExp,
+        dateValidationHt: htVal,
+        dateExpirationHt: htExp,
+        dateValidationSt: stVal,
+        dateExpirationSt: stExp,
         pdfPath: null,
         createdBy: userId,
       }).returning();

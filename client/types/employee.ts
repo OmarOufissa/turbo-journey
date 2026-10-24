@@ -22,6 +22,12 @@ export interface EmployeeVersion {
   habRows?: HabRows | null;
   dateValidation: string;
   dateExpiration: string;
+  // Per-type validity (HT and ST are independent). May be null when the agent
+  // holds no symbol of that type; falls back to the shared date for legacy rows.
+  dateValidationHt?: string | null;
+  dateExpirationHt?: string | null;
+  dateValidationSt?: string | null;
+  dateExpirationSt?: string | null;
   pdfPath?: string | null;
   pdfStatus?: "draft" | "signed" | null;
   pdfPathSt?: string | null;
@@ -79,4 +85,21 @@ export interface UpdateEmployeeRequest {
   dateValidation: string;
   dateExpiration: string;
   expectedUpdatedAt?: string;
+  // Target of a type-scoped renewal. When set, the other type is left untouched.
+  renewType?: "ht" | "st";
+}
+
+// Pick the expiration (resp. validation) date for a given habilitation type,
+// falling back to the shared date for versions created before the HT/ST split.
+export function expirationForType(v: EmployeeVersion | null | undefined, type: "ht" | "st" | null): string | undefined {
+  if (!v) return undefined;
+  if (type === "ht") return v.dateExpirationHt ?? (v.htCodes?.length ? v.dateExpiration : undefined);
+  if (type === "st") return v.dateExpirationSt ?? (v.stCodes?.length ? v.dateExpiration : undefined);
+  return v.dateExpiration;
+}
+export function validationForType(v: EmployeeVersion | null | undefined, type: "ht" | "st" | null): string | undefined {
+  if (!v) return undefined;
+  if (type === "ht") return v.dateValidationHt ?? (v.htCodes?.length ? v.dateValidation : undefined);
+  if (type === "st") return v.dateValidationSt ?? (v.stCodes?.length ? v.dateValidation : undefined);
+  return v.dateValidation;
 }
