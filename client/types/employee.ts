@@ -12,6 +12,8 @@ export interface EmployeeVersion {
   stCodes: string[];
   htCodes: string[];
   nDeTitre: string;
+  nDeTitreHt?: string | null;
+  nDeTitreSt?: string | null;
   fonction: string;
   divisionId: number;
   serviceId: number;
@@ -102,4 +104,12 @@ export function validationForType(v: EmployeeVersion | null | undefined, type: "
   if (type === "ht") return v.dateValidationHt ?? (v.htCodes?.length ? v.dateValidation : undefined);
   if (type === "st") return v.dateValidationSt ?? (v.stCodes?.length ? v.dateValidation : undefined);
   return v.dateValidation;
+}
+
+// Title number for a given habilitation type (falls back to the shared number).
+export function titleForType(v: EmployeeVersion | null | undefined, type: "ht" | "st" | null): string | undefined {
+  if (!v) return undefined;
+  if (type === "ht") return v.nDeTitreHt ?? (v.htCodes?.length ? v.nDeTitre : undefined);
+  if (type === "st") return v.nDeTitreSt ?? (v.stCodes?.length ? v.nDeTitre : undefined);
+  return v.nDeTitre;
 }

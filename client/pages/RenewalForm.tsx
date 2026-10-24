@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ST_CODES, HT_CODES, todayISO, computeExpiration } from "@/types/habilitation";
+import { ST_CODES, HT_CODES, todayISO, computeExpiration, computeExpirationForType } from "@/types/habilitation";
 import { VALID_FONCTIONS as FALLBACK_FONCTIONS } from "@/types/fonctions";
 import { DOMAINE_OPTIONS as FALLBACK_DOMAINES, OUVRAGE_OPTIONS as FALLBACK_OUVRAGES, INDICATION_OPTIONS as FALLBACK_INDICATIONS } from "@/types/habRows";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -92,10 +92,10 @@ export default function RenewalForm() {
             stCodes: v.stCodes ?? [],
             htCodes: v.htCodes ?? [],
             nDeTitre: v.nDeTitre ?? "",
-            // A renewal creates a new version: default to today + 3 years − 1 day
-            // (both dates remain manually editable).
+            // A renewal creates a new version: default to today's validity for
+            // the type (HT = +3 years − 1 day, ST = 31 December of the year).
             dateValidation: todayISO(),
-            dateExpiration: computeExpiration(todayISO()),
+            dateExpiration: computeExpirationForType(todayISO(), isHT ? "ht" : "st"),
           });
           if (v.habRows) setHabRows(v.habRows);
         }
@@ -104,15 +104,18 @@ export default function RenewalForm() {
       .finally(() => setLoadingEmployee(false));
   }, [id]);
 
-  // HT renewal: the title number is generated automatically (HE + matricule + HT + YY,
-  // with Bis1/Bis2… if several the same year). The user does not type it.
+  // The title number is generated automatically for both types:
+  // HE{matricule}{HT|ST}{YY}, first of the year without suffix then /2, /3…
+  // Based on the validation-date year so it stays consistent.
   useEffect(() => {
-    if (!isHT || !id) return;
-    fetch(`/api/employees/${id}/next-ht-title`, { headers: { Authorization: `Bearer ${token}` } })
+    if (!id || !form.dateValidation) return;
+    const year = form.dateValidation.slice(0, 4);
+    const type = isHT ? "ht" : "st";
+    fetch(`/api/employees/${id}/next-title?type=${type}&year=${year}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => { if (d.success) setForm(f => ({ ...f, nDeTitre: d.data.nDeTitre })); })
       .catch(() => {});
-  }, [isHT, id]);
+  }, [isHT, id, form.dateValidation]);
 
   useEffect(() => {
     fetch("/api/divisions").then(r => r.json()).then(d => setDivisions(d.data ?? d)).catch(console.error);
@@ -284,11 +287,11 @@ export default function RenewalForm() {
               )}
               <div className="space-y-1">
                 <Label>N° de titre *</Label>
-                <Input value={form.nDeTitre} onChange={e => setForm(f => ({ ...f, nDeTitre: e.target.value }))} required readOnly={isHT} className={isHT ? "bg-muted font-mono" : ""} title={isHT ? "Généré automatiquement" : undefined} />
+                <Input value={form.nDeTitre} readOnly className="bg-muted font-mono" title="Généré automatiquement" />
               </div>
               <div className="space-y-1">
                 <Label>Date de validation *</Label>
-                <Input type="date" value={form.dateValidation} onChange={e => setForm(f => ({ ...f, dateValidation: e.target.value, dateExpiration: computeExpiration(e.target.value) }))} required />
+                <Input type="date" value={form.dateValidation} onChange={e => setForm(f => ({ ...f, dateValidation: e.target.value, dateExpiration: computeExpirationForType(e.target.value, isHT ? "ht" : "st") }))} required />
               </div>
               <div className="space-y-1">
                 <Label>Date d'expiration *</Label>

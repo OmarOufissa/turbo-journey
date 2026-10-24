@@ -321,6 +321,8 @@ export function createServer() {
             verId: schema.employeeVersions.id,
             versionNumber: schema.employeeVersions.versionNumber,
             nDeTitre: schema.employeeVersions.nDeTitre,
+            nDeTitreHt: schema.employeeVersions.nDeTitreHt,
+            nDeTitreSt: schema.employeeVersions.nDeTitreSt,
             fonction: schema.employeeVersions.fonction,
             divisionId: schema.employeeVersions.divisionId,
             serviceId: schema.employeeVersions.serviceId,
@@ -331,6 +333,10 @@ export function createServer() {
             autorisationSpecialesVerso: schema.employeeVersions.autorisationSpecialesVerso,
             dateValidation: schema.employeeVersions.dateValidation,
             dateExpiration: schema.employeeVersions.dateExpiration,
+            dateValidationHt: schema.employeeVersions.dateValidationHt,
+            dateExpirationHt: schema.employeeVersions.dateExpirationHt,
+            dateValidationSt: schema.employeeVersions.dateValidationSt,
+            dateExpirationSt: schema.employeeVersions.dateExpirationSt,
             pdfPath: schema.employeeVersions.pdfPath,
           })
           .from(schema.employees)
@@ -361,6 +367,8 @@ export function createServer() {
               nom: row.nom,
               prenom: row.prenom,
               nDeTitre: row.nDeTitre,
+              nDeTitreHt: row.nDeTitreHt ?? null,
+              nDeTitreSt: row.nDeTitreSt ?? null,
               fonction: row.fonction,
               division: divMap[row.divisionId] ?? "",
               service: svcMap[row.serviceId] ?? null,
@@ -371,6 +379,10 @@ export function createServer() {
               autorisationSpecialesVerso: row.autorisationSpecialesVerso ?? null,
               dateValidation: row.dateValidation,
               dateExpiration: row.dateExpiration,
+              dateValidationHt: row.dateValidationHt ?? null,
+              dateExpirationHt: row.dateExpirationHt ?? null,
+              dateValidationSt: row.dateValidationSt ?? null,
+              dateExpirationSt: row.dateExpirationSt ?? null,
             };
 
             const isTst = snapshot.stCodes.some(c => tstCodeSet.has(c));
@@ -436,6 +448,11 @@ export function createServer() {
   app.get("/api/employees/:id/next-ht-title", async (req, res) => {
     const { authMiddleware, getNextHtTitle } = await import("./routes/employees-audit");
     authMiddleware(req, res, () => getNextHtTitle(req, res, () => {}));
+  });
+
+  app.get("/api/employees/:id/next-title", async (req, res) => {
+    const { authMiddleware, getNextTitle } = await import("./routes/employees-audit");
+    authMiddleware(req, res, () => getNextTitle(req, res, () => {}));
   });
 
   app.get("/api/employees/:id", async (req, res) => {
@@ -1338,6 +1355,8 @@ export function createServer() {
           nom: emp.nom,
           prenom: emp.prenom,
           nDeTitre: ver.nDeTitre,
+          nDeTitreHt: ver.nDeTitreHt ?? null,
+          nDeTitreSt: ver.nDeTitreSt ?? null,
           fonction: ver.fonction,
           division: div?.name ?? "",
           service: svc?.name ?? null,
@@ -1348,6 +1367,10 @@ export function createServer() {
           autorisationSpecialesVerso: ver.autorisationSpecialesVerso ?? null,
           dateValidation: ver.dateValidation,
           dateExpiration: ver.dateExpiration,
+          dateValidationHt: ver.dateValidationHt ?? null,
+          dateExpirationHt: ver.dateExpirationHt ?? null,
+          dateValidationSt: ver.dateValidationSt ?? null,
+          dateExpirationSt: ver.dateExpirationSt ?? null,
         };
 
         const tstCodes = ['H1N', 'H1T', 'H2N', 'H2T'];
@@ -1408,6 +1431,8 @@ export function createServer() {
           nom: emp.nom,
           prenom: emp.prenom,
           nDeTitre: ver.nDeTitre,
+          nDeTitreHt: ver.nDeTitreHt ?? null,
+          nDeTitreSt: ver.nDeTitreSt ?? null,
           fonction: ver.fonction,
           division: div?.name ?? "",
           service: svc?.name ?? null,
@@ -1418,6 +1443,10 @@ export function createServer() {
           autorisationSpecialesVerso: ver.autorisationSpecialesVerso ?? null,
           dateValidation: ver.dateValidation,
           dateExpiration: ver.dateExpiration,
+          dateValidationHt: ver.dateValidationHt ?? null,
+          dateExpirationHt: ver.dateExpirationHt ?? null,
+          dateValidationSt: ver.dateValidationSt ?? null,
+          dateExpirationSt: ver.dateExpirationSt ?? null,
         };
 
         const tstCodes = ['H1N', 'H1T', 'H2N', 'H2T'];

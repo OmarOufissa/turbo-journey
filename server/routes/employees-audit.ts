@@ -86,6 +86,8 @@ async function buildVersionResponse(version: typeof schema.employeeVersions.$inf
     stCodes: version.stCodes ?? [],
     htCodes: version.htCodes ?? [],
     nDeTitre: version.nDeTitre,
+    nDeTitreHt: version.nDeTitreHt ?? ((version.htCodes?.length ?? 0) > 0 ? version.nDeTitre : null),
+    nDeTitreSt: version.nDeTitreSt ?? ((version.stCodes?.length ?? 0) > 0 ? version.nDeTitre : null),
     fonction: version.fonction,
     divisionId: version.divisionId,
     serviceId: version.serviceId,
@@ -245,6 +247,8 @@ export const getEmployees: RequestHandler = async (req, res) => {
         stCodes: schema.employeeVersions.stCodes,
         htCodes: schema.employeeVersions.htCodes,
         nDeTitre: schema.employeeVersions.nDeTitre,
+        nDeTitreHt: schema.employeeVersions.nDeTitreHt,
+        nDeTitreSt: schema.employeeVersions.nDeTitreSt,
         fonction: schema.employeeVersions.fonction,
         divisionId: schema.employeeVersions.divisionId,
         serviceId: schema.employeeVersions.serviceId,
@@ -295,6 +299,8 @@ export const getEmployees: RequestHandler = async (req, res) => {
         stCodes: row.stCodes ?? [],
         htCodes: row.htCodes ?? [],
         nDeTitre: row.nDeTitre,
+        nDeTitreHt: row.nDeTitreHt ?? ((row.htCodes?.length ?? 0) > 0 ? row.nDeTitre : null),
+        nDeTitreSt: row.nDeTitreSt ?? ((row.stCodes?.length ?? 0) > 0 ? row.nDeTitre : null),
         fonction: row.fonction,
         divisionId: row.divisionId,
         serviceId: row.serviceId,
@@ -394,6 +400,8 @@ export const createEmployee: RequestHandler = async (req, res) => {
         stCodes: stCodes ?? [],
         htCodes: htCodes ?? [],
         nDeTitre,
+        nDeTitreHt: (htCodes?.length ?? 0) > 0 ? nDeTitre : null,
+        nDeTitreSt: (stCodes?.length ?? 0) > 0 ? nDeTitre : null,
         fonction,
         divisionId,
         serviceId,
@@ -468,19 +476,24 @@ export const updateEmployee: RequestHandler = async (req, res) => {
     const oldHtExp = oldVersion?.dateExpirationHt ?? (oldHtCodes.length ? oldVersion?.dateExpiration ?? null : null);
     const oldStVal = oldVersion?.dateValidationSt ?? (oldStCodes.length ? oldVersion?.dateValidation ?? null : null);
     const oldStExp = oldVersion?.dateExpirationSt ?? (oldStCodes.length ? oldVersion?.dateExpiration ?? null : null);
+    const oldHtTitle = oldVersion?.nDeTitreHt ?? (oldHtCodes.length ? oldVersion?.nDeTitre ?? null : null);
+    const oldStTitle = oldVersion?.nDeTitreSt ?? (oldStCodes.length ? oldVersion?.nDeTitre ?? null : null);
 
     let finalHtCodes: string[], finalStCodes: string[];
     let htVal: string | null, htExp: string | null, stVal: string | null, stExp: string | null;
+    let htTitle: string | null, stTitle: string | null;
     if (renewType === "ht") {
       finalHtCodes = htCodes ?? [];
       htVal = finalHtCodes.length ? dateValidation : null;
       htExp = finalHtCodes.length ? dateExpiration : null;
-      finalStCodes = oldStCodes; stVal = oldStVal; stExp = oldStExp; // untouched
+      htTitle = finalHtCodes.length ? nDeTitre : null;
+      finalStCodes = oldStCodes; stVal = oldStVal; stExp = oldStExp; stTitle = oldStTitle; // untouched
     } else if (renewType === "st") {
       finalStCodes = stCodes ?? [];
       stVal = finalStCodes.length ? dateValidation : null;
       stExp = finalStCodes.length ? dateExpiration : null;
-      finalHtCodes = oldHtCodes; htVal = oldHtVal; htExp = oldHtExp; // untouched
+      stTitle = finalStCodes.length ? nDeTitre : null;
+      finalHtCodes = oldHtCodes; htVal = oldHtVal; htExp = oldHtExp; htTitle = oldHtTitle; // untouched
     } else {
       finalHtCodes = htCodes ?? [];
       finalStCodes = stCodes ?? [];
@@ -488,7 +501,11 @@ export const updateEmployee: RequestHandler = async (req, res) => {
       htExp = finalHtCodes.length ? dateExpiration : null;
       stVal = finalStCodes.length ? dateValidation : null;
       stExp = finalStCodes.length ? dateExpiration : null;
+      htTitle = finalHtCodes.length ? nDeTitre : null;
+      stTitle = finalStCodes.length ? nDeTitre : null;
     }
+    // Generic (shared) number = the renewed type's number (or whichever exists).
+    const genericTitle = (renewType === "st" ? stTitle : renewType === "ht" ? htTitle : null) ?? htTitle ?? stTitle ?? nDeTitre;
     // Generic (shared) date = soonest expiry among the present types — keeps
     // notifications/stats/legacy screens meaningful. NOT NULL, so always set.
     const present = [
@@ -518,7 +535,9 @@ export const updateEmployee: RequestHandler = async (req, res) => {
         versionNumber: newVersionNum,
         stCodes: finalStCodes,
         htCodes: finalHtCodes,
-        nDeTitre,
+        nDeTitre: genericTitle,
+        nDeTitreHt: htTitle,
+        nDeTitreSt: stTitle,
         fonction,
         divisionId,
         serviceId,
@@ -677,36 +696,47 @@ export const updateAgentInfo: RequestHandler = async (req, res) => {
   }
 };
 
-// Generate the next HT habilitation title number for an agent.
-// Format: HE + matricule + HT + YY (2-digit year). If already used the same
-// year, append Bis1, Bis2, ... The system checks existing numbers to avoid
-// any duplicate.
-export const getNextHtTitle: RequestHandler = async (req, res) => {
+// Generate the next habilitation title number for an agent and a type.
+// Format: HE + matricule + (HT|ST) + YY (2-digit year). The first title of the
+// year has no suffix; further ones get /2, /3, … We scan all of the agent's
+// title numbers (every type column) to guarantee uniqueness.
+export const getNextTitle: RequestHandler = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ success: false, data: null, error: "ID invalide" });
     const [emp] = await db.select().from(schema.employees).where(eq(schema.employees.id, id));
     if (!emp) return res.status(404).json({ success: false, data: null, error: "Agent non trouvé" });
 
-    const yy = String(new Date().getFullYear()).slice(-2);
-    const base = `HE${emp.matricule}HT${yy}`;
+    const type = String(req.query.type ?? "ht").toLowerCase() === "st" ? "ST" : "HT";
+    const yearParam = req.query.year as string | undefined; // YYYY (e.g. validation-date year)
+    const yearFull = yearParam && /^\d{4}$/.test(yearParam) ? parseInt(yearParam, 10) : new Date().getFullYear();
+    const yy = String(yearFull).slice(-2);
+    const base = `HE${emp.matricule}${type}${yy}`;
 
     const rows = await db
-      .select({ nDeTitre: schema.employeeVersions.nDeTitre })
+      .select({
+        a: schema.employeeVersions.nDeTitre,
+        b: schema.employeeVersions.nDeTitreHt,
+        c: schema.employeeVersions.nDeTitreSt,
+      })
       .from(schema.employeeVersions)
-      .where(like(schema.employeeVersions.nDeTitre, `${base}%`));
-    const existing = new Set(rows.map(r => (r.nDeTitre || "").trim()));
+      .where(eq(schema.employeeVersions.employeeId, id));
+    const used = new Set<string>();
+    for (const r of rows) for (const v of [r.a, r.b, r.c]) if (v) used.add(v.trim());
 
-    let candidate = base;
-    let n = 0;
-    while (existing.has(candidate)) { n++; candidate = `${base}Bis${n}`; }
+    const nth = (n: number) => (n === 1 ? base : `${base}/${n}`);
+    let n = 1;
+    while (used.has(nth(n))) n++;
 
-    res.json({ success: true, data: { nDeTitre: candidate }, error: null });
+    res.json({ success: true, data: { nDeTitre: nth(n) }, error: null });
   } catch (err) {
-    console.error("getNextHtTitle error:", err);
+    console.error("getNextTitle error:", err);
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
+
+// Backward-compatible alias (defaults to HT).
+export const getNextHtTitle = getNextTitle;
 
 // ============================================================================
 // DELETE EMPLOYEE (soft)
@@ -1149,6 +1179,8 @@ export const exportEmployees: RequestHandler = async (req, res) => {
         stCodes: schema.employeeVersions.stCodes,
         htCodes: schema.employeeVersions.htCodes,
         nDeTitre: schema.employeeVersions.nDeTitre,
+        nDeTitreHt: schema.employeeVersions.nDeTitreHt,
+        nDeTitreSt: schema.employeeVersions.nDeTitreSt,
         fonction: schema.employeeVersions.fonction,
         divisionName: schema.divisions.name,
         serviceName: schema.services.name,
@@ -1203,7 +1235,8 @@ export const exportEmployees: RequestHandler = async (req, res) => {
         Equipe: r.equipeName ?? "",
         ST_codes: (r.stCodes ?? []).join(", "),
         HT_codes: (r.htCodes ?? []).join(", "),
-        N_de_titre: r.nDeTitre,
+        N_titre_HT: r.nDeTitreHt ?? (ht ? r.nDeTitre : ""),
+        N_titre_ST: r.nDeTitreSt ?? (st ? r.nDeTitre : ""),
         Validation_HT: dmy(htVal),
         Expiration_HT: dmy(htExp),
         Statut_HT: htExp ? expirationColor(htExp) : "",
@@ -1230,7 +1263,8 @@ export const exportEmployees: RequestHandler = async (req, res) => {
       { wch: 18 }, // Equipe
       { wch: 20 }, // ST_codes
       { wch: 20 }, // HT_codes
-      { wch: 16 }, // N_de_titre
+      { wch: 16 }, // N_titre_HT
+      { wch: 16 }, // N_titre_ST
       { wch: 14 }, // Validation_HT
       { wch: 14 }, // Expiration_HT
       { wch: 12 }, // Statut_HT

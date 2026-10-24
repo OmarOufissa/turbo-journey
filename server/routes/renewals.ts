@@ -120,19 +120,27 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
     const curHtExp = cur?.dateExpirationHt ?? (curHtCodes.length ? cur?.dateExpiration ?? null : null);
     const curStVal = cur?.dateValidationSt ?? (curStCodes.length ? cur?.dateValidation ?? null : null);
     const curStExp = cur?.dateExpirationSt ?? (curStCodes.length ? cur?.dateExpiration ?? null : null);
+    const curHtTitle = cur?.nDeTitreHt ?? (curHtCodes.length ? cur?.nDeTitre ?? null : null);
+    const curStTitle = cur?.nDeTitreSt ?? (curStCodes.length ? cur?.nDeTitre ?? null : null);
+    const snapTitle: string = snap.nDeTitre ?? "";
 
     let finalHtCodes: string[], finalStCodes: string[];
     let htVal: string | null, htExp: string | null, stVal: string | null, stExp: string | null;
+    let htTitle: string | null, stTitle: string | null;
     if (renewType === "ht") {
       finalHtCodes = snapHtCodes; htVal = finalHtCodes.length ? snap.dateValidation : null; htExp = finalHtCodes.length ? snap.dateExpiration : null;
-      finalStCodes = curStCodes; stVal = curStVal; stExp = curStExp;
+      htTitle = finalHtCodes.length ? snapTitle : null;
+      finalStCodes = curStCodes; stVal = curStVal; stExp = curStExp; stTitle = curStTitle;
     } else if (renewType === "st") {
       finalStCodes = snapStCodes; stVal = finalStCodes.length ? snap.dateValidation : null; stExp = finalStCodes.length ? snap.dateExpiration : null;
-      finalHtCodes = curHtCodes; htVal = curHtVal; htExp = curHtExp;
+      stTitle = finalStCodes.length ? snapTitle : null;
+      finalHtCodes = curHtCodes; htVal = curHtVal; htExp = curHtExp; htTitle = curHtTitle;
     } else {
       finalHtCodes = snapHtCodes; finalStCodes = snapStCodes;
       htVal = finalHtCodes.length ? snap.dateValidation : null; htExp = finalHtCodes.length ? snap.dateExpiration : null;
       stVal = finalStCodes.length ? snap.dateValidation : null; stExp = finalStCodes.length ? snap.dateExpiration : null;
+      htTitle = finalHtCodes.length ? snapTitle : null;
+      stTitle = finalStCodes.length ? snapTitle : null;
     }
     const present = [
       finalHtCodes.length && htExp ? { v: htVal!, e: htExp } : null,
@@ -141,6 +149,7 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
     const soonest = present.sort((a, b) => a.e.localeCompare(b.e))[0];
     const genericVal = soonest?.v ?? snap.dateValidation;
     const genericExp = soonest?.e ?? snap.dateExpiration;
+    const genericTitle = (renewType === "st" ? stTitle : renewType === "ht" ? htTitle : null) ?? htTitle ?? stTitle ?? snapTitle;
 
     const result = await db.transaction(async (tx) => {
       const [{ maxVer }] = await tx
@@ -153,7 +162,9 @@ export const activatePendingRenewal: RequestHandler = async (req, res) => {
         versionNumber: Number(maxVer) + 1,
         stCodes: finalStCodes,
         htCodes: finalHtCodes,
-        nDeTitre: snap.nDeTitre ?? "",
+        nDeTitre: genericTitle,
+        nDeTitreHt: htTitle,
+        nDeTitreSt: stTitle,
         fonction: snap.fonction ?? "",
         divisionId: parseInt(snap.divisionId),
         serviceId: parseInt(snap.serviceId),

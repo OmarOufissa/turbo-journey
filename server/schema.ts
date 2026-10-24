@@ -72,6 +72,10 @@ export const employeeVersions = sqliteTable("employee_versions", {
   stCodes: text("st_codes", { mode: "json" }).$type<string[]>().notNull().default([]),
   htCodes: text("ht_codes", { mode: "json" }).$type<string[]>().notNull().default([]),
   nDeTitre: text("n_de_titre").notNull(),
+  // Per-type title number (HT and ST are numbered independently). Falls back to
+  // nDeTitre for rows created before the split.
+  nDeTitreHt: text("n_de_titre_ht"),
+  nDeTitreSt: text("n_de_titre_st"),
   fonction: text("fonction").notNull(),
   divisionId: integer("division_id").notNull().references(() => divisions.id),
   serviceId: integer("service_id").notNull().references(() => services.id),

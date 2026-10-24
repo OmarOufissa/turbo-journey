@@ -67,6 +67,20 @@ export function computeExpiration(validation: string): string {
   return new Date(d.getTime() - off * 60000).toISOString().split("T")[0];
 }
 
+// Type-aware validity:
+//  - HT (hors tension): validation + 3 years − 1 day.
+//  - ST (sous tension): civil year — always expires on 31 December of the
+//    validation year.
+export function computeExpirationForType(validation: string, type: "ht" | "st"): string {
+  if (!validation) return "";
+  if (type === "st") {
+    const year = validation.slice(0, 4);
+    if (!/^\d{4}$/.test(year)) return "";
+    return `${year}-12-31`;
+  }
+  return computeExpiration(validation);
+}
+
 export function getExpirationStatus(dateExpiration: string): ExpirationStatus {
   return getExpirationThreshold(dateExpiration);
 }

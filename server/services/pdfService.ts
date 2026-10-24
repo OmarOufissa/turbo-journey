@@ -23,6 +23,8 @@ export interface VersionSnapshot {
   nom: string;
   prenom: string;
   nDeTitre: string;
+  nDeTitreHt?: string | null;
+  nDeTitreSt?: string | null;
   fonction: string;
   division: string;
   service?: string | null;
@@ -33,6 +35,10 @@ export interface VersionSnapshot {
   autorisationSpecialesVerso?: string | null;
   dateValidation: string;
   dateExpiration: string;
+  dateValidationHt?: string | null;
+  dateExpirationHt?: string | null;
+  dateValidationSt?: string | null;
+  dateExpirationSt?: string | null;
 }
 
 function resolveTemplatePath(): string {
@@ -527,9 +533,19 @@ const TST_CODE_SET = new Set(['H1N', 'H1T', 'H2N', 'H2T']);
 
 function filterSnapshotByType(snapshot: VersionSnapshot, pdfType: 'ht' | 'st'): VersionSnapshot {
   if (pdfType === 'ht') {
-    return { ...snapshot, stCodes: [], htCodes: snapshot.htCodes };
+    return {
+      ...snapshot, stCodes: [], htCodes: snapshot.htCodes,
+      nDeTitre: snapshot.nDeTitreHt || snapshot.nDeTitre,
+      dateValidation: snapshot.dateValidationHt || snapshot.dateValidation,
+      dateExpiration: snapshot.dateExpirationHt || snapshot.dateExpiration,
+    };
   }
-  return { ...snapshot, htCodes: [], stCodes: snapshot.stCodes };
+  return {
+    ...snapshot, htCodes: [], stCodes: snapshot.stCodes,
+    nDeTitre: snapshot.nDeTitreSt || snapshot.nDeTitre,
+    dateValidation: snapshot.dateValidationSt || snapshot.dateValidation,
+    dateExpiration: snapshot.dateExpirationSt || snapshot.dateExpiration,
+  };
 }
 
 export function getPdfPath(filename: string): string {

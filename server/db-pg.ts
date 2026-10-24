@@ -162,6 +162,8 @@ async function createTablesIfNotExist() {
     `ALTER TABLE employee_versions ADD COLUMN date_expiration_ht TEXT`,
     `ALTER TABLE employee_versions ADD COLUMN date_validation_st TEXT`,
     `ALTER TABLE employee_versions ADD COLUMN date_expiration_st TEXT`,
+    `ALTER TABLE employee_versions ADD COLUMN n_de_titre_ht TEXT`,
+    `ALTER TABLE employee_versions ADD COLUMN n_de_titre_st TEXT`,
   ];
   for (const m of migrations) {
     try { await client.execute(m); } catch { /* column already exists */ }
@@ -173,7 +175,25 @@ async function createTablesIfNotExist() {
   await removeSf6FromStCodes();
   await backfillTstCodes();
   await backfillPerTypeDates();
+  await backfillPerTypeTitles();
   await ensureAuthSecrets();
+}
+
+// Seed per-type title numbers from the single n_de_titre for rows predating the
+// HT/ST split, only for the type(s) the version actually holds. Idempotent.
+async function backfillPerTypeTitles() {
+  try {
+    await client.execute(
+      `UPDATE employee_versions SET n_de_titre_ht = n_de_titre
+       WHERE n_de_titre_ht IS NULL AND ht_codes IS NOT NULL AND ht_codes != '[]' AND ht_codes != ''`
+    );
+    await client.execute(
+      `UPDATE employee_versions SET n_de_titre_st = n_de_titre
+       WHERE n_de_titre_st IS NULL AND st_codes IS NOT NULL AND st_codes != '[]' AND st_codes != ''`
+    );
+  } catch (err) {
+    console.error("backfillPerTypeTitles failed:", err);
+  }
 }
 
 // HT and ST now have independent validity dates. For versions created before

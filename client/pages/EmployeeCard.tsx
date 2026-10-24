@@ -13,7 +13,7 @@ import { Employee, EmployeeVersion } from "@/types/employee";
 import { getEmployee, revertToVersion } from "@/api/employees";
 import { setLastAction } from "@/components/UndoButton";
 import { getExpirationStatus, EXPIRATION_COLOR_CONFIG } from "@/types/habilitation";
-import { expirationForType, validationForType } from "@/types/employee";
+import { expirationForType, validationForType, titleForType } from "@/types/employee";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
@@ -388,7 +388,7 @@ export default function EmployeeCard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">N° titre</span><span className="font-mono">{ver.nDeTitre}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">N° titre</span><span className="font-mono">{titleForType(ver, typeKey) ?? ver.nDeTitre}</span></div>
                 {showSt && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">ST codes</span>
