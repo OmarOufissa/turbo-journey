@@ -144,6 +144,18 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
     return `/api/employees/export${qs ? `?${qs}` : ""}`;
   };
 
+  // Export only the ticked agents (used by the selection toolbar + header button).
+  const exportSelection = () => {
+    const ids = Array.from(bulk.selectedIds);
+    if (ids.length === 0) return;
+    const a = document.createElement("a");
+    a.href = `/api/employees/export?type=${habType}&ids=${ids.join(",")}`;
+    a.download = "";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const resetFilters = () => {
     setSearchTerm("");
     setCodeFilter("all");
@@ -269,7 +281,7 @@ export default function EmployeeList({ habType }: EmployeeListProps) {
               progress={bulk.progress}
               onToggleAll={bulk.toggleAll}
               onClearSelection={bulk.clearSelection}
-              onAction={(action) => bulk.runBulkAction(action)}
+              onAction={(action) => { if (action === "export") exportSelection(); else bulk.runBulkAction(action); }}
             />
             <div className="overflow-x-auto">
               <Table className="text-sm [&_th]:h-9 [&_th]:px-3 [&_th]:py-1 [&_th]:whitespace-nowrap [&_td]:px-3 [&_td]:py-1.5">
