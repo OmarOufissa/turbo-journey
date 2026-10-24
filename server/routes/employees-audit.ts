@@ -6,6 +6,7 @@ import { z } from "zod";
 import { resetNotificationLogsForEmployee } from "../jobs/notificationJobs";
 import { getUserIdFromRequest } from "../utils/authHelpers";
 import { isUniqueConstraintError } from "../utils/dbErrors";
+import { formatDateDMY } from "../utils/dateUtils";
 
 const habRowDataSchema = z.object({
   domaine: z.string().default(''),
@@ -1191,6 +1192,7 @@ export const exportEmployees: RequestHandler = async (req, res) => {
       const htExp = r.dateExpirationHt ?? (ht ? r.dateExpiration : "");
       const stVal = r.dateValidationSt ?? (st ? r.dateValidation : "");
       const stExp = r.dateExpirationSt ?? (st ? r.dateExpiration : "");
+      const dmy = (d: string) => (d ? formatDateDMY(d) : "");
       return {
         Matricule: r.matricule,
         Nom: r.nom,
@@ -1202,11 +1204,11 @@ export const exportEmployees: RequestHandler = async (req, res) => {
         ST_codes: (r.stCodes ?? []).join(", "),
         HT_codes: (r.htCodes ?? []).join(", "),
         N_de_titre: r.nDeTitre,
-        Validation_HT: htVal || "",
-        Expiration_HT: htExp || "",
+        Validation_HT: dmy(htVal),
+        Expiration_HT: dmy(htExp),
         Statut_HT: htExp ? expirationColor(htExp) : "",
-        Validation_ST: stVal || "",
-        Expiration_ST: stExp || "",
+        Validation_ST: dmy(stVal),
+        Expiration_ST: dmy(stExp),
         Statut_ST: stExp ? expirationColor(stExp) : "",
         PDF: r.pdfPath ? "Oui" : "Non",
         Version: r.versionNumber,
