@@ -233,7 +233,6 @@ export default function Stats() {
         ${kpi("À renouveler < 3 mois", global.lt3)}
         ${kpi("À renouveler < 6 mois", global.lt6)}
         ${kpi("HT / ST", global.ht + " / " + global.st)}
-        ${kpi("Sans PDF", global.noPdf)}
       </div>
       ${(donut || forecast || statusBars) ? `<h2>Synthèse visuelle</h2><div class="charts">
         ${donut ? `<div class="chart half"><div class="t">Taux de conformité</div>${donut}</div>` : ""}
@@ -319,7 +318,6 @@ export default function Stats() {
           <StatCard tone="amber" title="À renouveler < 6 mois" value={global.lt6} />
           <StatCard tone="cyan" title="Habilitations HT" value={global.ht} />
           <StatCard tone="violet" title="Habilitations ST" value={global.st} />
-          <StatCard tone="rose" title="Sans PDF" value={global.noPdf} sub="version actuelle" />
         </div>
 
         {/* Comparative table by sub-entity */}
