@@ -189,6 +189,20 @@ export default function Stats() {
   const printReport = () => {
     const esc = (s: any) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
     const kpi = (label: string, val: string | number) => `<div class="kpi"><div class="kv">${val}</div><div class="kl">${label}</div></div>`;
+    // Grab a rendered chart's SVG and make it scale to the page width.
+    const captureChart = (id: string): string => {
+      const svg = document.getElementById(id)?.querySelector("svg");
+      if (!svg) return "";
+      const clone = svg.cloneNode(true) as SVGElement;
+      const w = clone.getAttribute("width"), h = clone.getAttribute("height");
+      if (w && h && !clone.getAttribute("viewBox")) clone.setAttribute("viewBox", `0 0 ${parseFloat(w)} ${parseFloat(h)}`);
+      clone.removeAttribute("width"); clone.removeAttribute("height");
+      clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+      return clone.outerHTML;
+    };
+    const donut = captureChart("stat-chart-donut");
+    const statusBars = captureChart("stat-chart-status");
+    const forecast = captureChart("stat-chart-forecast");
     const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8">
       <style>
         *{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;padding:18px;font-size:12px}
@@ -197,6 +211,12 @@ export default function Stats() {
         .kpis{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px}
         .kpi{border:1px solid #ccc;border-radius:8px;padding:8px 12px;min-width:120px}
         .kv{font-size:20px;font-weight:bold} .kl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.03em}
+        h2{font-size:13px;margin:16px 0 6px;border-bottom:1px solid #ddd;padding-bottom:3px}
+        .charts{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+        .chart{border:1px solid #e0e0e0;border-radius:8px;padding:8px}
+        .chart.wide{flex:1 1 100%} .chart.half{flex:1 1 300px}
+        .chart svg{width:100%;height:auto;max-height:260px}
+        .chart .t{font-size:11px;font-weight:bold;margin-bottom:4px;color:#333}
         table{border-collapse:collapse;width:100%;margin-top:8px} th,td{border:1px solid #bbb;padding:5px 7px;font-size:11px}
         th{background:#f0f0f0;text-align:left} td.n,th.n{text-align:right}
         .exp{color:#b42318;font-weight:bold} .ok{color:#1a7f37;font-weight:bold}
@@ -215,6 +235,12 @@ export default function Stats() {
         ${kpi("HT / ST", global.ht + " / " + global.st)}
         ${kpi("Sans PDF", global.noPdf)}
       </div>
+      ${(donut || forecast || statusBars) ? `<h2>Synthèse visuelle</h2><div class="charts">
+        ${donut ? `<div class="chart half"><div class="t">Taux de conformité</div>${donut}</div>` : ""}
+        ${forecast ? `<div class="chart half"><div class="t">Renouvellements à venir (12 mois)</div>${forecast}</div>` : ""}
+        ${statusBars ? `<div class="chart wide"><div class="t">Statut des habilitations par ${esc(levelLabel.toLowerCase())}</div>${statusBars}</div>` : ""}
+      </div>` : ""}
+      <h2>Détail par ${esc(levelLabel.toLowerCase())}</h2>
       <table>
         <thead><tr><th>${levelLabel}</th><th class="n">Agents</th><th class="n">Habil.</th><th class="n">Valides</th><th class="n">&lt; 3 mois</th><th class="n">&lt; 6 mois</th><th class="n">Expirées</th><th class="n">% Conf.</th></tr></thead>
         <tbody>
@@ -346,7 +372,7 @@ export default function Stats() {
         {/* Visual: stacked status bars per entity (presentation-friendly) */}
         <Card>
           <CardHeader><CardTitle>Statut des habilitations par {levelLabel.toLowerCase()}</CardTitle></CardHeader>
-          <CardContent>
+          <CardContent id="stat-chart-status">
             <ResponsiveContainer width="100%" height={Math.max(220, Math.min(rows.length, 15) * 34 + 40)}>
               <BarChart layout="vertical" data={rows.slice(0, 15).map(r => ({ name: r.name, Valides: r.valid, "< 6 mois": r.lt6, "< 3 mois": r.lt3, "Expirées": r.expired }))} margin={{ left: 10, right: 20 }}>
                 <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
@@ -368,7 +394,7 @@ export default function Stats() {
           <Card>
             <CardHeader><CardTitle>Taux de conformité</CardTitle></CardHeader>
             <CardContent>
-              <div className="relative">
+              <div className="relative" id="stat-chart-donut">
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
                     <Pie data={[
@@ -392,7 +418,7 @@ export default function Stats() {
 
           <Card>
             <CardHeader><CardTitle>Renouvellements à venir (12 mois)</CardTitle></CardHeader>
-            <CardContent>
+            <CardContent id="stat-chart-forecast">
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={forecast}>
                   <XAxis dataKey="label" tick={{ fontSize: 11 }} /><YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
