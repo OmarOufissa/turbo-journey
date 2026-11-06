@@ -45,16 +45,6 @@ function StatCard({ title, value, sub, tone = "blue" }: { title: string; value: 
 const MONTHS = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Aoû","Sep","Oct","Nov","Déc"];
 function monthLabel(ym: string) { const [y, m] = ym.split("-"); return `${MONTHS[parseInt(m) - 1]} ${y.slice(2)}`; }
 const PIE_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f97316", "#ef4444", "#ec4899", "#14b8a6", "#f59e0b", "#6366f1", "#84cc16", "#06b6d4", "#a855f7", "#eab308"];
-const RAD = Math.PI / 180;
-// Writes the raw count on each donut slice (skips slices too small to fit).
-function renderSliceCount(props: any) {
-  const { cx, cy, midAngle, innerRadius, outerRadius, value, percent } = props;
-  if (percent < 0.03) return null;
-  const r = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + r * Math.cos(-midAngle * RAD);
-  const y = cy + r * Math.sin(-midAngle * RAD);
-  return <text x={x} y={y} fill="#fff" fontSize={11} fontWeight="bold" textAnchor="middle" dominantBaseline="central">{value}</text>;
-}
 
 function isoPlusMonths(m: number): string {
   const d = new Date(); d.setMonth(d.getMonth() + m);
@@ -443,14 +433,16 @@ export default function Stats() {
           {codePie.length > 0 && (
             <Card>
               <CardHeader><CardTitle>Nombre par symbole</CardTitle></CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={260}>
-                  <PieChart>
-                    <Pie data={codePie} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={95} labelLine={false} label={renderSliceCount}>
+              <CardContent id="stat-chart-symbols">
+                <ResponsiveContainer width="100%" height={Math.max(240, codePie.length * 26 + 30)}>
+                  <BarChart layout="vertical" data={codePie} margin={{ left: 8, right: 36 }}>
+                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="name" width={52} tick={{ fontSize: 11, fontWeight: 600 }} />
+                    <Tooltip formatter={(v: number) => [`${v}`, "Nombre"]} />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]} label={{ position: "right", fontSize: 11, fontWeight: 700 }}>
                       {codePie.map((e, i) => <Cell key={i} fill={e.color} />)}
-                    </Pie>
-                    <Legend /><Tooltip formatter={(v: number, n: string) => [`${v}`, n]} />
-                  </PieChart>
+                    </Bar>
+                  </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
