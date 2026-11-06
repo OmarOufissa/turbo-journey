@@ -18,6 +18,7 @@ import {
   Layers, Building2, Zap, Info, ArrowUpRight, ArrowDownRight, Minus, Download,
 } from "lucide-react";
 import { apiClient } from "@/api/client";
+import { RenewalsReport } from "@/components/reports/RenewalsReport";
 import { EmptyState } from "@/components/shared/EmptyState";
 
 const PIE_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f97316", "#ef4444", "#ec4899", "#14b8a6", "#f59e0b", "#6366f1", "#84cc16", "#06b6d4", "#e11d48"];
@@ -395,6 +396,10 @@ export default function Reports() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Renewals report (period, by entity, symbols) */}
+        <SectionHeader title="Renouvellements" icon={RefreshCw} description="Cumul des renouvellements sur une période, par entité et par symbole" />
+        <RenewalsReport />
 
         {/* Organizational Analytics */}
         <SectionHeader title="Analyse Organisationnelle" icon={Building2} description="Performance par division et service" />

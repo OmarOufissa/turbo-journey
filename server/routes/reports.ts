@@ -961,3 +961,101 @@ export const getReports: RequestHandler = async (req, res) => {
     res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
   }
 };
+
+// ── Renewals report (integrated section on the Reports page) ─────────────────
+// Counts renewals (versions > 1) created within [from, to], grouped by
+// division/service/équipe, plus the symbols renewed and the brand-new symbols
+// assigned (present at renewal but absent from the previous version).
+export const getRenewalsReport: RequestHandler = async (req, res) => {
+  try {
+    const from = (req.query.from as string | undefined)?.slice(0, 10) || "";
+    const to = (req.query.to as string | undefined)?.slice(0, 10) || "";
+
+    const rows = await db
+      .select({
+        employeeId: schema.employeeVersions.employeeId,
+        versionNumber: schema.employeeVersions.versionNumber,
+        createdAt: schema.employeeVersions.createdAt,
+        htCodes: schema.employeeVersions.htCodes,
+        stCodes: schema.employeeVersions.stCodes,
+        dvHt: schema.employeeVersions.dateValidationHt,
+        dvSt: schema.employeeVersions.dateValidationSt,
+        division: schema.divisions.name,
+        service: schema.services.name,
+        equipe: schema.equipes.name,
+      })
+      .from(schema.employeeVersions)
+      .leftJoin(schema.divisions, eq(schema.employeeVersions.divisionId, schema.divisions.id))
+      .leftJoin(schema.services, eq(schema.employeeVersions.serviceId, schema.services.id))
+      .leftJoin(schema.equipes, eq(schema.employeeVersions.equipeId, schema.equipes.id))
+      .orderBy(schema.employeeVersions.employeeId, schema.employeeVersions.versionNumber);
+
+    const byEmp = new Map<number, any[]>();
+    for (const r of rows) { if (!byEmp.has(r.employeeId)) byEmp.set(r.employeeId, []); byEmp.get(r.employeeId)!.push(r); }
+
+    const inPeriod = (createdAt: string) => {
+      const d = (createdAt || "").slice(0, 10);
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      return true;
+    };
+    const codesOf = (r: any) => new Set<string>([...(r.htCodes || []), ...(r.stCodes || [])]);
+
+    type Grp = { name: string; renewals: number; agents: Set<number>; ht: number; st: number; newSymbols: number };
+    const mk = (): Map<string, Grp> => new Map();
+    const groups = { division: mk(), service: mk(), equipe: mk() };
+    const symbolsRenewed: Record<string, number> = {};
+    const newSymbols: Record<string, number> = {};
+    let totalRenewals = 0, totHt = 0, totSt = 0, totNew = 0;
+    const agentSet = new Set<number>();
+
+    const bump = (m: Map<string, Grp>, key: string, fn: (g: Grp) => void) => {
+      if (!m.has(key)) m.set(key, { name: key, renewals: 0, agents: new Set(), ht: 0, st: 0, newSymbols: 0 });
+      fn(m.get(key)!);
+    };
+
+    for (const [empId, versions] of byEmp) {
+      for (let i = 0; i < versions.length; i++) {
+        const v = versions[i];
+        if (v.versionNumber <= 1 || !inPeriod(v.createdAt)) continue;
+        const prev = versions.find((x: any) => x.versionNumber === v.versionNumber - 1) || null;
+        const prevCodes = prev ? codesOf(prev) : new Set<string>();
+        const vCodes = codesOf(v);
+        const added = [...vCodes].filter((c) => !prevCodes.has(c));
+        // Which type was renewed: per-type validation date changed vs previous.
+        const htRenewed = prev ? (v.dvHt ?? null) !== (prev.dvHt ?? null) : (v.htCodes || []).length > 0;
+        const stRenewed = prev ? (v.dvSt ?? null) !== (prev.dvSt ?? null) : (v.stCodes || []).length > 0;
+
+        totalRenewals++; agentSet.add(empId);
+        if (htRenewed) totHt++; if (stRenewed) totSt++; totNew += added.length;
+        for (const c of vCodes) symbolsRenewed[c] = (symbolsRenewed[c] ?? 0) + 1;
+        for (const c of added) newSymbols[c] = (newSymbols[c] ?? 0) + 1;
+
+        const patch = (g: Grp) => { g.renewals++; g.agents.add(empId); if (htRenewed) g.ht++; if (stRenewed) g.st++; g.newSymbols += added.length; };
+        bump(groups.division, v.division || "—", patch);
+        bump(groups.service, v.service || "—", patch);
+        bump(groups.equipe, v.equipe || "(Sans équipe)", patch);
+      }
+    }
+
+    const ser = (m: Map<string, Grp>) => [...m.values()].map((g) => ({ name: g.name, renewals: g.renewals, agents: g.agents.size, ht: g.ht, st: g.st, newSymbols: g.newSymbols })).sort((a, b) => b.renewals - a.renewals);
+    const pairs = (o: Record<string, number>) => Object.entries(o).map(([code, count]) => ({ code, count })).sort((a, b) => b.count - a.count);
+
+    res.json({
+      success: true,
+      data: {
+        period: { from, to },
+        totals: { renewals: totalRenewals, agents: agentSet.size, ht: totHt, st: totSt, symbolsRenewed: pairs(symbolsRenewed).reduce((s, x) => s + x.count, 0), newSymbols: totNew },
+        byDivision: ser(groups.division),
+        byService: ser(groups.service),
+        byEquipe: ser(groups.equipe),
+        symbolsRenewed: pairs(symbolsRenewed),
+        newSymbols: pairs(newSymbols),
+      },
+      error: null,
+    });
+  } catch (err) {
+    console.error("getRenewalsReport error:", err);
+    res.status(500).json({ success: false, data: null, error: "Erreur serveur" });
+  }
+};
