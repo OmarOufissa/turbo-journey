@@ -44,7 +44,17 @@ function StatCard({ title, value, sub, tone = "blue" }: { title: string; value: 
 
 const MONTHS = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Aoû","Sep","Oct","Nov","Déc"];
 function monthLabel(ym: string) { const [y, m] = ym.split("-"); return `${MONTHS[parseInt(m) - 1]} ${y.slice(2)}`; }
-const PIE_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f97316", "#ef4444", "#ec4899", "#14b8a6", "#f59e0b", "#6366f1", "#84cc16"];
+const PIE_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f97316", "#ef4444", "#ec4899", "#14b8a6", "#f59e0b", "#6366f1", "#84cc16", "#06b6d4", "#a855f7", "#eab308"];
+const RAD = Math.PI / 180;
+// Writes the raw count on each donut slice (skips slices too small to fit).
+function renderSliceCount(props: any) {
+  const { cx, cy, midAngle, innerRadius, outerRadius, value, percent } = props;
+  if (percent < 0.03) return null;
+  const r = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + r * Math.cos(-midAngle * RAD);
+  const y = cy + r * Math.sin(-midAngle * RAD);
+  return <text x={x} y={y} fill="#fff" fontSize={11} fontWeight="bold" textAnchor="middle" dominantBaseline="central">{value}</text>;
+}
 
 function isoPlusMonths(m: number): string {
   const d = new Date(); d.setMonth(d.getMonth() + m);
@@ -161,7 +171,7 @@ export default function Stats() {
   const codePie = useMemo(() => {
     const c: Record<string, number> = {};
     habs.forEach(h => h.codes.forEach(code => { c[code] = (c[code] ?? 0) + 1; }));
-    return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name, value], i) => ({ name, value, color: PIE_COLORS[i % PIE_COLORS.length] }));
+    return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 14).map(([name, value], i) => ({ name, value, color: PIE_COLORS[i % PIE_COLORS.length] }));
   }, [habs]);
 
   const scopePath = [DIRECTION_NAME,
@@ -369,7 +379,8 @@ export default function Stats() {
           </CardContent>
         </Card>
 
-        {/* Visual: stacked status bars per entity (presentation-friendly) */}
+        {/* Visual: stacked status bars per entity — hidden on a single-entity (équipe) view */}
+        {level !== "none" && (
         <Card>
           <CardHeader><CardTitle>Statut des habilitations par {levelLabel.toLowerCase()}</CardTitle></CardHeader>
           <CardContent id="stat-chart-status">
@@ -388,6 +399,7 @@ export default function Stats() {
             {rows.length > 15 && <p className="text-xs text-muted-foreground mt-2">15 premières entités affichées — affinez le filtre pour le détail.</p>}
           </CardContent>
         </Card>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Conformity donut */}
@@ -430,11 +442,11 @@ export default function Stats() {
           </Card>
           {codePie.length > 0 && (
             <Card>
-              <CardHeader><CardTitle>Symboles les plus fréquents</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Nombre par symbole</CardTitle></CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={240}>
+                <ResponsiveContainer width="100%" height={260}>
                   <PieChart>
-                    <Pie data={codePie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${name} (${value})`}>
+                    <Pie data={codePie} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={95} labelLine={false} label={renderSliceCount}>
                       {codePie.map((e, i) => <Cell key={i} fill={e.color} />)}
                     </Pie>
                     <Legend /><Tooltip formatter={(v: number, n: string) => [`${v}`, n]} />
